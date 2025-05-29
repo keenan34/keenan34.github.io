@@ -1,0 +1,272 @@
+{
+  "Mambas": [
+    {
+      "name": "Arsalan Babar",
+      "number": "6"
+    },
+    {
+      "name": "Imran Babar",
+      "number": "24"
+    },
+    {
+      "name": "Rehman Qureshi",
+      "number": "10"
+    },
+    {
+      "name": "Omair Qureshi",
+      "number": "8"
+    },
+    {
+      "name": "Samie Bhatti",
+      "number": "28"
+    },
+    {
+      "name": "Hanuk Nazir",
+      "number": "3"
+    },
+    {
+      "name": "Varghese Yohannan",
+      "number": "7"
+    },
+    {
+      "name": "Jerremiah Dujuan Wright",
+      "number": "81"
+    },
+    {
+      "name": "Omar Mirza",
+      "number": "11"
+    },
+    {
+      "name": "Roberto Flores",
+      "number": "21"
+    },
+    {
+      "name": "Kazmain Shah",
+      "number": "27"
+    }
+  ],
+  "YNS": [
+    {
+      "name": "Wajahat Khan",
+      "number": "1"
+    },
+    {
+      "name": "Fasahat Khan",
+      "number": "2"
+    },
+    {
+      "name": "Abrar Khan",
+      "number": "3"
+    },
+    {
+      "name": "Musab Bawany",
+      "number": "0"
+    },
+    {
+      "name": "Fardeen Khan",
+      "number": "18"
+    },
+    {
+      "name": "Taha Doha",
+      "number": "10"
+    },
+    {
+      "name": "Abbaad Bawany",
+      "number": "4"
+    },
+    {
+      "name": "Zakee Jabbar",
+      "number": "7"
+    }
+  ],
+  "Shariah Stepback": [
+    {
+      "name": "Abdullah Basith",
+      "number": "3"
+    },
+    {
+      "name": "Haris Khan",
+      "number": "7"
+    },
+    {
+      "name": "Shayaan Shaikh",
+      "number": "13"
+    },
+    {
+      "name": "Zaid Khan",
+      "number": "4"
+    },
+    {
+      "name": "Zain Qurashi",
+      "number": "30"
+    },
+    {
+      "name": "Shahmir Khan",
+      "number": "8"
+    },
+    {
+      "name": "Taha Tayyabi",
+      "number": "1"
+    },
+    {
+      "name": "Bilal Khan",
+      "number": "32"
+    },
+    {
+      "name": "Imran Khalique",
+      "number": "23"
+    },
+    {
+      "name": "Luqman Ali",
+      "number": "17"
+    }
+  ],
+  "0pium Hoopers": [
+    {
+      "name": "Hamza Satti",
+      "number": "0"
+    },
+    {
+      "name": "Eman Hodzic",
+      "number": "69"
+    },
+    {
+      "name": "Malek Umar",
+      "number": "11"
+    },
+    {
+      "name": "Majd Saleh",
+      "number": "1"
+    },
+    {
+      "name": "Amaan Baki",
+      "number": "3"
+    },
+    {
+      "name": "Rohail Ahmed",
+      "number": "21"
+    },
+    {
+      "name": "Youssef Hassab",
+      "number": "4"
+    }
+  ],
+  "Mujahideens": [
+    {
+      "name": "Zuren Shethwala",
+      "number": "30"
+    },
+    {
+      "name": "Ammar Shaheen",
+      "number": "13"
+    },
+    {
+      "name": "Jazib Farooqui",
+      "number": "10"
+    },
+    {
+      "name": "Samar Khan",
+      "number": "1"
+    },
+    {
+      "name": "Zain Rehman",
+      "number": "77"
+    },
+    {
+      "name": "Moosa Kaleemullah",
+      "number": "23"
+    },
+    {
+      "name": "Taabish Abba",
+      "number": "32"
+    },
+    {
+      "name": "Abdul Qayyum",
+      "number": "8"
+    },
+    {
+      "name": "Moises Moya",
+      "number": "34"
+    }
+  ],
+  "UMMA": [
+    {
+      "name": "Hamaas Ibrahim",
+      "number": "3"
+    },
+    {
+      "name": "Cyrus Paddock",
+      "number": "30"
+    },
+    {
+      "name": "Quincy Paddock",
+      "number": "20"
+    },
+    {
+      "name": "Avery Foster",
+      "number": "34"
+    },
+    {
+      "name": "Payton Foster",
+      "number": "21"
+    },
+    {
+      "name": "Brady Foster",
+      "number": "24"
+    },
+    {
+      "name": "Casey Miasek",
+      "number": "8"
+    },
+    {
+      "name": "Shaimar Robinson",
+      "number": "25"
+    },
+    {
+      "name": "Cortez Dixon",
+      "number": "15"
+    },
+    {
+      "name": "Brian Coradini",
+      "number": "9"
+    },
+    {
+      "name": "John Kirkpatrick",
+      "number": "0"
+    }
+  ],
+  "Team Flight": [
+    {
+      "name": "Hamzah Malik",
+      "number": "6"
+    },
+    {
+      "name": "Ammar Osman",
+      "number": "21"
+    },
+    {
+      "name": "Amaar Zafar",
+      "number": "5"
+    },
+    {
+      "name": "Hamzah Alrousan",
+      "number": "7"
+    },
+    {
+      "name": "Rohail Chohan",
+      "number": "1"
+    },
+    {
+      "name": "Ahmed Idrees",
+      "number": "2"
+    },
+    {
+      "name": "Abdullah Hussaini",
+      "number": "0"
+    },
+    {
+      "name": "Murtaza Mirza",
+      "number": "3"
+    }
+  ]
+}
