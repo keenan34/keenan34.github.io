@@ -17,11 +17,11 @@ const App = () => {
         {/* Header with Logo */}
         <nav className="bg-black text-white shadow-md">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-1">
               <img src="/ifnbl-logo.png" alt="IFNBL Logo" className="h-12 w-auto" />
-              <h1 className="text-2xl font-bold text-white">IFNBL</h1>
+<h1 className="text-2xl font-bold text-white pr-4">IFNBL</h1>
             </Link>
-            <ul className="flex space-x-6 text-lg">
+            <ul className="flex space-x-6 text-base">
               <li><Link to="/teams" className="hover:text-green-400">Teams</Link></li>
               <li><Link to="/schedule" className="hover:text-red-500">Schedule</Link></li>
               <li><Link to="/leaders" className="hover:text-blue-400">Leaders</Link></li>
