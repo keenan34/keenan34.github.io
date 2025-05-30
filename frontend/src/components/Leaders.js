@@ -31,13 +31,13 @@ export default function Leaders() {
   const getTop = (stat) => {
     return [...players]
       .sort((a, b) => b[stat] - a[stat])
-      .slice(0, 5); // top 5
+      .slice(0, 10); // top 10
   };
 
   const renderCategory = (label, stat) => (
-    <div className="mb-6">
-      <h2 className="text-xl font-bold mb-2">{label}</h2>
-      <table className="min-w-full text-sm text-left border">
+    <div className="bg-white shadow rounded overflow-hidden">
+      <h2 className="text-lg font-semibold px-4 pt-4">{label}</h2>
+      <table className="w-full text-sm text-left">
         <thead className="bg-gray-200">
           <tr>
             <th className="p-2">Player</th>
@@ -58,10 +58,12 @@ export default function Leaders() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">League Leaders</h1>
-      {renderCategory('Points', 'points')}
-      {renderCategory('3PT Made', 'threes')}
-      {renderCategory('Rebounds', 'rebounds')}
+      <h1 className="text-2xl font-bold mb-6">League Leaders</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {renderCategory('Points', 'points')}
+        {renderCategory('3PT Made', 'threes')}
+        {renderCategory('Rebounds', 'rebounds')}
+      </div>
     </div>
   );
 }
