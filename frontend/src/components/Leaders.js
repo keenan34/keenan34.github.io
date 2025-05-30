@@ -31,35 +31,41 @@ export default function Leaders() {
   const getTop = (stat) => {
     return [...players]
       .sort((a, b) => b[stat] - a[stat])
-      .slice(0, 10); // top 10
+      .slice(0, 10);
   };
 
   const renderCategory = (label, stat) => (
-    <div className="bg-white shadow rounded overflow-hidden">
-      <h2 className="text-lg font-semibold px-4 pt-4">{label}</h2>
+  <div className="bg-white shadow rounded overflow-hidden px-4 py-4 w-full max-w-md mx-auto">
+    <h2 className="text-lg font-semibold mb-3 text-center">{label}</h2>
+    <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
         <thead className="bg-gray-200">
           <tr>
             <th className="p-2">Player</th>
-            <th className="p-2">{label}</th>
+            <th className="p-2 text-right">{label}</th>
           </tr>
         </thead>
         <tbody>
           {getTop(stat).map((p, i) => (
-            <tr key={i} className="even:bg-gray-100">
-              <td className="p-2">{p.name}</td>
-              <td className="p-2">{p[stat]}</td>
-            </tr>
-          ))}
+  <tr key={i} className="even:bg-gray-100">
+    <td className="p-2">
+      <span className="font-bold mr-1">#{i + 1}</span>{p.name}
+    </td>
+    <td className="p-2 text-right">{p[stat]}</td>
+  </tr>
+))}
+
         </tbody>
       </table>
     </div>
-  );
+  </div>
+);
+
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">League Leaders</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold text-center mb-6">League Leaders</h1>
+      <div className="flex flex-col gap-8 items-center">
         {renderCategory('Points', 'points')}
         {renderCategory('3PT Made', 'threes')}
         {renderCategory('Rebounds', 'rebounds')}
