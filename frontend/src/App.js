@@ -24,7 +24,7 @@ const App = () => {
             <ul className="flex space-x-6 text-base">
               <li><Link to="/teams" className="hover:text-green-400">Teams</Link></li>
               <li><Link to="/schedule" className="hover:text-red-500">Schedule</Link></li>
-              <li><Link to="/leaders" className="hover:text-blue-400">Leaders</Link></li>
+              <li><Link to="/leaders" className="hover:text-green-400">Leaders</Link></li>
             </ul>
           </div>
         </nav>
@@ -46,7 +46,7 @@ const App = () => {
             <Route path="/teams" element={<TeamList />} />
             <Route path="/teams/:id/roster" element={<TeamRoster />} />
             <Route path="/schedule" element={<Schedule />} />
-            <Route path="/boxscore/week1/:gameId" element={<BoxScore />} />
+            <Route path="/boxscore/:week/:gameId" element={<BoxScore />} />
             <Route path="/leaders" element={<Leaders />} />
           </Routes>
         </div>
