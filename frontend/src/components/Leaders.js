@@ -1,11 +1,50 @@
 // src/components/Leaders.jsx
 import { useEffect, useState } from 'react';
 
+// Utility: slugify name to match image filenames in public/images/players
+const slugify = (str) =>
+  str
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+
+// Base URL for public assets
+const PUBLIC_URL = process.env.PUBLIC_URL || '';
+
+// ProfileImage: tries to load PNG by slug; on failure, shows initials
+function ProfileImage({ name }) {
+  const [error, setError] = useState(false);
+  const slug = slugify(name);
+  const src = `${PUBLIC_URL}/images/players/${slug}.png`;
+  const initials = name
+    .split(' ')
+    .map((n) => n[0])
+    .join('');
+
+  if (error) {
+    return (
+      <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-gray-200 mr-2">
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name}
+      width="32"
+      height="32"
+      className="h-8 w-8 flex-shrink-0 rounded-full object-cover mr-2"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 export default function Leaders() {
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
-    // Fetch both week JSONs in parallel
     Promise.all([fetch('/week1.json'), fetch('/week2.json')])
       .then(async ([res1, res2]) => {
         if (!res1.ok) throw new Error('Could not load /week1.json');
@@ -13,40 +52,39 @@ export default function Leaders() {
         const data1 = await res1.json();
         const data2 = await res2.json();
 
-        // 1) Accumulate totals + game count per player
         const playerMap = {};
         const extractWeek = (weekJson) => {
           Object.values(weekJson).forEach((game) => {
             ['teamA', 'teamB'].forEach((side) => {
               game[side].players.forEach((p) => {
                 if (!p.Player) return;
-                const name      = p.Player;
-                const pts       = Number(p.Points     || 0);
-                const threes    = Number(p['3 PTM']   || 0);
-                const rebounds  = Number(p.REB        || 0);
-                const turnovers = Number(p.TOs        || 0);
-                const fouls     = Number(p.Fouls      || 0);
-                const stlBlk    = Number(p['STLS/BLKS'] || 0);
+                const name = p.Player;
+                const pts = Number(p.Points || 0);
+                const threes = Number(p['3 PTM'] || 0);
+                const rebounds = Number(p.REB || 0);
+                const turnovers = Number(p.TOs || 0);
+                const fouls = Number(p.Fouls || 0);
+                const stlBlk = Number(p['STLS/BLKS'] || 0);
 
                 if (!playerMap[name]) {
                   playerMap[name] = {
                     name,
-                    totalPts:    pts,
-                    total3:      threes,
-                    totalReb:    rebounds,
-                    totalTO:     turnovers,
-                    totalFouls:  fouls,
+                    totalPts: pts,
+                    total3: threes,
+                    totalReb: rebounds,
+                    totalTO: turnovers,
+                    totalFouls: fouls,
                     totalStlBlk: stlBlk,
-                    games:       1,
+                    games: 1,
                   };
                 } else {
-                  playerMap[name].totalPts    += pts;
-                  playerMap[name].total3      += threes;
-                  playerMap[name].totalReb    += rebounds;
-                  playerMap[name].totalTO     += turnovers;
-                  playerMap[name].totalFouls  += fouls;
+                  playerMap[name].totalPts += pts;
+                  playerMap[name].total3 += threes;
+                  playerMap[name].totalReb += rebounds;
+                  playerMap[name].totalTO += turnovers;
+                  playerMap[name].totalFouls += fouls;
                   playerMap[name].totalStlBlk += stlBlk;
-                  playerMap[name].games       += 1;
+                  playerMap[name].games += 1;
                 }
               });
             });
@@ -56,25 +94,22 @@ export default function Leaders() {
         extractWeek(data1);
         extractWeek(data2);
 
-        // 2) Convert map → array, computing per‐game averages
         const arrayWithAverages = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
           return {
-            name:       p.name,
-            /* Totals */
-            totalPts:    p.totalPts,
-            total3:      p.total3,
-            totalReb:    p.totalReb,
-            totalTO:     p.totalTO,
-            totalFouls:  p.totalFouls,
+            name: p.name,
+            totalPts: p.totalPts,
+            total3: p.total3,
+            totalReb: p.totalReb,
+            totalTO: p.totalTO,
+            totalFouls: p.totalFouls,
             totalStlBlk: p.totalStlBlk,
-            /* Averages (one decimal) */
-            avgPts:      Number((p.totalPts    / g).toFixed(1)),
-            avg3:        Number((p.total3      / g).toFixed(1)),
-            avgReb:      Number((p.totalReb    / g).toFixed(1)),
-            avgTO:       Number((p.totalTO     / g).toFixed(1)),
-            avgFouls:    Number((p.totalFouls  / g).toFixed(1)),
-            avgStlBlk:   Number((p.totalStlBlk / g).toFixed(1)),
+            avgPts: Number((p.totalPts / g).toFixed(1)),
+            avg3: Number((p.total3 / g).toFixed(1)),
+            avgReb: Number((p.totalReb / g).toFixed(1)),
+            avgTO: Number((p.totalTO / g).toFixed(1)),
+            avgFouls: Number((p.totalFouls / g).toFixed(1)),
+            avgStlBlk: Number((p.totalStlBlk / g).toFixed(1)),
           };
         });
 
@@ -86,71 +121,38 @@ export default function Leaders() {
       });
   }, []);
 
-  // 3) Top 10 by averageKey (descending)
   const getTopByAverage = (avgKey) =>
-    [...players]
-      .sort((a, b) => b[avgKey] - a[avgKey])
-      .slice(0, 10);
+    [...players].sort((a, b) => b[avgKey] - a[avgKey]).slice(0, 10);
 
-  /**
-   * Renders one leaderboard card with:
-   *  - Header (white)
-   *  - Data table on light gray
-   *  - Rank + name in bold, all numbers bold
-   *  - AVG column width reduced (w-16) to shift left
-   *
-   * Props:
-   *   label:      e.g. "Points"
-   *   avgKey:     e.g. "avgPts"
-   *   totalKey:   e.g. "totalPts"
-   *   avgLabel:   e.g. "PTS/G"
-   *   totalLabel: e.g. "PTS"
-   */
-  const renderCategory = ({
-    label,
-    avgKey,
-    totalKey,
-    avgLabel,
-    totalLabel,
-  }) => {
+  const renderCategory = ({ label, avgKey, totalKey, avgLabel, totalLabel }) => {
     const top10 = getTopByAverage(avgKey);
 
     return (
-      <div className="w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-md">
-        {/* Card header stays white */}
-        <div className="bg-white py-3">
-          <h2 className="text-center text-lg font-semibold">{label}</h2>
+      <div className="w-full max-w-md mx-auto rounded-lg overflow-hidden shadow-lg bg-gray-800">
+        <div className="bg-gray-900 py-3">
+          <h2 className="text-center text-lg font-semibold text-white">{label}</h2>
         </div>
-
-        {/* Data table on a light gray background */}
-        <div className="bg-gray-100 p-2 rounded-b-lg">
+        <div className="bg-gray-700 p-2 rounded-b-lg">
           <table className="w-full text-sm table-fixed">
-            <thead className="bg-gray-200">
+            <thead className="bg-gray-600">
               <tr>
-                <th className="p-2 text-left">Player</th>
-                {/* AVG column at w-16 instead of w-20 */}
-                <th className="p-2 text-right w-16">{avgLabel}</th>
-                {/* TOTAL remains w-20 */}
-                <th className="p-2 text-right w-20">{totalLabel}</th>
+                <th className="p-2 text-left text-gray-200">Player</th>
+                <th className="p-2 text-right w-16 text-gray-200">{avgLabel}</th>
+                <th className="p-2 text-right w-20 text-gray-200">{totalLabel}</th>
               </tr>
             </thead>
             <tbody>
               {top10.map((p, idx) => (
-                <tr
-                  key={p.name}
-                  className={idx % 2 === 1 ? 'bg-gray-50' : ''}
-                >
-                  <td className="p-2">
-                    {/* Rank + name bold */}
+                <tr key={p.name} className={idx % 2 === 1 ? 'bg-gray-700' : 'bg-gray-800'}>
+                  <td className="p-2 flex items-center whitespace-nowrap text-white">
+                    <ProfileImage name={p.name} />
                     <span className="font-bold mr-1">#{idx + 1}</span>
                     <span className="font-bold">{p.name}</span>
                   </td>
-                  {/* AVG column: text-xl, bold, fixed w-16 */}
-                  <td className="p-2 text-right w-16">
+                  <td className="p-2 text-right w-16 text-white">
                     <span className="text-xl font-bold">{p[avgKey]}</span>
                   </td>
-                  {/* TOTAL column: bold, fixed w-20 */}
-                  <td className="p-2 text-right w-20">
+                  <td className="p-2 text-right w-20 text-white">
                     <span className="font-bold">{p[totalKey]}</span>
                   </td>
                 </tr>
@@ -163,55 +165,19 @@ export default function Leaders() {
   };
 
   if (players.length === 0) {
-    return <p className="text-center py-6 text-gray-500">Loading leaders…</p>;
+    return <p className="text-center py-6 text-gray-400">Loading leaders…</p>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">League Leaders</h1>
+    <div className="bg-gray-900 p-4">
+      <h1 className="text-2xl font-bold text-center mb-6 text-white">League Leaders</h1>
       <div className="flex flex-col gap-8 items-center">
-        {renderCategory({
-          label:      'Points',
-          avgKey:     'avgPts',
-          totalKey:   'totalPts',
-          avgLabel:   'PTS/G',
-          totalLabel: 'PTS',
-        })}
-        {renderCategory({
-          label:      '3PT Made',
-          avgKey:     'avg3',
-          totalKey:   'total3',
-          avgLabel:   '3PT/G',
-          totalLabel: '3PT',
-        })}
-        {renderCategory({
-          label:      'Rebounds',
-          avgKey:     'avgReb',
-          totalKey:   'totalReb',
-          avgLabel:   'REB/G',
-          totalLabel: 'REB',
-        })}
-        {renderCategory({
-          label:      'STLS/BLKS',
-          avgKey:     'avgStlBlk',
-          totalKey:   'totalStlBlk',
-          avgLabel:   'STL/BLK /G',
-          totalLabel: 'STL/BLK',
-        })}
-        {renderCategory({
-          label:      'Turnovers',
-          avgKey:     'avgTO',
-          totalKey:   'totalTO',
-          avgLabel:   'TO/G',
-          totalLabel: 'TO',
-        })}
-        {renderCategory({
-          label:      'Fouls',
-          avgKey:     'avgFouls',
-          totalKey:   'totalFouls',
-          avgLabel:   'FLS/G',
-          totalLabel: 'FLS',
-        })}
+        {renderCategory({ label: 'Points', avgKey: 'avgPts', totalKey: 'totalPts', avgLabel: 'PTS/G', totalLabel: 'PTS' })}
+        {renderCategory({ label: '3PT Made', avgKey: 'avg3', totalKey: 'total3', avgLabel: '3PT/G', totalLabel: '3PT' })}
+        {renderCategory({ label: 'Rebounds', avgKey: 'avgReb', totalKey: 'totalReb', avgLabel: 'REB/G', totalLabel: 'REB' })}
+        {renderCategory({ label: 'STLS/BLKS', avgKey: 'avgStlBlk', totalKey: 'totalStlBlk', avgLabel: 'STL/BLK/G', totalLabel: 'STL/BLK' })}
+        {renderCategory({ label: 'Turnovers', avgKey: 'avgTO', totalKey: 'totalTO', avgLabel: 'TO/G', totalLabel: 'TO' })}
+        {renderCategory({ label: 'Fouls', avgKey: 'avgFouls', totalKey: 'totalFouls', avgLabel: 'FLS/G', totalLabel: 'FLS' })}
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-// If you have this array elsewhere, you can import it, otherwise define here:
 const allTeams = [
   "0pium Hoopers",
   "Team Flight",
@@ -24,16 +23,12 @@ export default function TeamList() {
         return res.json();
       })
       .then((games) => {
-        // Initialize records
         const recordMap = {};
         allTeams.forEach((team) => {
           recordMap[team] = { wins: 0, losses: 0 };
         });
-
-        // Iterate through each game, update wins/losses
         games.forEach((game) => {
           const { teamA, teamB, scoreA, scoreB } = game;
-          // Only count if both scores exist (i.e. game has been played)
           if (typeof scoreA === 'number' && typeof scoreB === 'number') {
             if (scoreA > scoreB) {
               recordMap[teamA].wins += 1;
@@ -42,10 +37,8 @@ export default function TeamList() {
               recordMap[teamB].wins += 1;
               recordMap[teamA].losses += 1;
             }
-            // If tie logic is needed, add here (e.g. ties++, but we assume no ties)
           }
         });
-
         setStandings(recordMap);
         setLoading(false);
       })
@@ -55,38 +48,31 @@ export default function TeamList() {
       });
   }, []);
 
-  // Convert recordMap into a sorted array by win% (wins / gamesPlayed), descending
   const sortedStandings = React.useMemo(() => {
     const arr = allTeams.map((team) => {
       const { wins, losses } = standings[team] || { wins: 0, losses: 0 };
       const gamesPlayed = wins + losses;
       const winPct = gamesPlayed > 0 ? wins / gamesPlayed : 0;
-      return {
-        team,
-        wins,
-        losses,
-        winPct,
-      };
+      return { team, wins, losses, winPct };
     });
-
     return arr.sort((a, b) => b.winPct - a.winPct || b.wins - a.wins);
   }, [standings]);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-center mb-6">Teams & Standings</h1>
+    <div className="min-h-screen bg-gray-900 p-6">
+      <h1 className="text-3xl font-bold text-center mb-6 text-white">Teams & Standings</h1>
 
-      {/* 1. Standings Table */}
-      <div className="mb-10 max-w-lg mx-auto bg-white shadow rounded">
-        <h2 className="text-xl font-semibold bg-gray-100 px-4 py-2 border-b">
+      {/* Standings Table */}
+      <div className="mb-10 max-w-lg mx-auto bg-gray-800 shadow-lg rounded">
+        <h2 className="text-xl font-semibold bg-gray-700 px-4 py-2 border-b border-gray-600 text-white">
           Standings
         </h2>
         {loading ? (
-          <p className="p-4 text-center text-gray-600">Loading standings…</p>
+          <p className="p-4 text-center text-gray-400">Loading standings…</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-200 text-gray-800">
+              <thead className="bg-gray-700 text-gray-200">
                 <tr>
                   <th className="p-2">#</th>
                   <th className="p-2">Team</th>
@@ -97,12 +83,15 @@ export default function TeamList() {
               </thead>
               <tbody>
                 {sortedStandings.map((row, idx) => (
-                  <tr key={row.team} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="p-2">{idx + 1}</td>
-                    <td className="p-2">{row.team}</td>
-                    <td className="p-2 text-center">{row.wins}</td>
-                    <td className="p-2 text-center">{row.losses}</td>
-                    <td className="p-2 text-center">
+                  <tr
+                    key={row.team}
+                    className={idx % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}
+                  >
+                    <td className="p-2 text-gray-300">{idx + 1}</td>
+                    <td className="p-2 text-gray-100">{row.team}</td>
+                    <td className="p-2 text-center text-gray-100">{row.wins}</td>
+                    <td className="p-2 text-center text-gray-100">{row.losses}</td>
+                    <td className="p-2 text-center text-gray-100">
                       {(row.winPct * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -113,15 +102,15 @@ export default function TeamList() {
         )}
       </div>
 
-      {/* 2. Team Grid (same as before) */}
+      {/* Team Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {allTeams.map((teamName) => (
           <Link
             key={teamName}
             to={`/teams/${encodeURIComponent(teamName)}/roster`}
-            className="bg-white rounded-xl shadow hover:shadow-lg hover:scale-105 transition duration-300 border border-gray-100 p-6 flex flex-col items-center"
+            className="bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 border border-gray-700 p-6 flex flex-col items-center"
           >
-            <h3 className="text-xl font-semibold text-black">{teamName}</h3>
+            <h3 className="text-xl font-semibold text-white">{teamName}</h3>
           </Link>
         ))}
       </div>

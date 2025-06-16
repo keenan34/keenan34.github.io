@@ -13,20 +13,57 @@ const teamColors = {
 
 const TeamRoster = () => {
   const { id } = useParams();
-  const [roster, setRoster] = useState([]);
-  const [loading, setLoading] = useState(true);
   const teamName = decodeURIComponent(id);
   const colorClass = teamColors[teamName] || "bg-black text-pink-500";
 
-  useEffect(() => {
-  fetch('/team_rosters.json')
-    .then(res => res.json())
-    .then(data => {
-      setRoster(data[teamName] || []);
-      setLoading(false);
-    });
-}, [teamName]);
+  const [roster, setRoster] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [zoomUrl, setZoomUrl] = useState(null);
 
+  useEffect(() => {
+    Promise.all([
+      fetch('/team_rosters.json'),
+      fetch('/players_with_images.json')
+    ])
+      .then(async ([r1, r2]) => {
+        const teamsData  = await r1.json();
+        const imagesData = await r2.json();
+        const plainRoster = teamsData[teamName] || [];
+
+        const merged = plainRoster.map(p => {
+          const info = imagesData[teamName]?.find(pi => pi.name === p.name);
+          return info ? { ...p, imgUrl: info.imgUrl } : p;
+        });
+
+        setRoster(merged);
+        setLoading(false);
+      })
+      .catch(console.error);
+  }, [teamName]);
+
+  const ZoomModal = () => (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      onClick={() => setZoomUrl(null)}
+    >
+      <div
+        className="rounded-full overflow-hidden w-[60vw] h-[60vw] max-w-[600px] max-h-[600px]"
+        onClick={e => e.stopPropagation()}
+      >
+        <img
+          src={zoomUrl}
+          alt="Zoomed player"
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <button
+        className="absolute top-4 right-4 text-white text-3xl"
+        onClick={() => setZoomUrl(null)}
+      >
+        &times;
+      </button>
+    </div>
+  );
 
   return (
     <div className="p-6">
@@ -44,15 +81,36 @@ const TeamRoster = () => {
             roster.map((player, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-xl shadow p-4 flex justify-between items-center"
+                className="bg-white rounded-xl shadow p-4 flex items-center"
               >
-                <span className="font-semibold text-gray-800">{player.name}</span>
+                {player.imgUrl ? (
+                  <img
+                    src={player.imgUrl}
+                    alt={player.name}
+                    onError={e => e.currentTarget.style.display = 'none'}
+                    className="w-12 h-12 rounded-full object-cover mr-4 cursor-pointer"
+                    onClick={() => setZoomUrl(player.imgUrl)}
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 mr-4">
+                    {player.name
+                      .split(' ')
+                      .map(n => n[0])
+                      .join('')
+                      .toUpperCase()}
+                  </div>
+                )}
+                <span className="flex-1 font-semibold text-gray-800">
+                  {player.name}
+                </span>
                 <span className="text-gray-600">#{player.number}</span>
               </div>
             ))
           )}
         </div>
       )}
+
+      {zoomUrl && <ZoomModal />}
     </div>
   );
 };
