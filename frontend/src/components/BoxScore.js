@@ -117,7 +117,7 @@ export default function BoxScore() {
             name={p.Player}
             onClick={() => setZoomUrl(p.imgUrl)}
           />
-          <div className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-1">
+          <div className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-.5 font-bold">
             {p.Player}
           </div>
         </div>
@@ -125,6 +125,7 @@ export default function BoxScore() {
     </div>
   );
 
+  // Updated StatsTable to show DNP and gray out rows where p.Points is null
   const StatsTable = ({ team }) => (
     <div className="overflow-x-auto flex-1 -mt-8" ref={scrollRef}>
       <table className="min-w-full table-auto text-white border-separate border-spacing-0">
@@ -141,25 +142,39 @@ export default function BoxScore() {
           </tr>
         </thead>
         <tbody>
-          {team.players.map((p, idx) => (
-            <tr key={idx} className="border-b border-gray-800 even:bg-gray-900">
-              {statFields.map(({ get }, i) => (
-                <td
-                  key={i}
-                  className="h-32 px-4 py-1 text-center whitespace-nowrap"
-                >
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <span className="font-bold text-lg leading-none">
-                      {get(p)}
-                    </span>
-                    <span className="text-[12px] text-gray-400 mt-1">
-                      {statFields[i].label}
-                    </span>
-                  </div>
-                </td>
-              ))}
-            </tr>
-          ))}
+          {team.players.map((p, idx) => {
+            const isDNP = p.Points == null;
+            return (
+              <tr
+                key={idx}
+                className={`border-b border-gray-800 even:bg-gray-900 ${
+                  isDNP ? "opacity-50" : ""
+                }`}
+              >
+                {statFields.map(({ get, label }, i) => (
+                  <td
+                    key={i}
+                    className="h-32 px-4 py-1 text-center whitespace-nowrap"
+                  >
+                    {isDNP ? (
+                      <span className="font-bold text-lg leading-none">
+                        DNP
+                      </span>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <span className="font-bold text-lg leading-none">
+                          {get(p)}
+                        </span>
+                        <span className="text-[12px] text-gray-400 mt-1">
+                          {label}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -197,7 +212,10 @@ export default function BoxScore() {
   );
 
   return (
-    <div className="bg-black text-white p-4 max-w-full mx-auto">
+    <div
+      style={{ zoom: 0.9 }}
+      className="min-h-screen bg-black text-white p-4 max-w-full mx-auto"
+    >
       <div className="grid grid-cols-3 justify-items-center mb-4">
         <div className="flex flex-col items-center">
           <span className="text-2xl font-bold">{totalA}</span>
@@ -240,7 +258,7 @@ export default function BoxScore() {
       {tab === "home" && renderBoard(teamA)}
       {tab === "away" && renderBoard(teamB)}
       {tab === "game" && (
-        <div className="w-full h-96">
+        <div className="w-full h-[70vh]">
           <iframe
             src={youtubeUrl}
             title="Game Replay"

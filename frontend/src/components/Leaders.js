@@ -1,4 +1,3 @@
-// src/components/Leaders.jsx
 import { useEffect, useState } from "react";
 
 const slugify = (str) =>
@@ -66,21 +65,23 @@ export default function Leaders() {
             ["teamA", "teamB"].forEach((side) => {
               game[side].players.forEach((p) => {
                 if (!p.Player) return;
+                if (p.Points == null) return;
+
                 const name = p.Player;
-                const pts = +p.Points || 0;
-                const threes = +p["3 PTM"] || 0;
-                const rebounds = +p.REB || 0;
-                const turnovers = +p.TOs || 0;
-                const fouls = +p.Fouls || 0;
-                const stlBlk = +p["STLS/BLKS"] || 0;
+                const pts = +p.Points;
+                const three = +p["3 PTM"];
+                const reb = +p.REB;
+                const tos = +p.TOs;
+                const fouls = +p.Fouls;
+                const stlBlk = +p["STLS/BLKS"];
 
                 if (!playerMap[name]) {
                   playerMap[name] = {
                     name,
                     totalPts: pts,
-                    total3: threes,
-                    totalReb: rebounds,
-                    totalTO: turnovers,
+                    total3: three,
+                    totalReb: reb,
+                    totalTO: tos,
                     totalFouls: fouls,
                     totalStlBlk: stlBlk,
                     games: 1,
@@ -88,9 +89,9 @@ export default function Leaders() {
                 } else {
                   const cur = playerMap[name];
                   cur.totalPts += pts;
-                  cur.total3 += threes;
-                  cur.totalReb += rebounds;
-                  cur.totalTO += turnovers;
+                  cur.total3 += three;
+                  cur.totalReb += reb;
+                  cur.totalTO += tos;
                   cur.totalFouls += fouls;
                   cur.totalStlBlk += stlBlk;
                   cur.games += 1;
@@ -102,7 +103,6 @@ export default function Leaders() {
 
         [data1, data2, data3].forEach(extractWeek);
 
-        // build array with per-game averages
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
           return {
@@ -116,7 +116,6 @@ export default function Leaders() {
           };
         });
 
-        // EXCLUDE Josiah and Danial Asim, then set
         const filtered = arr.filter(
           (p) => p.name !== "Josiah" && p.name !== "Danial Asim"
         );

@@ -1,4 +1,3 @@
-// src/components/Schedule.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -86,11 +85,8 @@ export default function Schedule() {
                   const recA = records[game.teamA] || { wins: 0, losses: 0 };
                   const recB = records[game.teamB] || { wins: 0, losses: 0 };
 
-                  return (
-                    <div
-                      key={idx}
-                      className="flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200"
-                    >
+                  const content = (
+                    <div className="flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200 cursor-pointer">
                       {game.time && (
                         <p className="text-sm text-gray-400 mb-1">
                           {game.time}
@@ -98,62 +94,47 @@ export default function Schedule() {
                       )}
 
                       <div className="text-center flex flex-col items-center gap-1">
-                        {weekPart && idPart ? (
-                          <Link
-                            to={`/boxscore/${weekPart}/${idPart}`}
-                            className="no-underline text-blue-400 font-semibold hover:text-blue-200 flex flex-col items-center text-base"
-                          >
-                            <span
-                              className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
-                                teamAWon ? "text-green-400" : "text-gray-200"
-                              }`}
-                            >
-                              {game.teamA}
-                              <span className="ml-1 text-xs text-gray-400 opacity-70">
-                                ({recA.wins}-{recA.losses})
-                              </span>
-                            </span>
-                            <span className="block text-blue-300 font-bold text-sm">
-                              ({game.scoreA})
-                            </span>
-                            <span className="text-gray-500">vs</span>
-                            <span
-                              className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
-                                teamBWon ? "text-green-400" : "text-gray-200"
-                              }`}
-                            >
-                              {game.teamB}
-                              <span className="ml-1 text-xs text-gray-400 opacity-70">
-                                ({recB.wins}-{recB.losses})
-                              </span>
-                            </span>
-                            <span className="block text-blue-300 font-bold text-sm">
-                              ({game.scoreB})
-                            </span>
-                          </Link>
-                        ) : (
-                          <span className="text-gray-200 font-semibold whitespace-nowrap">
-                            <span className="text-base leading-tight font-semibold text-center whitespace-nowrap">
-                              {game.teamA}
-                              <span className="ml-1 text-xs text-gray-400 opacity-70">
-                                ({recA.wins}-{recA.losses})
-                              </span>
-                            </span>{" "}
-                            {typeof game.scoreA === "number" &&
-                              `(${game.scoreA})`}{" "}
-                            <span className="text-gray-500">vs</span>{" "}
-                            <span className="text-base leading-tight font-semibold text-center whitespace-nowrap">
-                              {game.teamB}
-                              <span className="ml-1 text-xs text-gray-400 opacity-70">
-                                ({recB.wins}-{recB.losses})
-                              </span>
-                            </span>{" "}
-                            {typeof game.scoreB === "number" &&
-                              `(${game.scoreB})`}
+                        <span
+                          className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
+                            teamAWon ? "text-green-400" : "text-gray-200"
+                          }`}
+                        >
+                          {game.teamA}
+                          <span className="ml-1 text-xs text-gray-400 opacity-70">
+                            ({recA.wins}-{recA.losses})
                           </span>
-                        )}
+                        </span>
+                        <span className="block text-blue-300 font-bold text-sm">
+                          ({game.scoreA})
+                        </span>
+                        <span className="text-gray-500">vs</span>
+                        <span
+                          className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
+                            teamBWon ? "text-green-400" : "text-gray-200"
+                          }`}
+                        >
+                          {game.teamB}
+                          <span className="ml-1 text-xs text-gray-400 opacity-70">
+                            ({recB.wins}-{recB.losses})
+                          </span>
+                        </span>
+                        <span className="block text-blue-300 font-bold text-sm">
+                          ({game.scoreB})
+                        </span>
                       </div>
                     </div>
+                  );
+
+                  return weekPart && idPart ? (
+                    <Link
+                      key={idx}
+                      to={`/boxscore/${weekPart}/${idPart}`}
+                      className="no-underline block"
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div key={idx}>{content}</div>
                   );
                 })}
               </div>
