@@ -7,6 +7,7 @@ import Schedule from './components/Schedule';
 import BoxScore from './components/BoxScore';
 import Leaders from './components/Leaders';
 import GameSlider from './components/GameSlider';
+import TopPerformers from './components/TopPerformers';
 import Footer from './components/Footer';
 
 import './App.css';
@@ -16,21 +17,32 @@ const App = () => {
     <Router>
       <div className="flex flex-col min-h-screen bg-gray-900 text-white">
         {/* Header with Logo */}
-        <nav className="bg-gray-800 shadow-md">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-1">
-              <img src="/ifnbl-logo.png" alt="IFNBL Logo" className="h-12 w-auto" />
-              <h1 className="text-2xl font-bold text-white pl-4">IFNBL</h1>
+        <nav className="bg-gray-800 shadow-md px-5">
+          <div className="w-full flex items-center justify-between py-3">
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src="/ifnbl-logo.png"
+                alt="IFNBL Logo"
+                className="h-12 w-auto"
+              />
+              <h1 className="text-2xl font-bold text-white">IFNBL</h1>
             </Link>
+
             <ul className="flex space-x-6 text-base">
               <li>
-                <Link to="/teams" className="hover:text-green-400">Teams</Link>
+                <Link to="/teams" className="hover:text-green-400">
+                  Teams
+                </Link>
               </li>
               <li>
-                <Link to="/schedule" className="hover:text-red-500">Schedule</Link>
+                <Link to="/schedule" className="hover:text-red-500">
+                  Schedule
+                </Link>
               </li>
               <li>
-                <Link to="/leaders" className="hover:text-green-400">Leaders</Link>
+                <Link to="/leaders" className="hover:text-green-400">
+                  Leaders
+                </Link>
               </li>
             </ul>
           </div>
@@ -41,15 +53,12 @@ const App = () => {
             <Route
               path="/"
               element={
-                <div className="text-center py-20 px-4">
-                  <h1 className="text-4xl font-extrabold text-white mb-4">
-                    Welcome to IFN Basketball League 🏀
-                  </h1>
-                  <p className="text-lg text-gray-400 max-w-xl mx-auto">
-                    Check to see scores, schedule, and rosters.
-                  </p>
-                  <GameSlider />
-                </div>
+                <>
+                  <TopPerformers week="week3" />
+                  <div className="text-center py-0 px-4">
+                    <GameSlider />
+                  </div>
+                </>
               }
             />
 
