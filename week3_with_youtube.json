@@ -1,0 +1,29 @@
+{
+  "game1": {
+    "youtubeUrl": "https://www.youtube.com/embed/96L3y36vY84",
+    "teamA": {
+      "name": "Team Flight"
+    },
+    "teamB": {
+      "name": "Shariah Stepback"
+    }
+  },
+  "game2": {
+    "youtubeUrl": "https://www.youtube.com/embed/uJ484T3HqHc",
+    "teamA": {
+      "name": "Mujahideens"
+    },
+    "teamB": {
+      "name": "UMMA"
+    }
+  },
+  "game3": {
+    "youtubeUrl": "https://www.youtube.com/embed/HOwxE0ychMs",
+    "teamA": {
+      "name": "YNS"
+    },
+    "teamB": {
+      "name": "Mambas"
+    }
+  }
+}

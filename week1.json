@@ -503,7 +503,7 @@
           "FG %": 50,
           "2 PTM": 5,
           "2 PTA": 6,
-          "2 Pt %": 16.7,
+          "2 Pt %": 83.3,
           "3 PTM": 1,
           "3 PTA": 6,
           "3 Pt %": 16.7,
@@ -514,48 +514,10 @@
           "TOs": 1,
           "Fouls": 1,
           "STLS/BLKS": 1
-        },
-        {
-          "Player": "Rohail Chohan",
-          "Points": null,
-          "FGM": null,
-          "FGA": null,
-          "FG %": null,
-          "2 PTM": null,
-          "2 PTA": null,
-          "2 Pt %": null,
-          "3 PTM": null,
-          "3 PTA": null,
-          "3 Pt %": null,
-          "FTM": null,
-          "FTA": null,
-          "FT %": null,
-          "REB": null,
-          "TOs": null,
-          "Fouls": null,
-          "STLS/BLKS": null
-        },
-        {
-          "Player": "Amaar Zafar",
-          "Points": null,
-          "FGM": null,
-          "FGA": null,
-          "FG %": null,
-          "2 PTM": null,
-          "2 PTA": null,
-          "2 Pt %": null,
-          "3 PTM": null,
-          "3 PTA": null,
-          "3 Pt %": null,
-          "FTM": null,
-          "FTA": null,
-          "FT %": null,
-          "REB": null,
-          "TOs": null,
-          "Fouls": null,
-          "STLS/BLKS": null
         }
       ]
+      
+
     },
     "teamB": {
       "name": "Mambas",
