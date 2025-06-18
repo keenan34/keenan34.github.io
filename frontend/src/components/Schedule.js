@@ -78,24 +78,28 @@ export default function Schedule() {
                     typeof game.gameId === "string"
                       ? game.gameId.split("-")
                       : ["", ""];
-
                   const teamAWon = game.scoreA > game.scoreB;
                   const teamBWon = game.scoreB > game.scoreA;
-
                   const recA = records[game.teamA] || { wins: 0, losses: 0 };
                   const recB = records[game.teamB] || { wins: 0, losses: 0 };
+                  const hasScore =
+                    typeof game.scoreA === "number" &&
+                    typeof game.scoreB === "number";
+
+                  // no cursor-pointer here
+                  const cardClasses =
+                    "flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200";
 
                   const content = (
-                    <div className="flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200 cursor-pointer">
+                    <div className={cardClasses}>
                       {game.time && (
                         <p className="text-sm text-gray-400 mb-1">
                           {game.time}
                         </p>
                       )}
-
-                      <div className="text-center flex flex-col items-center gap-1">
+                      <div className="flex flex-col items-center gap-1">
                         <span
-                          className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
+                          className={`max-w-[130px] whitespace-nowrap text-base font-semibold ${
                             teamAWon ? "text-green-400" : "text-gray-200"
                           }`}
                         >
@@ -104,12 +108,17 @@ export default function Schedule() {
                             ({recA.wins}-{recA.losses})
                           </span>
                         </span>
-                        <span className="block text-blue-300 font-bold text-sm">
-                          ({game.scoreA})
-                        </span>
+
+                        {hasScore && (
+                          <span className="block text-blue-300 font-bold text-sm">
+                            ({game.scoreA})
+                          </span>
+                        )}
+
                         <span className="text-gray-500">vs</span>
+
                         <span
-                          className={`text-center max-w-[130px] whitespace-nowrap text-base leading-tight font-semibold ${
+                          className={`max-w-[130px] whitespace-nowrap text-base font-semibold ${
                             teamBWon ? "text-green-400" : "text-gray-200"
                           }`}
                         >
@@ -118,18 +127,21 @@ export default function Schedule() {
                             ({recB.wins}-{recB.losses})
                           </span>
                         </span>
-                        <span className="block text-blue-300 font-bold text-sm">
-                          ({game.scoreB})
-                        </span>
+
+                        {hasScore && (
+                          <span className="block text-blue-300 font-bold text-sm">
+                            ({game.scoreB})
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
 
-                  return weekPart && idPart ? (
+                  return hasScore && weekPart && idPart ? (
                     <Link
                       key={idx}
                       to={`/boxscore/${weekPart}/${idPart}`}
-                      className="no-underline block"
+                      className="no-underline block cursor-pointer"
                     >
                       {content}
                     </Link>
