@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 
 const teamColors = {
   "Team Flight": "bg-teal-700 text-white",
-  "YNS": "bg-purple-900 text-white",
-  "UMMA": "bg-yellow-500 text-black",
-  "Mambas": "bg-black text-white",
+  YNS: "bg-purple-900 text-white",
+  UMMA: "bg-yellow-500 text-black",
+  Mambas: "bg-black text-white",
   "Shariah Stepback": "bg-green-900 text-white",
-  "Mujahideens": "bg-red-600 text-white",
+  Mujahideens: "bg-red-600 text-white",
   "Opium Hoopers": "bg-black text-pink-400",
 };
 
@@ -22,16 +22,16 @@ const TeamRoster = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/team_rosters.json'),
-      fetch('/players_with_images.json')
+      fetch("/team_rosters.json"),
+      fetch("/players_with_images.json"),
     ])
       .then(async ([r1, r2]) => {
-        const teamsData  = await r1.json();
+        const teamsData = await r1.json();
         const imagesData = await r2.json();
         const plainRoster = teamsData[teamName] || [];
 
-        const merged = plainRoster.map(p => {
-          const info = imagesData[teamName]?.find(pi => pi.name === p.name);
+        const merged = plainRoster.map((p) => {
+          const info = imagesData[teamName]?.find((pi) => pi.name === p.name);
           return info ? { ...p, imgUrl: info.imgUrl } : p;
         });
 
@@ -48,7 +48,7 @@ const TeamRoster = () => {
     >
       <div
         className="rounded-full overflow-hidden w-[60vw] h-[60vw] max-w-[600px] max-h-[600px]"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <img
           src={zoomUrl}
@@ -67,7 +67,9 @@ const TeamRoster = () => {
 
   return (
     <div className="p-6">
-      <h2 className={`text-3xl font-bold text-center mb-6 p-4 rounded ${colorClass}`}>
+      <h2
+        className={`text-3xl font-bold text-center mb-6 p-4 rounded ${colorClass}`}
+      >
         {teamName} Roster
       </h2>
 
@@ -78,34 +80,47 @@ const TeamRoster = () => {
           {roster.length === 0 ? (
             <p className="text-center text-red-500">No players found.</p>
           ) : (
-            roster.map((player, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-xl shadow p-4 flex items-center"
-              >
-                {player.imgUrl ? (
-                  <img
-                    src={player.imgUrl}
-                    alt={player.name}
-                    onError={e => e.currentTarget.style.display = 'none'}
-                    className="w-12 h-12 rounded-full object-cover mr-4 cursor-pointer"
-                    onClick={() => setZoomUrl(player.imgUrl)}
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 mr-4">
-                    {player.name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .toUpperCase()}
+            roster.map((player, idx) => {
+              const slug = player.name.toLowerCase().replace(/ /g, "_");
+              return (
+                <Link
+                  key={idx}
+                  to={{ pathname: `/player/${slug}` }}
+                  state={{
+                    from: `/teams/${encodeURIComponent(teamName)}/roster`,
+                    label: "Team",
+                  }}
+                  className="w-full bg-white rounded-xl shadow p-4 flex items-center hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  {player.imgUrl ? (
+                    <img
+                      src={player.imgUrl}
+                      alt={player.name}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                      className="w-12 h-12 rounded-full object-cover mr-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setZoomUrl(player.imgUrl);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 mr-4">
+                      {player.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <span className="text-gray-800 font-semibold">
+                      {player.name}
+                    </span>
                   </div>
-                )}
-                <span className="flex-1 font-semibold text-gray-800">
-                  {player.name}
-                </span>
-                <span className="text-gray-600">#{player.number}</span>
-              </div>
-            ))
+                  <span className="text-gray-600 ml-2">#{player.number}</span>
+                </Link>
+              );
+            })
           )}
         </div>
       )}

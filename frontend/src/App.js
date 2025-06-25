@@ -9,6 +9,7 @@ import Leaders from './components/Leaders';
 import GameSlider from './components/GameSlider';
 import TopPerformers from './components/TopPerformers';
 import Footer from './components/Footer';
+import PlayerPage from "./components/PlayerPage";
 
 import './App.css';
 
@@ -61,6 +62,8 @@ const App = () => {
                 </>
               }
             />
+
+            <Route path="/player/:slug" element={<PlayerPage />} />
 
             <Route path="/teams" element={<TeamList />} />
             <Route path="/teams/:id/roster" element={<TeamRoster />} />

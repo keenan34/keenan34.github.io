@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const slugify = (str) =>
   str
@@ -7,15 +8,19 @@ const slugify = (str) =>
     .replace(/[^a-z0-9_]/g, "");
 
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
-
 function ProfileImage({ name, onClick }) {
-  const [error, setError] = useState(false);
-  const slug = slugify(name);
-  const src = `${PUBLIC_URL}/images/players/${slug}.png`;
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+    const [error, setError] = useState(false);
+  
+    // 🚨 single exception for three-part name
+    const slug =
+      name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
+  
+    const src = `${PUBLIC_URL}/images/players/${slug}.png`;
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("");
+  
 
   if (error) {
     return (
@@ -50,13 +55,15 @@ export default function Leaders() {
       fetch("/week1.json"),
       fetch("/week2.json"),
       fetch("/week3.json"),
+      fetch("/week4.json"),
     ])
-      .then(async ([r1, r2, r3]) => {
-        if (!r1.ok || !r2.ok || !r3.ok) throw new Error("JSON load error");
-        const [data1, data2, data3] = await Promise.all([
+      .then(async ([r1, r2, r3, r4]) => {
+        if (!r1.ok || !r2.ok || !r3.ok|| !r4.ok) throw new Error("JSON load error");
+        const [data1, data2, data3, data4] = await Promise.all([
           r1.json(),
           r2.json(),
           r3.json(),
+          r4.json(),
         ]);
 
         const playerMap = {};
@@ -101,7 +108,7 @@ export default function Leaders() {
           });
         };
 
-        [data1, data2, data3].forEach(extractWeek);
+        [data1, data2, data3, data4].forEach(extractWeek);
 
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
@@ -164,7 +171,10 @@ export default function Leaders() {
             </thead>
             <tbody>
               {top10.map((p, idx) => {
-                const slug = slugify(p.name);
+                const slug =
+                  p.name === "Jerremiah Dujuan Wright"
+                    ? "dujuan_wright"
+                    : slugify(p.name);
                 const imgSrc = `${PUBLIC_URL}/images/players/${slug}.png`;
                 return (
                   <tr
@@ -177,7 +187,16 @@ export default function Leaders() {
                         onClick={() => setModalImage(imgSrc)}
                       />
                       <span className="font-bold mr-1 text-xs">#{idx + 1}</span>
-                      <span className="font-bold text-xs">{p.name}</span>
+                      <Link
+                        to={`/player/${slug}`}
+                        state={{
+                          from: "/leaders",
+                          label: "Leaders",
+                        }}
+                        className="font-bold text-xs hover:underline text-white"
+                      >
+                        {p.name}
+                      </Link>
                     </td>
                     <td className="px-1 py-2 text-right text-white font-bold">
                       {p.games}

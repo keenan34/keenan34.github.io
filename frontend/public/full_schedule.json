@@ -90,13 +90,19 @@
     "date": "6/22/2025",
     "time": "6:00 PM",
     "teamA": "Team Flight",
-    "teamB": "UMMA"
+    "teamB": "UMMA",
+    "scoreA": 68,
+    "scoreB": 72,
+    "gameId": "week4-game1"
   },
   {
     "date": "6/22/2025",
     "time": "7:00 PM",
     "teamA": "Mujahideens",
-    "teamB": "Mambas"
+    "teamB": "Mambas",
+    "scoreA": 65,
+    "scoreB": 72,
+    "gameId": "week4-game2"
   },
   {
     "date": "6/29/2025",

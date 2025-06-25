@@ -1,5 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+
+// simple slugify utility
+const slugify = (name) =>
+  name
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
 
 function ProfileImage({ src, name, onClick }) {
   const [error, setError] = useState(false);
@@ -117,9 +124,16 @@ export default function BoxScore() {
             name={p.Player}
             onClick={() => setZoomUrl(p.imgUrl)}
           />
-          <div className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-.5 font-bold">
+          <Link
+            to={`/player/${slugify(p.Player)}`}
+            state={{
+              from: `/boxscore/${week}/${gameId}`,
+              label: "Box Score",
+            }}
+            className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-.5 font-bold hover:text-green-400"
+          >
             {p.Player}
-          </div>
+          </Link>
         </div>
       ))}
     </div>
