@@ -114,28 +114,36 @@ export default function BoxScore() {
 
   const LeftColumn = ({ team }) => (
     <div className="flex-none w-28">
-      {team.players.map((p, idx) => (
-        <div
-          key={idx}
-          className="h-32 flex items-start justify-center border-b border-gray-800 relative"
-        >
-          <ProfileImage
-            src={p.imgUrl}
-            name={p.Player}
-            onClick={() => setZoomUrl(p.imgUrl)}
-          />
-          <Link
-            to={`/player/${slugify(p.Player)}`}
-            state={{
-              from: `/boxscore/${week}/${gameId}`,
-              label: "Box Score",
-            }}
-            className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-.5 font-bold hover:text-green-400"
+      {team.players.map((p, idx) => {
+        const overrideSlugMap = {
+          "Jerremiah Dujuan Wright": "dujuan_wright",
+        };
+
+        const slug = overrideSlugMap[p.Player] || slugify(p.Player);
+
+        return (
+          <div
+            key={idx}
+            className="h-32 flex items-start justify-center border-b border-gray-800 relative"
           >
-            {p.Player}
-          </Link>
-        </div>
-      ))}
+            <ProfileImage
+              src={p.imgUrl}
+              name={p.Player}
+              onClick={() => setZoomUrl(p.imgUrl)}
+            />
+            <Link
+              to={`/player/${slug}`}
+              state={{
+                from: `/boxscore/${week}/${gameId}`,
+                label: "Box Score",
+              }}
+              className="absolute bottom-1 text-xs text-white text-center w-full whitespace-normal break-words px-.5 font-bold hover:text-green-400"
+            >
+              {p.Player}
+            </Link>
+          </div>
+        );
+      })}
     </div>
   );
 
