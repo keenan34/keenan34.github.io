@@ -55,7 +55,7 @@ const App = () => {
               path="/"
               element={
                 <>
-                  <TopPerformers week="week3" />
+                  <TopPerformers week="week4" />
                   <div className="text-center py-0 px-4">
                     <GameSlider />
                   </div>

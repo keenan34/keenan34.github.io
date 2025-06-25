@@ -1,29 +1,48 @@
 import { useEffect, useState } from 'react';
 
 function ProfileImage({ name }) {
-  const [error, setError] = useState(false);
-  const initials = name.split(' ').map(n => n[0]).join('');
-  const src = `/images/players/${name.toLowerCase().replace(/\s+/g, '_')}.png`;
-
-  if (!src || error) {
+    const [error, setError] = useState(false);
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('');
+  
+    // special filenames that don’t match the default slug
+    const overrideMap = {
+      'Jerremiah Dujuan Wright': 'dujuan_wright.png',
+      // add other mismatches here...
+    };
+  
+    // decide which filename to use
+    const fileName = overrideMap[name] 
+      || name
+          .toLowerCase()
+          .split(' ')
+          .map(n => n.replace(/[^\w]/g, ''))  // strip weird chars
+          .join('_') + '.png';
+  
+    const src = `/images/players/${fileName}`;
+  
+    if (error) {
+      return (
+        <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-200">
+          {initials}
+        </div>
+      );
+    }
+  
     return (
-      <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-200">
-        {initials}
-      </div>
+      <img
+        src={src}
+        alt={name}
+        onError={() => setError(true)}
+        className="h-10 w-10 rounded-full object-cover"
+      />
     );
   }
+  
 
-  return (
-    <img
-      src={src}
-      alt={name}
-      onError={() => setError(true)}
-      className="h-10 w-10 rounded-full object-cover"
-    />
-  );
-}
-
-export default function TopPerformers({ week = 'week3' }) {
+export default function TopPerformers({ week = 'week4' }) {
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
