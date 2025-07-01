@@ -81,6 +81,7 @@ export default function PlayerPage() {
       fetch("/week2.json").then((r) => r.json()),
       fetch("/week3.json").then((r) => r.json()),
       fetch("/week4.json").then((r) => r.json()),
+      fetch("/week5.json").then((r) => r.json()),
     ])
       .then((weeks) => {
         const allPlayers = new Map();

@@ -56,14 +56,17 @@ export default function Leaders() {
       fetch("/week2.json"),
       fetch("/week3.json"),
       fetch("/week4.json"),
+      fetch("/week5.json"),
     ])
-      .then(async ([r1, r2, r3, r4]) => {
-        if (!r1.ok || !r2.ok || !r3.ok|| !r4.ok) throw new Error("JSON load error");
-        const [data1, data2, data3, data4] = await Promise.all([
+      .then(async ([r1, r2, r3, r4, r5]) => {
+        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok)
+          throw new Error("JSON load error");
+        const [data1, data2, data3, data4, data5] = await Promise.all([
           r1.json(),
           r2.json(),
           r3.json(),
           r4.json(),
+          r5.json(),
         ]);
 
         const playerMap = {};
@@ -108,7 +111,7 @@ export default function Leaders() {
           });
         };
 
-        [data1, data2, data3, data4].forEach(extractWeek);
+        [data1, data2, data3, data4, data5].forEach(extractWeek);
 
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;

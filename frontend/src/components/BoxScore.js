@@ -92,6 +92,17 @@ export default function BoxScore() {
   const totalB =
     scores.b ?? teamB.players.reduce((s, p) => s + (p.Points || 0), 0);
 
+  // Determine display order based on higher score
+  const winner =
+    totalA >= totalB
+      ? { team: teamA, total: totalA }
+      : { team: teamB, total: totalB };
+  const loser =
+    totalA >= totalB
+      ? { team: teamB, total: totalB }
+      : { team: teamA, total: totalA };
+
+
   const statFields = [
     { label: "PTS", get: (p) => p.Points ?? 0 },
     { label: "FGM", get: (p) => p.FGM ?? 0 },
@@ -239,24 +250,25 @@ export default function BoxScore() {
       className="min-h-screen bg-black text-white p-4 max-w-full mx-auto"
     >
       <div className="grid grid-cols-3 justify-items-center mb-4">
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold">{totalA}</span>
-          <span className="text-xs text-gray-400 mt-1">{teamA.name}</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-sm uppercase text-gray-400">Final</span>
-          {matchInfo?.date && (
-            <span className="text-xs text-gray-400 mt-1">
-              {matchInfo.date}
-              {matchInfo.time ? ` · ${matchInfo.time}` : ""}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold">{totalB}</span>
-          <span className="text-xs text-gray-400 mt-1">{teamB.name}</span>
-        </div>
-      </div>
+  <div className="flex flex-col items-center">
+    <span className="text-2xl font-bold">{winner.total}</span>
+    <span className="text-xs text-gray-400 mt-1">{winner.team.name}</span>
+  </div>
+  <div className="flex flex-col items-center">
+    <span className="text-sm uppercase text-gray-400">Final</span>
+    {matchInfo?.date && (
+      <span className="text-xs text-gray-400 mt-1">
+        {matchInfo.date}
+        {matchInfo.time ? ` · ${matchInfo.time}` : ""}
+      </span>
+    )}
+  </div>
+  <div className="flex flex-col items-center">
+    <span className="text-2xl font-bold">{loser.total}</span>
+    <span className="text-xs text-gray-400 mt-1">{loser.team.name}</span>
+  </div>
+</div>
+
       <div className="flex border-b border-gray-700 mb-12">
         {[
           { id: "home", label: teamA.name },
