@@ -51,6 +51,7 @@ export default function BoxScore() {
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
       fetch(`/${week}.json`),
       fetch("/full_schedule.json"),
@@ -62,8 +63,10 @@ export default function BoxScore() {
         const roster = await r3.json();
         const game = w[gameId];
 
+        // attach youtube URL
         setYoutubeUrl(game.youtubeUrl ?? null);
 
+        // merge in imgUrl
         ["teamA", "teamB"].forEach((side) => {
           game[side].players = game[side].players.map((p) => {
             const info = roster[game[side].name]?.find(
@@ -74,10 +77,22 @@ export default function BoxScore() {
         });
 
         setData(game);
+
+        // find schedule entry
         const match =
           Array.isArray(f) && f.find((g) => g.gameId === `${week}-${gameId}`);
-        setScores({ a: match?.scoreA ?? null, b: match?.scoreB ?? null });
         setMatchInfo(match);
+
+        if (match) {
+          // align match.scoreA to game.teamA.name
+          const aScore =
+            match.teamA === game.teamA.name ? match.scoreA : match.scoreB;
+          const bScore =
+            match.teamB === game.teamB.name ? match.scoreB : match.scoreA;
+          setScores({ a: aScore, b: bScore });
+        } else {
+          setScores({ a: null, b: null });
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -92,17 +107,30 @@ export default function BoxScore() {
   const totalB =
     scores.b ?? teamB.players.reduce((s, p) => s + (p.Points || 0), 0);
 
-  // Determine display order based on higher score
-  const winner =
-    totalA >= totalB
-      ? { team: teamA, total: totalA }
-      : { team: teamB, total: totalB };
-  const loser =
-    totalA >= totalB
-      ? { team: teamB, total: totalB }
-      : { team: teamA, total: totalA };
+  // --- always show teamA on left, teamB on right ---
+  const Header = () => (
+    <div className="grid grid-cols-3 justify-items-center mb-4">
+      <div className="flex flex-col items-center">
+        <span className="text-2xl font-bold">{totalA}</span>
+        <span className="text-xs text-gray-400 mt-1">{teamA.name}</span>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className="text-sm uppercase text-gray-400">Final</span>
+        {matchInfo?.date && (
+          <span className="text-xs text-gray-400 mt-1">
+            {matchInfo.date}
+            {matchInfo.time ? ` · ${matchInfo.time}` : ""}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col items-center">
+        <span className="text-2xl font-bold">{totalB}</span>
+        <span className="text-xs text-gray-400 mt-1">{teamB.name}</span>
+      </div>
+    </div>
+  );
 
-
+  // which stats to render
   const statFields = [
     { label: "PTS", get: (p) => p.Points ?? 0 },
     { label: "FGM", get: (p) => p.FGM ?? 0 },
@@ -123,13 +151,13 @@ export default function BoxScore() {
     { label: "STLS/BLKS", get: (p) => p["STLS/BLKS"] ?? 0 },
   ];
 
+  // left‐hand column: images + names
   const LeftColumn = ({ team }) => (
     <div className="flex-none w-28">
       {team.players.map((p, idx) => {
         const overrideSlugMap = {
           "Jerremiah Dujuan Wright": "dujuan_wright",
         };
-
         const slug = overrideSlugMap[p.Player] || slugify(p.Player);
 
         return (
@@ -158,7 +186,7 @@ export default function BoxScore() {
     </div>
   );
 
-  // Updated StatsTable to show DNP and gray out rows where p.Points is null
+  // stats table (horizontal scroll)
   const StatsTable = ({ team }) => (
     <div className="overflow-x-auto flex-1 -mt-8" ref={scrollRef}>
       <table className="min-w-full table-auto text-white border-separate border-spacing-0">
@@ -213,6 +241,7 @@ export default function BoxScore() {
     </div>
   );
 
+  // glue left + right
   const renderBoard = (team) => (
     <div className="flex">
       <LeftColumn team={team} />
@@ -220,6 +249,7 @@ export default function BoxScore() {
     </div>
   );
 
+  // player-photo zoom modal
   const ZoomModal = () => (
     <div
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
@@ -249,26 +279,9 @@ export default function BoxScore() {
       style={{ zoom: 0.9 }}
       className="min-h-screen bg-black text-white p-4 max-w-full mx-auto"
     >
-      <div className="grid grid-cols-3 justify-items-center mb-4">
-  <div className="flex flex-col items-center">
-    <span className="text-2xl font-bold">{winner.total}</span>
-    <span className="text-xs text-gray-400 mt-1">{winner.team.name}</span>
-  </div>
-  <div className="flex flex-col items-center">
-    <span className="text-sm uppercase text-gray-400">Final</span>
-    {matchInfo?.date && (
-      <span className="text-xs text-gray-400 mt-1">
-        {matchInfo.date}
-        {matchInfo.time ? ` · ${matchInfo.time}` : ""}
-      </span>
-    )}
-  </div>
-  <div className="flex flex-col items-center">
-    <span className="text-2xl font-bold">{loser.total}</span>
-    <span className="text-xs text-gray-400 mt-1">{loser.team.name}</span>
-  </div>
-</div>
+      <Header />
 
+      {/* tabs */}
       <div className="flex border-b border-gray-700 mb-12">
         {[
           { id: "home", label: teamA.name },
@@ -289,6 +302,8 @@ export default function BoxScore() {
           </button>
         ))}
       </div>
+
+      {/* content */}
       {tab === "home" && renderBoard(teamA)}
       {tab === "away" && renderBoard(teamB)}
       {tab === "game" && (
@@ -301,6 +316,7 @@ export default function BoxScore() {
           />
         </div>
       )}
+
       {zoomUrl && <ZoomModal />}
     </div>
   );

@@ -390,38 +390,38 @@ export default function PlayerPage() {
         {/* Zoom Modal if active */}
         {zoomUrl && <ZoomModal />}
       </div>
-
       <div className="overflow-x-auto mt-10 text-base sm:text-lg">
         <table className="w-full border-separate border-spacing-y-2 text-white">
           <thead className="bg-gray-800">
             <tr className="rounded-lg">
               {[
-                "Week",
-                "Opp",
-                "PTS",
+                "Week", // idx 0
+                "Opp", // idx 1
+                "W/L", // idx 2
+                "PTS", // idx 3
                 "FGM",
                 "FGA",
                 "FG%",
                 "2PM",
                 "2PA",
-                "2P%",
+                "2P%", // idxs 4–9
                 "3PM",
                 "3PA",
                 "3P%",
                 "FTM",
                 "FTA",
-                "FT%",
+                "FT%", // idxs 10–15
                 "REB",
                 "TO",
                 "FLS",
-                "STL/BLKS",
+                "STL/BLKS", // idxs 16–19
               ].map((col, idx) => (
                 <th
                   key={col}
                   className={`px-4 py-3 text-center font-semibold text-sm sm:text-base bg-gray-800 ${
                     idx === 0
                       ? "rounded-l-lg"
-                      : idx === 18
+                      : idx === 19
                       ? "rounded-r-lg"
                       : ""
                   }`}
@@ -452,12 +452,36 @@ export default function PlayerPage() {
                   navigate(`/boxscore/${weekKey}/game${gameNum}`);
                 }}
               >
+                {/* Week */}
                 <td className="px-4 py-4 text-left whitespace-nowrap rounded-l-lg">
                   {g.week}
                 </td>
+
+                {/* Opponent */}
                 <td className="px-4 py-4 text-left whitespace-nowrap">
                   {g.opponent}
                 </td>
+
+                {/* W/L */}
+                <td className="px-4 py-4 text-center">
+                  {(() => {
+                    const weekKey = g.week.toLowerCase().replace(/ /g, "");
+                    const entry = schedule.find(
+                      (gm) =>
+                        gm.gameId?.startsWith(weekKey) &&
+                        ((gm.teamA === playerTeam && gm.teamB === g.opponent) ||
+                          (gm.teamB === playerTeam && gm.teamA === g.opponent))
+                    );
+                    if (!entry) return "-";
+                    const won =
+                      entry.teamA === playerTeam
+                        ? entry.scoreA > entry.scoreB
+                        : entry.scoreB > entry.scoreA;
+                    return won ? "W" : "L";
+                  })()}
+                </td>
+
+                {/* Stats */}
                 {[
                   g.points,
                   g.fgm,

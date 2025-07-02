@@ -107,8 +107,8 @@
   {
     "date": "6/29/2025",
     "time": "6:00 PM",
-    "teamA": "Mujahideens",
-    "teamB": "YNS",
+    "teamA": "YNS",
+    "teamB": "Mujahideens",
     "scoreA": 63,
     "scoreB": 59,
     "gameId": "week5-game1"
@@ -125,10 +125,10 @@
   {
     "date": "6/29/2025",
     "time": "8:00 PM",
-    "teamA": "Shariah Stepback",
-    "teamB": "0pium Hoopers",
-    "scoreA": 52,
-    "scoreB": 66,
+    "teamA": "0pium Hoopers",
+    "teamB": "Shariah Stepback",
+    "scoreA": 66,
+    "scoreB": 52,
     "gameId": "week5-game3"
   },
   {
