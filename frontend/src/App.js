@@ -1,6 +1,6 @@
 // File: src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import TeamList     from './components/TeamList';
 import TeamRoster   from './components/TeamRoster';
 import Schedule     from './components/Schedule';
