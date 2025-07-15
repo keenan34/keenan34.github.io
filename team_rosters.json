@@ -89,10 +89,6 @@
       "number": "7"
     },
     {
-      "name": "Haroon Khan",
-      "number": "27"
-    },
-    {
       "name": "Shayaan Shaikh",
       "number": "13"
     },
@@ -123,6 +119,10 @@
     {
       "name": "Luqman Ali",
       "number": "17"
+    },
+    {
+        "name": "Haroon Khan",
+        "number": "27"
     }
   ],
   "0pium Hoopers": [
@@ -163,10 +163,6 @@
     {
       "name": "Ammar Shaheen",
       "number": "0"
-    },
-    {
-      "name": "Jazib Farooqui",
-      "number": "10"
     },
     {
       "name": "Samar Khan",
