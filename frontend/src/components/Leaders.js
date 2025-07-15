@@ -57,16 +57,18 @@ export default function Leaders() {
       fetch("/week3.json"),
       fetch("/week4.json"),
       fetch("/week5.json"),
+      fetch("/week6.json"),
     ])
-      .then(async ([r1, r2, r3, r4, r5]) => {
-        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok)
+      .then(async ([r1, r2, r3, r4, r5, r6]) => {
+        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok || !r6.ok)
           throw new Error("JSON load error");
-        const [data1, data2, data3, data4, data5] = await Promise.all([
+        const [data1, data2, data3, data4, data5, data6] = await Promise.all([
           r1.json(),
           r2.json(),
           r3.json(),
           r4.json(),
           r5.json(),
+          r6.json(),
         ]);
 
         const playerMap = {};
@@ -111,7 +113,7 @@ export default function Leaders() {
           });
         };
 
-        [data1, data2, data3, data4, data5].forEach(extractWeek);
+        [data1, data2, data3, data4, data5, data6].forEach(extractWeek);
 
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
@@ -127,7 +129,11 @@ export default function Leaders() {
         });
 
         const filtered = arr.filter(
-          (p) => p.name !== "Josiah" && p.name !== "Danial Asim"
+          (p) =>
+            p.name !== "Josiah" &&
+            p.name !== "Danial Asim" &&
+            p.name !== "Salman" &&
+            p.name !== "Ibrahim"
         );
         setPlayers(filtered);
       })

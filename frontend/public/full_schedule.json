@@ -83,7 +83,7 @@
   {
     "date": "6/22/2025",
     "time": "5:00 PM",
-     "teamA": "YNS",
+    "teamA": "YNS",
     "teamB": "0pium Hoopers"
   },
   {
@@ -135,19 +135,34 @@
     "date": "7/13/2025",
     "time": "6:00 PM",
     "teamA": "0pium Hoopers",
-    "teamB": "Mujahideens"
+    "teamB": "Mujahideens",
+    "scoreA": 52,
+    "scoreB": 37,
+    "gameId": "week6-game1"
   },
   {
     "date": "7/13/2025",
     "time": "7:00 PM",
     "teamA": "0pium Hoopers",
-    "teamB": "Mambas"
+    "teamB": "Mambas",
+    "scoreA": 65,
+    "scoreB": 45,
+    "gameId": "week6-game2"
   },
   {
     "date": "7/13/2025",
     "time": "8:00 PM",
     "teamA": "Shariah Stepback",
-    "teamB": "UMMA"
+    "teamB": "UMMA",
+    "scoreA": 49,
+    "scoreB": 56,
+    "gameId": "week6-game3"
+  },
+  {
+    "date": "7/20/2025",
+    "time": "5:00 PM",
+    "teamA": "0pium Hoopers",
+    "teamB": "YNS"
   },
   {
     "date": "7/20/2025",
@@ -158,8 +173,8 @@
   {
     "date": "7/20/2025",
     "time": "7:00 PM",
-    "teamA": "Mujahideens",
-    "teamB": "0pium Hoopers"
+    "teamA": "Team Flight",
+    "teamB": "Mujahideens"
   },
   {
     "date": "7/20/2025",

@@ -82,6 +82,7 @@ export default function PlayerPage() {
       fetch("/week3.json").then((r) => r.json()),
       fetch("/week4.json").then((r) => r.json()),
       fetch("/week5.json").then((r) => r.json()),
+      fetch("/week6.json").then((r) => r.json()),
     ])
       .then((weeks) => {
         const allPlayers = new Map();
@@ -123,7 +124,7 @@ export default function PlayerPage() {
         });
 
         const allAveragesArr = [];
-        const excluded = ["Josiah", "Danial Asim"];
+        const excluded = ["Josiah", "Danial Asim", "Salman", "Ibrahim"];
 
         allPlayers.forEach((games, name) => {
           if (!rosterNames.includes(name)) return;
@@ -434,24 +435,46 @@ export default function PlayerPage() {
           <tbody>
             {games.map((g, i) => (
               <tr
-                key={i}
-                className={`cursor-pointer ${
-                  i % 2 === 0 ? "bg-gray-800/60" : "bg-gray-700/60"
-                }`}
-                onClick={() => {
-                  const weekKey = g.week.toLowerCase().replace(/ /g, "");
-                  const weekGames = schedule.filter((gm) =>
-                    gm.gameId?.startsWith(weekKey)
-                  );
-                  const idxInWeek = weekGames.findIndex(
-                    (gm) =>
-                      (gm.teamA === playerTeam && gm.teamB === g.opponent) ||
-                      (gm.teamB === playerTeam && gm.teamA === g.opponent)
-                  );
-                  const gameNum = idxInWeek >= 0 ? idxInWeek + 1 : 1;
-                  navigate(`/boxscore/${weekKey}/game${gameNum}`);
-                }}
-              >
+  key={i}
+  className={`${i % 2 === 0 ? "bg-gray-800/60" : "bg-gray-700/60"} cursor-pointer`}
+  onClick={() => {
+    const weekKey = g.week.toLowerCase().replace(/ /g, "");
+    const rosterNames = Object.values(rosters).flat().map(p => p.name);
+    const isFillIn = !rosterNames.includes(playerName);
+    // gather ALL games that week for this player’s team
+    const teamGames = schedule.filter(
+      gm =>
+        gm.gameId?.startsWith(weekKey) &&
+        (gm.teamA === playerTeam || gm.teamB === playerTeam)
+    );
+    if (isFillIn && teamGames.length > 1) {
+      // we have >1 game and this is a fill-in → pick the one against this opponent
+      const forced = teamGames.find(
+        gm =>
+          (gm.teamA === playerTeam && gm.teamB === g.opponent) ||
+          (gm.teamB === playerTeam && gm.teamA === g.opponent)
+      );
+      if (forced) {
+        // forced.gameId === "week6-game2"
+        const [, gameKey] = forced.gameId.split("-");
+        navigate(`/boxscore/${weekKey}/${gameKey}`);
+        return;
+      }
+    }
+
+    // otherwise fall back to your old logic
+    const entry = schedule.find(
+      gm =>
+        gm.gameId?.startsWith(weekKey) &&
+        ((gm.teamA === playerTeam && gm.teamB === g.opponent) ||
+         (gm.teamB === playerTeam && gm.teamA === g.opponent))
+    );
+    if (!entry) return;
+    const [, gameKey] = entry.gameId.split("-");
+    navigate(`/boxscore/${weekKey}/${gameKey}`);
+  }}
+>
+
                 {/* Week */}
                 <td className="px-4 py-4 text-left whitespace-nowrap rounded-l-lg">
                   {g.week}

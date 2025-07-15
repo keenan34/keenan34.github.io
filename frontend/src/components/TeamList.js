@@ -48,15 +48,32 @@ export default function TeamList() {
       });
   }, []);
 
-  const sortedStandings = React.useMemo(() => {
-    const arr = allTeams.map((team) => {
-      const { wins, losses } = standings[team] || { wins: 0, losses: 0 };
-      const gamesPlayed = wins + losses;
-      const winPct = gamesPlayed > 0 ? wins / gamesPlayed : 0;
-      return { team, wins, losses, winPct };
-    });
-    return arr.sort((a, b) => b.winPct - a.winPct || b.wins - a.wins);
-  }, [standings]);
+const sortedStandings = React.useMemo(() => {
+  // Custom tiebreaker order: lower number wins the tie
+  const priorities = {
+    Mujahideens: 0,
+    "Shariah Stepback": 1,
+    // add more teams here if you need further tiebreakers
+  };
+
+  const arr = allTeams.map((team) => {
+    const { wins = 0, losses = 0 } = standings[team] || {};
+    const gamesPlayed = wins + losses;
+    const winPct = gamesPlayed > 0 ? wins / gamesPlayed : 0;
+    return { team, wins, losses, winPct };
+  });
+
+  return arr.sort((a, b) => {
+    // 1) win percentage descending
+    if (b.winPct !== a.winPct) return b.winPct - a.winPct;
+    // 2) total wins descending
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    // 3) custom tiebreaker
+    const pa = priorities[a.team] ?? Infinity;
+    const pb = priorities[b.team] ?? Infinity;
+    return pa - pb;
+  });
+}, [standings]);
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">

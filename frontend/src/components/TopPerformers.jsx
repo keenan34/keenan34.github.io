@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+// ← add this at module scope so it doesn’t trigger the hook-deps warning
+// players to exclude from all leaderboards
+const EXCLUDED_PLAYERS = ["Josiah", "Danial Asim", "Ibrahim"];
+
 function ProfileImage({ name }) {
   const [error, setError] = useState(false);
   const initials = name
@@ -43,9 +47,9 @@ function ProfileImage({ name }) {
   );
 }
 
-export default function TopPerformers({ week = "week5" }) {
+export default function TopPerformers({ week = "week6" }) {
   const [players, setPlayers] = useState([]);
-
+ 
   useEffect(() => {
     fetch(`/${week}.json`)
       .then((res) => res.json())
@@ -61,7 +65,10 @@ export default function TopPerformers({ week = "week5" }) {
             all.push({ ...p, opponent: teamA })
           );
         });
-        setPlayers(all);
+          const filtered = all.filter(
+            (p) => !EXCLUDED_PLAYERS.includes(p.Player)
+          );
+        setPlayers(filtered);
       })
       .catch(() => setPlayers([]));
   }, [week]);
