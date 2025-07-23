@@ -162,48 +162,60 @@
     "date": "7/20/2025",
     "time": "5:00 PM",
     "teamA": "0pium Hoopers",
-    "teamB": "YNS"
+    "teamB": "YNS",
+    "scoreA": 59,
+    "scoreB": 53,
+    "gameId": "week7-game1"
   },
   {
     "date": "7/20/2025",
     "time": "6:00 PM",
     "teamA": "Team Flight",
-    "teamB": "YNS"
+    "teamB": "YNS",
+    "scoreA": 68,
+    "scoreB": 62,
+    "gameId": "week7-game2"
   },
   {
     "date": "7/20/2025",
     "time": "7:00 PM",
     "teamA": "Team Flight",
-    "teamB": "Mujahideens"
+    "teamB": "Mujahideens",
+    "scoreA": 78,
+    "scoreB": 69,
+    "gameId": "week7-game3"
   },
   {
     "date": "7/20/2025",
     "time": "8:00 PM",
     "teamA": "Shariah Stepback",
-    "teamB": "Mambas"
+    "teamB": "Mambas",
+    "scoreA": 77,
+    "scoreB": 47,
+    "gameId": "week7-game4"
   },
   {
     "date": "8/17/2025",
     "time": "5:00 PM",
-    "teamA": "Seed 3",
-    "teamB": "Seed 6"
+    "teamA": "Team Flight",
+    "teamB": "Mujahideens"
   },
   {
     "date": "8/17/2025",
     "time": "6:00 PM",
-    "teamA": "Seed 4",
-    "teamB": "Seed 5"
+    "teamA": "YNS",
+    "teamB": "Shariah Stepback"
   },
   {
     "date": "8/17/2025",
     "time": "7:00 PM",
-    "teamA": "Seed 1",
+    "teamA": "UMMA",
     "teamB": "Winner of Game 1"
   },
   {
     "date": "8/17/2025",
     "time": "8:00 PM",
-    "teamA": "Seed 2",
+    "teamA": "0pium Hoopers",
     "teamB": "Winner of Game 2"
   },
   {
