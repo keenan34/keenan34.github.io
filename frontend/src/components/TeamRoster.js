@@ -17,6 +17,7 @@ const TeamRoster = () => {
   const colorClass = teamColors[teamName] || "bg-black text-pink-500";
 
   const [roster, setRoster] = useState([]);
+  const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zoomUrl, setZoomUrl] = useState(null);
 
@@ -24,10 +25,13 @@ const TeamRoster = () => {
     Promise.all([
       fetch("/team_rosters.json"),
       fetch("/players_with_images.json"),
+      fetch("/full_schedule.json"),
     ])
-      .then(async ([r1, r2]) => {
+      .then(async ([r1, r2, r3]) => {
         const teamsData = await r1.json();
         const imagesData = await r2.json();
+        const scheduleData = await r3.json();
+
         const plainRoster = teamsData[teamName] || [];
 
         const merged = plainRoster.map((p) => {
@@ -35,7 +39,12 @@ const TeamRoster = () => {
           return info ? { ...p, imgUrl: info.imgUrl } : p;
         });
 
+        const teamGames = scheduleData.filter(
+          (g) => g.teamA === teamName || g.teamB === teamName
+        );
+
         setRoster(merged);
+        setSchedule(teamGames);
         setLoading(false);
       })
       .catch(console.error);
@@ -85,7 +94,7 @@ const TeamRoster = () => {
               return (
                 <Link
                   key={idx}
-                  to={{ pathname: `/player/${slug}` }}
+                  to={`/player/${slug}`}
                   state={{
                     from: `/teams/${encodeURIComponent(teamName)}/roster`,
                     label: "Team",
@@ -122,6 +131,51 @@ const TeamRoster = () => {
               );
             })
           )}
+        </div>
+      )}
+
+      {schedule.length > 0 && (
+        <div className="mb-6 max-w-xl mx-auto">
+          <h3 className="text-lg font-semibold mb-2 text-center">
+            Game History
+          </h3>
+          <ul className="space-y-2 text-sm">
+            {schedule
+              .filter((g) => g.gameId) // only include played games
+              .map((game, idx) => {
+                const opponent =
+                  game.teamA === teamName ? game.teamB : game.teamA;
+                const teamScore =
+                  game.teamA === teamName ? game.scoreA : game.scoreB;
+                const opponentScore =
+                  game.teamA === teamName ? game.scoreB : game.scoreA;
+                const isWin = teamScore > opponentScore;
+                const gameUrl = `/boxscore/${game.gameId.replace("-", "/")}`;
+                const week = game.gameId
+                  ?.split("-")[0]
+                  ?.replace("week", "Week ");
+
+                return (
+                  <li key={idx}>
+                    <Link
+                      to={gameUrl}
+                      className={`block px-3 py-2 rounded-md shadow-sm ${
+                        isWin ? "bg-green-800" : "bg-red-800"
+                      } text-white hover:opacity-90 transition`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="truncate">
+                          {week} vs {opponent}
+                        </span>
+                        <span className="font-mono">
+                          {teamScore} - {opponentScore}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+          </ul>
         </div>
       )}
 

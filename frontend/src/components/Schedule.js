@@ -51,7 +51,7 @@ export default function Schedule() {
     acc[game.date].push(game);
     return acc;
   }, {});
-  const dateEntries = Object.entries(gamesByDate);
+  const dateEntries = Object.entries(gamesByDate).reverse();
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
@@ -151,7 +151,7 @@ export default function Schedule() {
                 })}
               </div>
 
-              {byeTeams.length > 0 && dateIdx < dateEntries.length - 1 && (
+              {byeTeams.length > 0 && dateIdx !== 0 && (
                 <p className="text-sm text-red-500 font-semibold text-center mt-2">
                   Bye Week: {byeTeams.join(", ")}
                 </p>

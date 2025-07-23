@@ -119,10 +119,6 @@
     {
       "name": "Luqman Ali",
       "number": "17"
-    },
-    {
-        "name": "Haroon Khan",
-        "number": "27"
     }
   ],
   "0pium Hoopers": [
@@ -245,6 +241,10 @@
       "number": "5"
     },
     {
+      "name": "Murtaza Mirza",
+      "number": "3"
+    },
+    {
       "name": "Hamzah Alrousan",
       "number": "7"
     },
@@ -259,10 +259,6 @@
     {
       "name": "Abdullah Hussaini",
       "number": "0"
-    },
-    {
-      "name": "Murtaza Mirza",
-      "number": "3"
     }
   ]
 }

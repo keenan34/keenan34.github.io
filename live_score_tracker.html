@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Live Score Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            background: #111;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .player-card {
+            background: #222;
+            padding: 12px;
+            border-radius: 8px;
+            flex: 1 1 250px;
+            min-width: 250px;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .player-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .players-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .stat-line {
+            font-size: 14px;
+            margin-top: 8px;
+            white-space: nowrap;
+        }
+
+        .button {
+            padding: 6px 10px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pt2 {
+            background: #eab308;
+            color: #000;
+        }
+
+        .pt3 {
+            background: #facc15;
+            color: #000;
+        }
+
+        .make {
+            background: #22c55e;
+            color: #000;
+        }
+
+        .stat {
+            background: #3b82f6;
+        }
+
+        .input-row {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="margin-bottom: 10px;">Live Score Tracker</h1>
+    <div class="input-row">
+        <input id="playerName" placeholder="Enter player name" />
+        <button onclick="addPlayer()">Add Player</button>
+    </div>
+    <div class="players-grid" id="players"></div>
+
+    <script>
+        const players = {};
+        let pendingShot = null;
+
+        function addPlayer() {
+            const name = document.getElementById("playerName").value.trim();
+            if (!name || players[name]) return;
+            players[name] = {
+                Points: 0, "2 PTM": 0, "2 PTA": 0,
+                "3 PTM": 0, "3 PTA": 0, FGM: 0, FGA: 0,
+                "FG %": 0, "3 Pt %": 0, "2 Pt %": 0,
+                REB: 0, TOs: 0, Fouls: 0, "STLS/BLKS": 0
+            };
+            document.getElementById("playerName").value = "";
+            renderPlayers();
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById("players");
+            container.innerHTML = "";
+            Object.keys(players).forEach((name) => {
+                const s = players[name];
+                const div = document.createElement("div");
+                div.className = "player-card";
+
+                const controls = document.createElement("div");
+                controls.className = "controls";
+
+                const buttons = [
+                    ["2PT", "pt2", () => startShot(name, false)],
+                    ["3PT", "pt3", () => startShot(name, true)],
+                    ["Make", "make", () => finishShot(name, true)],
+                    ["Rebound", "stat", () => increment(name, "REB")],
+                    ["Turnover", "stat", () => increment(name, "TOs")],
+                    ["Foul", "stat", () => increment(name, "Fouls")],
+                    ["STL/BLK", "stat", () => increment(name, "STLS/BLKS")],
+                ];
+
+                buttons.forEach(([label, style, handler]) => {
+                    const btn = document.createElement("button");
+                    btn.className = `button ${style}`;
+                    btn.textContent = label;
+                    btn.onclick = handler;
+                    controls.appendChild(btn);
+                });
+
+                const statsText = `
+Pts: ${s.Points} | FG: ${s.FGM}/${s.FGA} (${s["FG %"]}%)
+2PT: ${s["2 PTM"]}/${s["2 PTA"]} (${s["2 Pt %"]}%)
+3PT: ${s["3 PTM"]}/${s["3 PTA"]} (${s["3 Pt %"]}%)
+REB: ${s.REB} | TOs: ${s.TOs} | F: ${s.Fouls} | STL/BLK: ${s["STLS/BLKS"]}
+        `.trim();
+
+                div.innerHTML = `<div class="player-header">${name}</div>`;
+                div.appendChild(controls);
+                const statEl = document.createElement("div");
+                statEl.className = "stat-line";
+                statEl.innerText = statsText;
+                statEl.contentEditable = true;
+                statEl.spellcheck = false;
+                statEl.style.outline = "none";
+                statEl.title = "Click to edit manually if needed";
+
+                div.appendChild(statEl);
+
+                container.appendChild(div);
+            });
+        }
+
+        function startShot(player, isThree) {
+            pendingShot = { player, isThree };
+            setTimeout(() => {
+                if (pendingShot && pendingShot.player === player) {
+                    finishShot(player, false);
+                }
+            }, 2500);
+        }
+
+        function finishShot(player, made) {
+            const s = players[player];
+            if (!s || !pendingShot) return;
+            s.FGA++;
+            pendingShot.isThree ? s["3 PTA"]++ : s["2 PTA"]++;
+            if (made) {
+                s.FGM++;
+                pendingShot.isThree ? s["3 PTM"]++ : s["2 PTM"]++;
+                s.Points += pendingShot.isThree ? 3 : 2;
+            }
+            s["FG %"] = ((s.FGM / s.FGA) * 100).toFixed(1);
+            s["3 Pt %"] = s["3 PTA"] ? ((s["3 PTM"] / s["3 PTA"]) * 100).toFixed(1) : "0.0";
+            s["2 Pt %"] = s["2 PTA"] ? ((s["2 PTM"] / s["2 PTA"]) * 100).toFixed(1) : "0.0";
+            pendingShot = null;
+            renderPlayers();
+        }
+
+        function increment(player, stat) {
+            players[player][stat]++;
+            renderPlayers();
+        }
+    </script>
+</body>
+
+</html>

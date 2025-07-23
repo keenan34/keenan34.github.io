@@ -58,17 +58,19 @@ export default function Leaders() {
       fetch("/week4.json"),
       fetch("/week5.json"),
       fetch("/week6.json"),
+      fetch("/week7.json")
     ])
-      .then(async ([r1, r2, r3, r4, r5, r6]) => {
-        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok || !r6.ok)
+      .then(async ([r1, r2, r3, r4, r5, r6, r7]) => {
+        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok || !r6.ok || !r7.ok)
           throw new Error("JSON load error");
-        const [data1, data2, data3, data4, data5, data6] = await Promise.all([
+        const [data1, data2, data3, data4, data5, data6, data7] = await Promise.all([
           r1.json(),
           r2.json(),
           r3.json(),
           r4.json(),
           r5.json(),
           r6.json(),
+          r7.json()
         ]);
 
         const playerMap = {};
@@ -113,7 +115,7 @@ export default function Leaders() {
           });
         };
 
-        [data1, data2, data3, data4, data5, data6].forEach(extractWeek);
+        [data1, data2, data3, data4, data5, data6, data7].forEach(extractWeek);
 
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
@@ -133,7 +135,12 @@ export default function Leaders() {
             p.name !== "Josiah" &&
             p.name !== "Danial Asim" &&
             p.name !== "Salman" &&
-            p.name !== "Ibrahim"
+            p.name !== "Ibrahim" &&
+            p.name !== "Raedh Talha" &&
+            p.name !== "Devon" &&
+            p.name !== "Sufyan" &&
+            p.name !== "Sayf Rehman" &&
+            p.name !== "Amaar Zafar" 
         );
         setPlayers(filtered);
       })
@@ -195,7 +202,16 @@ export default function Leaders() {
                         name={p.name}
                         onClick={() => setModalImage(imgSrc)}
                       />
-                      <span className="font-bold mr-1 text-xs">#{idx + 1}</span>
+                      <span className="font-bold mr-1 text-xs">
+                        {idx === 0
+                          ? "🥇"
+                          : idx === 1
+                          ? "🥈"
+                          : idx === 2
+                          ? "🥉"
+                          : `#${idx + 1}`}
+                      </span>
+
                       <Link
                         to={`/player/${slug}`}
                         state={{

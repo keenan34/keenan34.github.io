@@ -13,13 +13,13 @@ const allTeams = [
 
 // Manually set point differentials here
 const manualPointDiff = {
-  "0pium Hoopers": 55,
-  "Team Flight": 40,
-  YNS: 44,
-  "Shariah Stepback": -55,
-  Mambas: -95,
+  "0pium Hoopers": 61,
+  "Team Flight": 55,
+  YNS: 32,
+  "Shariah Stepback": -25,
+  Mambas: -125,
   UMMA: 63,
-  Mujahideens: -52,
+  Mujahideens: -61,
 };
 export default function TeamList() {
   const [standings, setStandings] = useState({});

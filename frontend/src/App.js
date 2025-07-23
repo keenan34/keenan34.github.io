@@ -39,7 +39,7 @@ const App = () => (
             path="/"
             element={
               <>
-                <TopPerformers week="week6" />
+                <TopPerformers week="week7" />
                 <div className="text-center px-4">
                   <GameSlider />
                 </div>
