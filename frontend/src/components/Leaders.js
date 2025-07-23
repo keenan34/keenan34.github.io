@@ -139,7 +139,7 @@ export default function Leaders() {
             p.name !== "Raedh Talha" &&
             p.name !== "Devon" &&
             p.name !== "Sufyan" &&
-            p.name !== "Sayf Rehman" &&
+            p.name !== "Saif Rehman" &&
             p.name !== "Amaar Zafar" 
         );
         setPlayers(filtered);
