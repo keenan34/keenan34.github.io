@@ -58,7 +58,7 @@ export default function Leaders() {
       fetch("/week4.json"),
       fetch("/week5.json"),
       fetch("/week6.json"),
-      fetch("/week7.json")
+      fetch("/week7.json"),
     ])
       .then(async ([r1, r2, r3, r4, r5, r6, r7]) => {
         if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok || !r6.ok || !r7.ok)

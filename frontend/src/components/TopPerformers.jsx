@@ -47,7 +47,7 @@ function ProfileImage({ name }) {
   );
 }
 
-export default function TopPerformers({ week = "week7" }) {
+export default function TopPerformers({ week = "week8" }) {
   const [players, setPlayers] = useState([]);
  
   useEffect(() => {

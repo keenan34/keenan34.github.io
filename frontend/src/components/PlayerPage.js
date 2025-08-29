@@ -84,6 +84,7 @@ export default function PlayerPage() {
       fetch("/week5.json").then((r) => r.json()),
       fetch("/week6.json").then((r) => r.json()),
       fetch("/week7.json").then((r) => r.json()),
+      fetch("/week8.json").then((r) => r.json()),
     ])
       .then((weeks) => {
         const allPlayers = new Map();
@@ -125,7 +126,17 @@ export default function PlayerPage() {
         });
 
         const allAveragesArr = [];
-        const excluded = ["Josiah", "Danial Asim", "Salman", "Ibrahim", "Raedh Talha", " Sufyan", "Devon", "Saif Rehman", "Amaar Zafar,"];
+        const excluded = [
+          "Josiah",
+          "Danial Asim",
+          "Salman",
+          "Ibrahim",
+          "Raedh Talha",
+          " Sufyan",
+          "Devon",
+          "Saif Rehman",
+          "Amaar Zafar,",
+        ];
 
         allPlayers.forEach((games, name) => {
           if (!rosterNames.includes(name)) return;
