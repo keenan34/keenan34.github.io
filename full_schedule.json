@@ -198,30 +198,45 @@
     "date": "8/17/2025",
     "time": "5:00 PM",
     "teamA": "Team Flight",
-    "teamB": "Mujahideens"
+    "teamB": "Mujahideens",
+    "scoreA": 61,
+    "scoreB": 43,
+    "gameId": "week8-game1"
   },
   {
     "date": "8/17/2025",
     "time": "6:00 PM",
     "teamA": "YNS",
-    "teamB": "Shariah Stepback"
+    "teamB": "Shariah Stepback",
+    "scoreA": 37,
+    "scoreB": 51,
+    "gameId": "week8-game2"
   },
   {
     "date": "8/17/2025",
     "time": "7:00 PM",
     "teamA": "UMMA",
-    "teamB": "Winner of Game 1"
+    "teamB": "Team Flight",
+    "scoreA": 72,
+    "scoreB": 77,
+    "gameId": "week8-game3"
   },
   {
     "date": "8/17/2025",
     "time": "8:00 PM",
     "teamA": "0pium Hoopers",
-    "teamB": "Winner of Game 2"
+    "teamB": "YNS",
+    "scoreA": 48,
+    "scoreB": 44,
+    "gameId": "week8-game4"
   },
   {
     "date": "8/17/2025",
     "time": "9:00 PM",
-    "teamA": "Winner of 7 PM",
-    "teamB": "Winner of 8 PM"
+    "teamA": "0pium Hoopers",
+    "teamB": "Team Flight",
+    "scoreA": 65,
+    "scoreB": 59,
+    "gameId": "week8-game5"
   }
 ]
