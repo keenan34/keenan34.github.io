@@ -1,22 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-const allTeams = [
-  "0pium Hoopers",
-  "Team Flight",
-  "YNS",
-  "Shariah Stepback",
-  "Mambas",
-  "UMMA",
-  "Mujahideens",
-];
-
+const teamsBySeason = {
+  szn3: [
+    "0pium Hoopers",
+    "Team Flight",
+    "YNS",
+    "Shariah Stepback",
+    "Mambas",
+    "UMMA",
+    "Mujahideens",
+  ],
+  szn4: [
+    "Mujahideens",
+    "Chi-Elite",
+    "TNB",
+    "The Northmen",
+    "Umma",
+  ],
+};
 export default function Schedule() {
+  const { season } = useParams();
+  const activeSeason = season || "szn4";
+  const allTeams = teamsBySeason[activeSeason] || [];
+
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/full_schedule.json")
+    setLoading(true);
+
+    fetch(`/seasons/${activeSeason}/full_schedule.json`)
       .then((res) => res.json())
       .then((data) => {
         setGames(data);
@@ -26,7 +40,7 @@ export default function Schedule() {
         console.error("Error loading schedule:", err);
         setLoading(false);
       });
-  }, []);
+  }, [activeSeason]);
 
   const records = {};
   allTeams.forEach((team) => {
@@ -51,7 +65,10 @@ export default function Schedule() {
     acc[game.date].push(game);
     return acc;
   }, {});
-  const dateEntries = Object.entries(gamesByDate).reverse();
+  const dateEntries = Object.entries(gamesByDate).sort(
+    ([a], [b]) => new Date(a) - new Date(b)
+  );
+
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
@@ -63,8 +80,7 @@ export default function Schedule() {
         <p className="text-center text-gray-400">Loading...</p>
       ) : (
         dateEntries.map(([date, dayGames], dateIdx) => {
-          const playingTeams = dayGames.flatMap((g) => [g.teamA, g.teamB]);
-          const byeTeams = allTeams.filter((t) => !playingTeams.includes(t));
+         
 
           return (
             <div key={date} className="mb-10">
@@ -86,7 +102,6 @@ export default function Schedule() {
                     typeof game.scoreA === "number" &&
                     typeof game.scoreB === "number";
 
-                  // no cursor-pointer here
                   const cardClasses =
                     "flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200";
 
@@ -140,7 +155,7 @@ export default function Schedule() {
                   return hasScore && weekPart && idPart ? (
                     <Link
                       key={idx}
-                      to={`/boxscore/${weekPart}/${idPart}`}
+                      to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
                       className="no-underline block cursor-pointer"
                     >
                       {content}
@@ -151,11 +166,6 @@ export default function Schedule() {
                 })}
               </div>
 
-              {byeTeams.length > 0 && dateIdx !== 0 && (
-                <p className="text-sm text-red-500 font-semibold text-center mt-2">
-                  Bye Week: {byeTeams.join(", ")}
-                </p>
-              )}
             </div>
           );
         })

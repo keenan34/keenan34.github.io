@@ -1,6 +1,7 @@
 // --- PlayerPage.js ---
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+
 function ordinal(n) {
   const rem100 = n % 100;
   if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
@@ -18,8 +19,18 @@ function ordinal(n) {
 
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
 
+// normalize team names so Umma === UMMA === The Umma, etc
+const normalizeTeam = (s = "") =>
+  String(s)
+    .toLowerCase()
+    .trim()
+    .replace(/^the\s+/, "")
+    .replace(/\s+/g, " ");
+
 export default function PlayerPage() {
-  const { slug } = useParams();
+  const { season, slug } = useParams();
+  const activeSeason = season || "szn4";
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,16 +48,18 @@ export default function PlayerPage() {
     window.scrollTo(0, 0);
   }, []);
 
+  // load schedule + rosters (cache-busted)
   useEffect(() => {
-    fetch("/full_schedule.json")
+    fetch(`/seasons/${activeSeason}/full_schedule.json?v=${Date.now()}`)
       .then((r) => r.json())
-      .then(setSchedule)
+      .then((data) => setSchedule(Array.isArray(data) ? data : []))
       .catch(console.error);
-    fetch("/team_rosters.json")
+
+    fetch(`/seasons/${activeSeason}/team_rosters.json?v=${Date.now()}`)
       .then((r) => r.json())
-      .then(setRosters)
+      .then((data) => setRosters(data || {}))
       .catch(console.error);
-  }, []);
+  }, [activeSeason]);
 
   const playerName =
     slug === "dujuan_wright"
@@ -56,14 +69,44 @@ export default function PlayerPage() {
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
 
-  const playerTeam = React.useMemo(() => {
+  const playerTeam = useMemo(() => {
     return (
       Object.entries(rosters).find(([, list]) =>
-        list.some((p) => p.name === playerName)
+        (list || []).some((p) => p.name === playerName)
       )?.[0] || ""
     );
   }, [rosters, playerName]);
 
+  // helper: find the schedule entry for a given week + opponent
+  const findScheduleEntry = (weekKey, opponent) => {
+    if (!schedule?.length || !playerTeam) return null;
+
+    const teamNorm = normalizeTeam(playerTeam);
+    const oppNorm = normalizeTeam(opponent);
+
+    // all games in that week involving player's team
+    const teamGames = schedule.filter((gm) => {
+      if (!gm?.gameId?.startsWith(weekKey)) return false;
+      const a = normalizeTeam(gm.teamA);
+      const b = normalizeTeam(gm.teamB);
+      return a === teamNorm || b === teamNorm;
+    });
+
+    if (!teamGames.length) return null;
+
+    // pick the one against this opponent
+    const exact = teamGames.find((gm) => {
+      const a = normalizeTeam(gm.teamA);
+      const b = normalizeTeam(gm.teamB);
+      return (
+        (a === teamNorm && b === oppNorm) || (b === teamNorm && a === oppNorm)
+      );
+    });
+
+    return exact || null;
+  };
+
+  // load weeks -> games + league averages
   useEffect(() => {
     const rosterNames = Object.values(rosters)
       .flat()
@@ -72,31 +115,42 @@ export default function PlayerPage() {
     const playerEntry = Object.values(rosters)
       .flat()
       .find((p) => p.name === playerName);
+
     if (playerEntry && playerEntry.number != null) {
       setPlayerNumber(playerEntry.number);
     }
 
-    Promise.all([
-      fetch("/week1.json").then((r) => r.json()),
-      fetch("/week2.json").then((r) => r.json()),
-      fetch("/week3.json").then((r) => r.json()),
-      fetch("/week4.json").then((r) => r.json()),
-      fetch("/week5.json").then((r) => r.json()),
-      fetch("/week6.json").then((r) => r.json()),
-      fetch("/week7.json").then((r) => r.json()),
-      fetch("/week8.json").then((r) => r.json()),
-    ])
-      .then((weeks) => {
+    const weekNums = [1, 2, 3, 4, 5, 6, 7, 8];
+
+    const fetchWeek = async (n) => {
+      const r = await fetch(
+        `/seasons/${activeSeason}/week${n}.json?v=${Date.now()}`
+      );
+      if (!r.ok) return null;
+      try {
+        return await r.json();
+      } catch {
+        return null;
+      }
+    };
+
+    Promise.all(weekNums.map(fetchWeek))
+      .then((weeksRaw) => {
+        const weeks = weeksRaw.filter(Boolean);
         const allPlayers = new Map();
 
-        weeks.forEach((weekData, weekIdx) => {
-          const weekLabel = `Week ${weekIdx + 1}`;
-          Object.values(weekData).forEach((game) => {
+        weeks.forEach((weekData, idx) => {
+          const weekLabel = `Week ${idx + 1}`;
+
+          Object.values(weekData || {}).forEach((game) => {
             ["teamA", "teamB"].forEach((side) => {
-              game[side].players.forEach((p) => {
-                const fullName = p.Player;
+              (game?.[side]?.players || []).forEach((p) => {
+                const fullName = p?.Player;
+                if (!fullName) return;
+
                 const opponent =
                   side === "teamA" ? game.teamB.name : game.teamA.name;
+
                 const entry = {
                   week: weekLabel,
                   opponent,
@@ -118,6 +172,7 @@ export default function PlayerPage() {
                   fouls: p.Fouls,
                   steals: p["STLS/BLKS"],
                 };
+
                 if (!allPlayers.has(fullName)) allPlayers.set(fullName, []);
                 allPlayers.get(fullName).push(entry);
               });
@@ -132,13 +187,13 @@ export default function PlayerPage() {
           "Salman",
           "Ibrahim",
           "Raedh Talha",
-          " Sufyan",
+          "Sufyan",
           "Devon",
           "Saif Rehman",
-          "Amaar Zafar,",
+          "Amaar Zafar",
         ];
 
-        allPlayers.forEach((games, name) => {
+        allPlayers.forEach((gms, name) => {
           if (!rosterNames.includes(name)) return;
           if (excluded.includes(name)) return;
 
@@ -161,21 +216,21 @@ export default function PlayerPage() {
             "tos",
             "steals",
           ].forEach((k) => {
-            const valid = games.filter((g) => g[k] != null);
-            const total = valid.reduce((sum, g) => sum + g[k], 0);
+            const valid = gms.filter((g) => g[k] != null);
+            const total = valid.reduce((sum, g) => sum + Number(g[k] || 0), 0);
             avg[k] = valid.length ? +(total / valid.length).toFixed(1) : 0;
           });
 
           allAveragesArr.push({ name, avg });
         });
 
-        const thisPlayerGames = allPlayers.get(playerName) || [];
-        setGames(thisPlayerGames);
+        setGames(allPlayers.get(playerName) || []);
         setAllAverages(allAveragesArr);
       })
       .catch(console.error);
-  }, [playerName, rosters]);
+  }, [activeSeason, playerName, rosters]);
 
+  // player averages
   const avg = {};
   if (games.length) {
     [
@@ -197,11 +252,12 @@ export default function PlayerPage() {
       "steals",
     ].forEach((k) => {
       const valid = games.filter((g) => g[k] != null);
-      const total = valid.reduce((sum, g) => sum + g[k], 0);
+      const total = valid.reduce((sum, g) => sum + Number(g[k] || 0), 0);
       avg[k] = valid.length ? +(total / valid.length).toFixed(1) : 0;
     });
   }
 
+  // ranks
   const ranks = {};
   if (allAverages.length) {
     const rosterNames = Object.values(rosters)
@@ -216,7 +272,7 @@ export default function PlayerPage() {
 
       let currentRank = 1;
       let previousValue = null;
-      let rankMap = {};
+      const rankMap = {};
       for (let i = 0; i < sorted.length; i++) {
         const val = sorted[i].avg[stat];
         if (val !== previousValue) currentRank = i + 1;
@@ -224,9 +280,7 @@ export default function PlayerPage() {
         previousValue = val;
       }
 
-      if (playerName in rankMap) {
-        ranks[stat] = rankMap[playerName];
-      }
+      if (playerName in rankMap) ranks[stat] = rankMap[playerName];
     });
   }
 
@@ -253,6 +307,7 @@ export default function PlayerPage() {
       </button>
     </div>
   );
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 text-2xl sm:text-3xl">
       <div className="relative w-full max-w-4xl mx-auto mb-6">
@@ -268,7 +323,11 @@ export default function PlayerPage() {
           {playerTeam && (
             <button
               onClick={() =>
-                navigate(`/teams/${encodeURIComponent(playerTeam)}/roster`)
+                navigate(
+                  `/season/${activeSeason}/teams/${encodeURIComponent(
+                    playerTeam
+                  )}/roster`
+                )
               }
               className="text-gray-400 hover:text-white text-sm"
             >
@@ -283,11 +342,13 @@ export default function PlayerPage() {
           <div
             className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gray-700 text-white flex items-center justify-center text-4xl sm:text-5xl font-bold mb-3 overflow-hidden cursor-pointer"
             onClick={() =>
-              setZoomUrl(`${PUBLIC_URL}/images/players/${slug}.png`)
+              setZoomUrl(
+                `${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`
+              )
             }
           >
             <img
-              src={`${PUBLIC_URL}/images/players/${slug}.png`}
+              src={`${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`}
               alt={playerName}
               onError={(e) => {
                 e.currentTarget.onerror = null;
@@ -314,7 +375,9 @@ export default function PlayerPage() {
           {/* Averages Box */}
           {games.length > 0 && (
             <div className="w-full max-w-md bg-gray-800 rounded-lg p-3">
-              <div className="text-gray-400 text-xs mb-2">SZN 3 2025</div>
+              <div className="text-gray-400 text-xs mb-2">
+                {activeSeason.toUpperCase()}
+              </div>
 
               {/* First Row */}
               <div className="grid grid-cols-8 gap-1 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
@@ -400,34 +463,35 @@ export default function PlayerPage() {
           )}
         </div>
 
-        {/* Zoom Modal if active */}
         {zoomUrl && <ZoomModal />}
       </div>
+
+      {/* GAME LOG TABLE */}
       <div className="overflow-x-auto mt-10 text-base sm:text-lg">
         <table className="w-full border-separate border-spacing-y-2 text-white">
           <thead className="bg-gray-800">
             <tr className="rounded-lg">
               {[
-                "Week", // idx 0
-                "Opp", // idx 1
-                "W/L", // idx 2
-                "PTS", // idx 3
+                "Week",
+                "Opp",
+                "Result",
+                "PTS",
                 "FGM",
                 "FGA",
                 "FG%",
                 "2PM",
                 "2PA",
-                "2P%", // idxs 4–9
+                "2P%",
                 "3PM",
                 "3PA",
                 "3P%",
                 "FTM",
                 "FTA",
-                "FT%", // idxs 10–15
+                "FT%",
                 "REB",
                 "TO",
                 "FLS",
-                "STL/BLKS", // idxs 16–19
+                "STL/BLKS",
               ].map((col, idx) => (
                 <th
                   key={col}
@@ -444,109 +508,89 @@ export default function PlayerPage() {
               ))}
             </tr>
           </thead>
+
           <tbody>
-            {games.map((g, i) => (
-              <tr
-  key={i}
-  className={`${i % 2 === 0 ? "bg-gray-800/60" : "bg-gray-700/60"} cursor-pointer`}
-  onClick={() => {
-    const weekKey = g.week.toLowerCase().replace(/ /g, "");
-    const rosterNames = Object.values(rosters).flat().map(p => p.name);
-    const isFillIn = !rosterNames.includes(playerName);
-    // gather ALL games that week for this player’s team
-    const teamGames = schedule.filter(
-      gm =>
-        gm.gameId?.startsWith(weekKey) &&
-        (gm.teamA === playerTeam || gm.teamB === playerTeam)
-    );
-    if (isFillIn && teamGames.length > 1) {
-      // we have >1 game and this is a fill-in → pick the one against this opponent
-      const forced = teamGames.find(
-        gm =>
-          (gm.teamA === playerTeam && gm.teamB === g.opponent) ||
-          (gm.teamB === playerTeam && gm.teamA === g.opponent)
-      );
-      if (forced) {
-        // forced.gameId === "week6-game2"
-        const [, gameKey] = forced.gameId.split("-");
-        navigate(`/boxscore/${weekKey}/${gameKey}`);
-        return;
-      }
-    }
+            {games.map((g, i) => {
+              const weekKey = g.week.toLowerCase().replace(/ /g, "");
+              const entry = findScheduleEntry(weekKey, g.opponent);
 
-    // otherwise fall back to your old logic
-    const entry = schedule.find(
-      gm =>
-        gm.gameId?.startsWith(weekKey) &&
-        ((gm.teamA === playerTeam && gm.teamB === g.opponent) ||
-         (gm.teamB === playerTeam && gm.teamA === g.opponent))
-    );
-    if (!entry) return;
-    const [, gameKey] = entry.gameId.split("-");
-    navigate(`/boxscore/${weekKey}/${gameKey}`);
-  }}
->
+              // compute W/L + show score
+              let resultText = "-";
+              if (entry) {
+                const a = Number(entry.scoreA);
+                const b = Number(entry.scoreB);
 
-                {/* Week */}
-                <td className="px-4 py-4 text-left whitespace-nowrap rounded-l-lg">
-                  {g.week}
-                </td>
+                if (Number.isFinite(a) && Number.isFinite(b)) {
+                  const teamNorm = normalizeTeam(playerTeam);
+                  const aIsTeam = normalizeTeam(entry.teamA) === teamNorm;
 
-                {/* Opponent */}
-                <td className="px-4 py-4 text-left whitespace-nowrap">
-                  {g.opponent}
-                </td>
+                  const myScore = aIsTeam ? a : b;
+                  const oppScore = aIsTeam ? b : a;
 
-                {/* W/L */}
-                <td className="px-4 py-4 text-center">
-                  {(() => {
-                    const weekKey = g.week.toLowerCase().replace(/ /g, "");
-                    const entry = schedule.find(
-                      (gm) =>
-                        gm.gameId?.startsWith(weekKey) &&
-                        ((gm.teamA === playerTeam && gm.teamB === g.opponent) ||
-                          (gm.teamB === playerTeam && gm.teamA === g.opponent))
+                  resultText = `${
+                    myScore > oppScore ? "W" : "L"
+                  } ${myScore}-${oppScore}`;
+                }
+              }
+
+              return (
+                <tr
+                  key={i}
+                  className={`${
+                    i % 2 === 0 ? "bg-gray-800/60" : "bg-gray-700/60"
+                  } cursor-pointer`}
+                  onClick={() => {
+                    if (!entry?.gameId) return;
+                    const [, gameKey] = entry.gameId.split("-");
+                    if (!gameKey) return;
+                    navigate(
+                      `/season/${activeSeason}/boxscore/${weekKey}/${gameKey}`
                     );
-                    if (!entry) return "-";
-                    const won =
-                      entry.teamA === playerTeam
-                        ? entry.scoreA > entry.scoreB
-                        : entry.scoreB > entry.scoreA;
-                    return won ? "W" : "L";
-                  })()}
-                </td>
-
-                {/* Stats */}
-                {[
-                  g.points,
-                  g.fgm,
-                  g.fga,
-                  g.fgPct,
-                  g.twoPtM,
-                  g.twoPtA,
-                  g.twoPtPct,
-                  g.threePtM,
-                  g.threePtA,
-                  g.threePtPct,
-                  g.ftm,
-                  g.fta,
-                  g.ftPct,
-                  g.rebounds,
-                  g.tos,
-                  g.fouls,
-                  g.steals,
-                ].map((val, idx) => (
-                  <td
-                    key={idx}
-                    className={`px-4 py-4 text-center ${
-                      idx === 16 ? "rounded-r-lg" : ""
-                    }`}
-                  >
-                    {val == null ? "DNP" : val}
+                  }}
+                >
+                  <td className="px-4 py-4 text-left whitespace-nowrap rounded-l-lg">
+                    {g.week}
                   </td>
-                ))}
-              </tr>
-            ))}
+
+                  <td className="px-4 py-4 text-left whitespace-nowrap">
+                    {g.opponent}
+                  </td>
+
+                  <td className="px-4 py-4 text-center font-bold">
+                    {resultText}
+                  </td>
+
+                  {[
+                    g.points,
+                    g.fgm,
+                    g.fga,
+                    g.fgPct,
+                    g.twoPtM,
+                    g.twoPtA,
+                    g.twoPtPct,
+                    g.threePtM,
+                    g.threePtA,
+                    g.threePtPct,
+                    g.ftm,
+                    g.fta,
+                    g.ftPct,
+                    g.rebounds,
+                    g.tos,
+                    g.fouls,
+                    g.steals,
+                  ].map((val, idx) => (
+                    <td
+                      key={idx}
+                      className={`px-4 py-4 text-center ${
+                        idx === 16 ? "rounded-r-lg" : ""
+                      }`}
+                    >
+                      {val == null ? "DNP" : val}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

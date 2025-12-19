@@ -1,23 +1,28 @@
 // src/components/GameSlider.js
-import React, { useEffect, useState } from 'react';
-import Slider from 'react-slick';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export default function GameSlider() {
+  const { season } = useParams();
+  const activeSeason = season || "szn4";
+
   const [upcomingGames, setUpcomingGames] = useState([]);
 
   useEffect(() => {
-    fetch('/full_schedule.json')
-      .then(res => res.json())
-      .then(data => {
+    fetch(`/seasons/${activeSeason}/full_schedule.json`)
+      .then((res) => res.json())
+      .then((data) => {
         const today = new Date();
         const upcoming = data
-          .filter(game => new Date(game.date) >= today)
+          .filter((game) => new Date(game.date) >= today)
           .slice(0, 10);
         setUpcomingGames(upcoming);
-      });
-  }, []);
+      })
+      .catch(console.error);
+  }, [activeSeason]);
 
   const settings = {
     dots: true,
@@ -30,12 +35,14 @@ export default function GameSlider() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 transform scale-90">
-      <h2 className="text-2xl font-bold text-center mb-4 text-white">Upcoming Games</h2>
+    <div className="max-w-2xl mx-auto mt-3 transform scale-90">
+      <h2 className="text-2xl font-bold text-center mb-4 text-white">
+        Upcoming Games
+      </h2>
       {upcomingGames.length > 0 ? (
         <Slider {...settings}>
           {upcomingGames.map((game, index) => (
-            <div key={index} className="text-center px-4 py-6">
+            <div key={index} className="text-center px-4 py-1">
               <h3 className="text-lg font-semibold text-white">
                 {game.teamA} vs {game.teamB}
               </h3>

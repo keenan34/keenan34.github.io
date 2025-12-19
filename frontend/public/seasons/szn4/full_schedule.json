@@ -1,0 +1,139 @@
+[
+  {
+    "date": "12/14/2025",
+    "time": "5:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "The Northmen",
+    "scoreA": 70,
+    "scoreB": 58,
+    "gameId": "week1-game1"
+  },
+  {
+    "date": "12/14/2025",
+    "time": "6:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "Mujahideens",
+    "scoreA": 61,
+    "scoreB": 54,
+    "gameId": "week1-game2"
+  },
+  {
+    "date": "12/14/2025",
+    "time": "7:00 PM",
+    "teamA": "Umma",
+    "teamB": "TNB",
+    "scoreA": 62,
+    "scoreB": 56,
+    "gameId": "week1-game3"
+  },
+
+  {
+    "date": "12/21/2025",
+    "time": "5:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "TNB",
+    "gameId": "week2-game1"
+  },
+  {
+    "date": "12/21/2025",
+    "time": "6:00 PM",
+    "teamA": "The Northmen",
+    "teamB": "Mujahideens",
+    "gameId": "week2-game2"
+  },
+  {
+    "date": "12/21/2025",
+    "time": "7:00 PM",
+    "teamA": "Umma",
+    "teamB": "Mujahideens",
+    "gameId": "week2-game3"
+  },
+
+  {
+    "date": "1/4/2026",
+    "time": "6:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "Umma",
+    "gameId": "week3-game1"
+  },
+  {
+    "date": "1/4/2026",
+    "time": "7:00 PM",
+    "teamA": "The Northmen",
+    "teamB": "Umma",
+    "gameId": "week3-game2"
+  },
+  {
+    "date": "1/4/2026",
+    "time": "8:00 PM",
+    "teamA": "TNB",
+    "teamB": "Mujahideens",
+    "gameId": "week3-game3"
+  },
+
+  {
+    "date": "1/11/2026",
+    "time": "5:00 PM",
+    "teamA": "TNB",
+    "teamB": "Chi-Elite",
+    "gameId": "week4-game1"
+  },
+  {
+    "date": "1/11/2026",
+    "time": "6:00 PM",
+    "teamA": "TNB",
+    "teamB": "The Northmen",
+    "gameId": "week4-game2"
+  },
+  {
+    "date": "1/11/2026",
+    "time": "7:00 PM",
+    "teamA": "Umma",
+    "teamB": "Mujahideens",
+    "gameId": "week4-game3"
+  },
+
+  {
+    "date": "1/18/2026",
+    "time": "6:00 PM",
+    "teamA": "TNB",
+    "teamB": "The Northmen",
+    "gameId": "week5-game1"
+  },
+  {
+    "date": "1/18/2026",
+    "time": "7:00 PM",
+    "teamA": "Umma",
+    "teamB": "The Northmen",
+    "gameId": "week5-game2"
+  },
+  {
+    "date": "1/18/2026",
+    "time": "8:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "Mujahideens",
+    "gameId": "week5-game3"
+  },
+
+  {
+    "date": "1/25/2026",
+    "time": "6:00 PM",
+    "teamA": "Seed 2",
+    "teamB": "Seed 4",
+    "gameId": "week6-game1"
+  },
+  {
+    "date": "1/25/2026",
+    "time": "7:00 PM",
+    "teamA": "Seed 1",
+    "teamB": "Seed 3",
+    "gameId": "week6-game2"
+  },
+  {
+    "date": "1/25/2026",
+    "time": "8:00 PM",
+    "teamA": "Winner of 6:00 PM",
+    "teamB": "Winner of 7:00 PM",
+    "gameId": "week6-game3"
+  }
+]

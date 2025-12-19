@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 
+
 // simple slugify utility
 const slugify = (name) =>
   name
@@ -40,7 +41,9 @@ function ProfileImage({ src, name, onClick }) {
 }
 
 export default function BoxScore() {
-  const { week, gameId } = useParams();
+  const { season, week, gameId } = useParams();
+  const activeSeason = season || "szn4";
+
   const [data, setData] = useState(null);
   const [scores, setScores] = useState({ a: null, b: null });
   const [matchInfo, setMatchInfo] = useState(null);
@@ -53,9 +56,9 @@ export default function BoxScore() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`/${week}.json`),
-      fetch("/full_schedule.json"),
-      fetch("/players_with_images.json"),
+      fetch(`/seasons/${activeSeason}/${week}.json`),
+      fetch(`/seasons/${activeSeason}/full_schedule.json`),
+      fetch(`/seasons/${activeSeason}/players_with_images.json`),
     ])
       .then(async ([r1, r2, r3]) => {
         const w = await r1.json();
@@ -96,7 +99,8 @@ export default function BoxScore() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [week, gameId]);
+  }, [activeSeason, week, gameId]);
+
 
   if (loading) return <p className="text-center py-8">Loading…</p>;
   if (!data) return <p className="text-center py-8">No box score found.</p>;

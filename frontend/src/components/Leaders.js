@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 const slugify = (str) =>
   str
@@ -8,19 +8,20 @@ const slugify = (str) =>
     .replace(/[^a-z0-9_]/g, "");
 
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
-function ProfileImage({ name, onClick }) {
-    const [error, setError] = useState(false);
-  
-    // 🚨 single exception for three-part name
-    const slug =
-      name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
-  
-    const src = `${PUBLIC_URL}/images/players/${slug}.png`;
-    const initials = name
-      .split(" ")
-      .map((n) => n[0])
-      .join("");
-  
+
+function ProfileImage({ name, season, onClick }) {
+  const [error, setError] = useState(false);
+
+  // single exception for three-part name
+  const slug =
+    name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
+
+  const src = `${PUBLIC_URL}/seasons/${season}/images/players/${slug}.png`;
+
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
 
   if (error) {
     return (
@@ -47,47 +48,65 @@ function ProfileImage({ name, onClick }) {
 }
 
 export default function Leaders() {
+  const { season } = useParams();
+  const activeSeason = season || "szn4";
+
   const [players, setPlayers] = useState([]);
   const [modalImage, setModalImage] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      fetch("/week1.json"),
-      fetch("/week2.json"),
-      fetch("/week3.json"),
-      fetch("/week4.json"),
-      fetch("/week5.json"),
-      fetch("/week6.json"),
-      fetch("/week7.json"),
-    ])
-      .then(async ([r1, r2, r3, r4, r5, r6, r7]) => {
-        if (!r1.ok || !r2.ok || !r3.ok || !r4.ok || !r5.ok || !r6.ok || !r7.ok)
-          throw new Error("JSON load error");
-        const [data1, data2, data3, data4, data5, data6, data7] = await Promise.all([
-          r1.json(),
-          r2.json(),
-          r3.json(),
-          r4.json(),
-          r5.json(),
-          r6.json(),
-          r7.json()
-        ]);
+    let cancelled = false;
+
+    const weekNums = [1, 2, 3, 4, 5, 6, 7];
+
+    const fetchWeek = async (n) => {
+      // skip weeks that don't exist yet (prevents infinite "loading")
+      const r = await fetch(
+        `/seasons/${activeSeason}/week${n}.json?v=${Date.now()}`
+      );
+      if (!r.ok) return null;
+      try {
+        return await r.json();
+      } catch {
+        return null;
+      }
+    };
+
+    const run = async () => {
+      setError("");
+      setPlayers([]);
+
+      try {
+        const weeks = (await Promise.all(weekNums.map(fetchWeek))).filter(
+          Boolean
+        );
+
+        if (!weeks.length) {
+          if (!cancelled)
+            setError(
+              `No week JSON files found for ${activeSeason} (expected week1.json, week2.json, etc).`
+            );
+          return;
+        }
 
         const playerMap = {};
+
         const extractWeek = (weekJson) => {
-          Object.values(weekJson).forEach((game) => {
+          Object.values(weekJson || {}).forEach((game) => {
             ["teamA", "teamB"].forEach((side) => {
-              game[side].players.forEach((p) => {
-                if (!p.Player) return;
-                if (p.Points == null) return;
+              (game?.[side]?.players || []).forEach((p) => {
+                if (!p?.Player) return;
+                if (p.Points == null) return; // DNP
 
                 const name = p.Player;
-                const pts = +p.Points;
-                const three = +p["3 PTM"];
-                const reb = +p.REB;
-                const tos = +p.TOs;
-                const fouls = +p.Fouls;
-                const stlBlk = +p["STLS/BLKS"];
+
+                const pts = Number(p.Points) || 0;
+                const three = Number(p["3 PTM"]) || 0;
+                const reb = Number(p.REB) || 0;
+                const tos = Number(p.TOs) || 0;
+                const fouls = Number(p.Fouls) || 0;
+                const stlBlk = Number(p["STLS/BLKS"]) || 0;
 
                 if (!playerMap[name]) {
                   playerMap[name] = {
@@ -115,7 +134,7 @@ export default function Leaders() {
           });
         };
 
-        [data1, data2, data3, data4, data5, data6, data7].forEach(extractWeek);
+        weeks.forEach(extractWeek);
 
         const arr = Object.values(playerMap).map((p) => {
           const g = p.games || 1;
@@ -140,15 +159,25 @@ export default function Leaders() {
             p.name !== "Devon" &&
             p.name !== "Sufyan" &&
             p.name !== "Saif Rehman" &&
-            p.name !== "Amaar Zafar" 
+            p.name !== "Amaar Zafar"
         );
-        setPlayers(filtered);
-      })
-      .catch((err) => {
-        console.error("Error loading leader data:", err);
-        setPlayers([]);
-      });
-  }, []);
+
+        if (!cancelled) setPlayers(filtered);
+      } catch (e) {
+        console.error("Error loading leader data:", e);
+        if (!cancelled) {
+          setError(e?.message || "Failed to load leaders.");
+          setPlayers([]);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSeason]);
 
   const getTopByAverage = (avgKey) =>
     [...players].sort((a, b) => b[avgKey] - a[avgKey]).slice(0, 10);
@@ -191,7 +220,9 @@ export default function Leaders() {
                   p.name === "Jerremiah Dujuan Wright"
                     ? "dujuan_wright"
                     : slugify(p.name);
-                const imgSrc = `${PUBLIC_URL}/images/players/${slug}.png`;
+
+                const imgSrc = `${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`;
+
                 return (
                   <tr
                     key={p.name}
@@ -200,6 +231,7 @@ export default function Leaders() {
                     <td className="p-1 flex items-center whitespace-nowrap text-white">
                       <ProfileImage
                         name={p.name}
+                        season={activeSeason}
                         onClick={() => setModalImage(imgSrc)}
                       />
                       <span className="font-bold mr-1 text-xs">
@@ -213,9 +245,15 @@ export default function Leaders() {
                       </span>
 
                       <Link
-                        to={`/player/${slug}`}
+                        to={
+                          season
+                            ? `/season/${activeSeason}/player/${slug}`
+                            : `/player/${slug}`
+                        }
                         state={{
-                          from: "/leaders",
+                          from: season
+                            ? `/season/${activeSeason}/leaders`
+                            : "/leaders",
                           label: "Leaders",
                         }}
                         className="font-bold text-xs hover:underline text-white"
@@ -223,6 +261,7 @@ export default function Leaders() {
                         {p.name}
                       </Link>
                     </td>
+
                     <td className="px-1 py-2 text-right text-white font-bold">
                       {p.games}
                     </td>
@@ -265,13 +304,16 @@ export default function Leaders() {
         </div>
       )}
 
-      {players.length === 0 ? (
+      {error ? (
+        <p className="text-center py-4 text-red-400">{error}</p>
+      ) : players.length === 0 ? (
         <p className="text-center py-4 text-gray-400">Loading leaders…</p>
       ) : (
         <div className="bg-gray-900 p-4">
           <h1 className="text-xl font-bold text-center mb-4 text-white">
             League Leaders
           </h1>
+
           <div className="flex flex-col gap-6 items-center">
             {renderCategory({
               label: "Points",
