@@ -3,7 +3,7 @@ import React from 'react';
 
 const Footer = () => (
     <footer className="bg-gray-900 text-center text-xs text-gray-400 py-4">
-    This site was made by Keenan Jajeh © 2025
+    This site was made by Keenan Jajeh © 2026 
   </footer>
 );
 
