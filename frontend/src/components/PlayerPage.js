@@ -1,3 +1,4 @@
+
 // --- PlayerPage.js ---
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
@@ -155,6 +156,8 @@ export default function PlayerPage() {
                   week: weekLabel,
                   opponent,
                   points: p.Points,
+                  rebounds: p.REB,
+                  assists: p.AST, // ✅ AST added
                   fgm: p.FGM,
                   fga: p.FGA,
                   fgPct: p["FG %"],
@@ -167,10 +170,9 @@ export default function PlayerPage() {
                   ftm: p.FTM,
                   fta: p.FTA,
                   ftPct: p["FT %"],
-                  rebounds: p.REB,
                   tos: p.TOs,
+                  steals: p["STLS/BLKS"], // STL/BLK
                   fouls: p.Fouls,
-                  steals: p["STLS/BLKS"],
                 };
 
                 if (!allPlayers.has(fullName)) allPlayers.set(fullName, []);
@@ -201,6 +203,7 @@ export default function PlayerPage() {
           [
             "points",
             "rebounds",
+            "assists",
             "fgm",
             "fga",
             "fgPct",
@@ -236,6 +239,7 @@ export default function PlayerPage() {
     [
       "points",
       "rebounds",
+      "assists",
       "fgm",
       "fga",
       "fgPct",
@@ -293,11 +297,7 @@ export default function PlayerPage() {
         className="rounded-full overflow-hidden w-[60vw] h-[60vw] max-w-[600px] max-h-[600px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <img
-          src={zoomUrl}
-          alt="Zoomed player"
-          className="w-full h-full object-cover"
-        />
+        <img src={zoomUrl} alt="Zoomed player" className="w-full h-full object-cover" />
       </div>
       <button
         className="absolute top-4 right-4 text-white text-3xl"
@@ -307,6 +307,32 @@ export default function PlayerPage() {
       </button>
     </div>
   );
+
+  // ✅ your exact stat order (17 stats)
+  const statOrder = [
+    { label: "PTS", key: "points" },
+    { label: "REB", key: "rebounds" },
+    { label: "AST", key: "assists" },
+    { label: "FGM", key: "fgm" },
+    { label: "FGA", key: "fga" },
+    { label: "FG%", key: "fgPct" },
+    { label: "2PTM", key: "twoPtM" },
+    { label: "2PTA", key: "twoPtA" },
+    { label: "2P%", key: "twoPtPct" },
+    { label: "3PTM", key: "threePtM" },
+    { label: "3PTA", key: "threePtA" },
+    { label: "3P%", key: "threePtPct" },
+    { label: "FTM", key: "ftm" },
+    { label: "FTA", key: "fta" },
+    { label: "FT%", key: "ftPct" },
+    { label: "TO", key: "tos" },
+    { label: "STL/BLK", key: "steals" },
+  ];
+
+  // split into 2 chunks so it stays “OG”, but fits 17 stats:
+  // chunkA = 9 stats, chunkB = 8 stats
+  const chunkA = statOrder.slice(0, 9);
+  const chunkB = statOrder.slice(9);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 text-2xl sm:text-3xl">
@@ -372,91 +398,56 @@ export default function PlayerPage() {
             {playerName}
           </h1>
 
-          {/* Averages Box */}
+          {/* ✅ OG Averages Box (now includes AST + your full stat list) */}
           {games.length > 0 && (
             <div className="w-full max-w-md bg-gray-800 rounded-lg p-3">
               <div className="text-gray-400 text-xs mb-2">
                 {activeSeason.toUpperCase()}
               </div>
 
-              {/* First Row */}
-              <div className="grid grid-cols-8 gap-1 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
-                {["PTS", "REB", "FGM", "FGA", "FG%", "2PTM", "2PTA", "2P%"].map(
-                  (label) => (
-                    <div key={label}>{label}</div>
-                  )
-                )}
-              </div>
-              <div className="grid grid-cols-8 gap-1 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
-                {[
-                  avg.points,
-                  avg.rebounds,
-                  avg.fgm,
-                  avg.fga,
-                  avg.fgPct,
-                  avg.twoPtM,
-                  avg.twoPtA,
-                  avg.twoPtPct,
-                ].map((v, i) => (
-                  <div key={i}>{v}</div>
+              {/* Chunk A (9 stats) */}
+              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
+                {chunkA.map((s) => (
+                  <div key={s.key} className="whitespace-nowrap">
+                    {s.label}
+                  </div>
                 ))}
               </div>
-              <div className="grid grid-cols-8 gap-1 mb-3 mt-3 text-center text-gray-500 text-xs sm:text-sm">
-                {[
-                  "points",
-                  "rebounds",
-                  "fgm",
-                  "fga",
-                  "fgPct",
-                  "twoPtM",
-                  "twoPtA",
-                  "twoPtPct",
-                ].map((k, i) => (
-                  <div key={i}>{ranks[k]}</div>
+              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
+                {chunkA.map((s) => (
+                  <div key={s.key} className="tabular-nums whitespace-nowrap">
+                    {avg[s.key]}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 mb-5 mt-3 text-center text-gray-500 text-xs sm:text-sm">
+                {chunkA.map((s) => (
+                  <div key={s.key} className="whitespace-nowrap">
+                    {ranks[s.key]}
+                  </div>
                 ))}
               </div>
 
-              {/* Second Row */}
-              <div className="grid grid-cols-8 gap-1 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
-                {[
-                  "3PTM",
-                  "3PTA",
-                  "3P%",
-                  "FTM",
-                  "FTA",
-                  "FT%",
-                  "TO",
-                  "STL/BLK",
-                ].map((label) => (
-                  <div key={label}>{label}</div>
+              {/* Chunk B (8 stats) */}
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
+                {chunkB.map((s) => (
+                  <div key={s.key} className="whitespace-nowrap">
+                    {s.label}
+                  </div>
                 ))}
               </div>
-              <div className="grid grid-cols-8 gap-1 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
-                {[
-                  avg.threePtM,
-                  avg.threePtA,
-                  avg.threePtPct,
-                  avg.ftm,
-                  avg.fta,
-                  avg.ftPct,
-                  avg.tos,
-                  avg.steals,
-                ].map((v, i) => (
-                  <div key={i}>{v}</div>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
+                {chunkB.map((s) => (
+                  <div key={s.key} className="tabular-nums whitespace-nowrap">
+                    {avg[s.key]}
+                  </div>
                 ))}
               </div>
-              <div className="grid grid-cols-8 gap-1 text-center text-gray-500 text-xs sm:text-sm mt-3">
-                {[
-                  "threePtM",
-                  "threePtA",
-                  "threePtPct",
-                  "ftm",
-                  "fta",
-                  "ftPct",
-                  "tos",
-                  "steals",
-                ].map((k, i) => (
-                  <div key={i}>{ranks[k]}</div>
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 text-center text-gray-500 text-xs sm:text-sm mt-3">
+                {chunkB.map((s) => (
+                  <div key={s.key} className="whitespace-nowrap">
+                    {ranks[s.key]}
+                  </div>
                 ))}
               </div>
             </div>
@@ -489,6 +480,7 @@ export default function PlayerPage() {
                 "FTA",
                 "FT%",
                 "REB",
+                "AST", // ✅ added
                 "TO",
                 "FLS",
                 "STL/BLKS",
@@ -498,7 +490,7 @@ export default function PlayerPage() {
                   className={`px-4 py-3 text-center font-semibold text-sm sm:text-base bg-gray-800 ${
                     idx === 0
                       ? "rounded-l-lg"
-                      : idx === 19
+                      : idx === 20
                       ? "rounded-r-lg"
                       : ""
                   }`}
@@ -575,6 +567,7 @@ export default function PlayerPage() {
                     g.fta,
                     g.ftPct,
                     g.rebounds,
+                    g.assists, // ✅ added
                     g.tos,
                     g.fouls,
                     g.steals,
@@ -582,7 +575,7 @@ export default function PlayerPage() {
                     <td
                       key={idx}
                       className={`px-4 py-4 text-center ${
-                        idx === 16 ? "rounded-r-lg" : ""
+                        idx === 17 ? "rounded-r-lg" : ""
                       }`}
                     >
                       {val == null ? "DNP" : val}

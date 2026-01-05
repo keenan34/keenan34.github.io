@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -14,6 +15,56 @@ const teamColors = {
   Mujahideens: "bg-sky-300 text-yellow-400",
   "The Mujahideens": "bg-sky-300 text-yellow-400",
 };
+
+const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
+// same slug rule you used elsewhere
+const slugify = (str) =>
+  String(str)
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+
+function ProfileImage({ name, season, imgUrl }) {
+  const [error, setError] = useState(false);
+
+  const overrideSlugMap = {
+    "Jerremiah Dujuan Wright": "dujuan_wright",
+  };
+
+  const slug = overrideSlugMap[name] || slugify(name);
+
+  // prefer imgUrl from players_with_images.json, fallback to local images folder
+  const src =
+    imgUrl || `${PUBLIC_URL}/seasons/${season}/images/players/${slug}.png`;
+
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 3);
+
+  if (error) {
+    return (
+      <div className="h-11 w-11 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-200 mr-3 flex-shrink-0">
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={name}
+      width="44"
+      height="44"
+      className="h-11 w-11 rounded-full object-cover mr-3 flex-shrink-0"
+      onError={() => setError(true)}
+      loading="lazy"
+    />
+  );
+}
 
 export default function TeamRoster() {
   const { season, id } = useParams();
@@ -86,19 +137,32 @@ export default function TeamRoster() {
             <h3 className="text-xl font-bold mb-3 text-white">Roster</h3>
             <div className="space-y-3">
               {roster.map((player, idx) => {
-                const slug = player.name.toLowerCase().replace(/ /g, "_");
+                const overrideSlugMap = {
+                  "Jerremiah Dujuan Wright": "dujuan_wright",
+                };
+                const slug = overrideSlugMap[player.name] || slugify(player.name);
+
                 return (
                   <Link
                     key={idx}
                     to={playerLink(slug)}
                     className="w-full bg-white rounded-xl shadow p-4 flex items-center hover:bg-gray-100 transition-colors"
                   >
-                    <div className="flex-1">
-                      <span className="text-gray-800 font-semibold">
+                    <ProfileImage
+                      name={player.name}
+                      season={activeSeason}
+                      imgUrl={player.imgUrl}
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <span className="text-gray-800 font-semibold block truncate">
                         {player.name}
                       </span>
                     </div>
-                    <span className="text-gray-600 ml-2">#{player.number}</span>
+
+                    <span className="text-gray-600 ml-2 flex-shrink-0">
+                      #{player.number}
+                    </span>
                   </Link>
                 );
               })}
@@ -133,9 +197,7 @@ export default function TeamRoster() {
                         <span className="text-sm text-gray-400">
                           {g.date} {g.time ? `· ${g.time}` : ""}
                         </span>
-                        <span className="text-white font-semibold">
-                          vs {opp}
-                        </span>
+                        <span className="text-white font-semibold">vs {opp}</span>
                       </div>
 
                       <div className="text-right">
@@ -157,9 +219,7 @@ export default function TeamRoster() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-gray-400 text-sm">
-                            Scheduled
-                          </span>
+                          <span className="text-gray-400 text-sm">Scheduled</span>
                         )}
                       </div>
                     </div>

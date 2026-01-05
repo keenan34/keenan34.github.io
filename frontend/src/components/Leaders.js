@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -102,6 +103,7 @@ export default function Leaders() {
                 const name = p.Player;
 
                 const pts = Number(p.Points) || 0;
+                const ast = Number(p.AST ?? p.Assists ?? p.assists) || 0; // ✅ ASSISTS
                 const three = Number(p["3 PTM"]) || 0;
                 const reb = Number(p.REB) || 0;
                 const tos = Number(p.TOs) || 0;
@@ -112,6 +114,7 @@ export default function Leaders() {
                   playerMap[name] = {
                     name,
                     totalPts: pts,
+                    totalAst: ast, // ✅
                     total3: three,
                     totalReb: reb,
                     totalTO: tos,
@@ -122,6 +125,7 @@ export default function Leaders() {
                 } else {
                   const cur = playerMap[name];
                   cur.totalPts += pts;
+                  cur.totalAst += ast; // ✅
                   cur.total3 += three;
                   cur.totalReb += reb;
                   cur.totalTO += tos;
@@ -141,6 +145,7 @@ export default function Leaders() {
           return {
             ...p,
             avgPts: +(p.totalPts / g).toFixed(1),
+            avgAst: +(p.totalAst / g).toFixed(1), // ✅
             avg3: +(p.total3 / g).toFixed(1),
             avgReb: +(p.totalReb / g).toFixed(1),
             avgTO: +(p.totalTO / g).toFixed(1),
@@ -322,6 +327,16 @@ export default function Leaders() {
               avgLabel: "PTS/G",
               totalLabel: "PTS",
             })}
+
+            {/* ✅ Assists */}
+            {renderCategory({
+              label: "Assists",
+              avgKey: "avgAst",
+              totalKey: "totalAst",
+              avgLabel: "AST/G",
+              totalLabel: "AST",
+            })}
+
             {renderCategory({
               label: "3PT Made",
               avgKey: "avg3",

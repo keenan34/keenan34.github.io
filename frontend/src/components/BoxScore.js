@@ -137,6 +137,8 @@ export default function BoxScore() {
   // which stats to render
   const statFields = [
     { label: "PTS", get: (p) => p.Points ?? 0 },
+    { label: "REB", get: (p) => p.REB ?? 0 },
+    { label: "AST", get: (p) => p.AST ?? 0 },
     { label: "FGM", get: (p) => p.FGM ?? 0 },
     { label: "FGA", get: (p) => p.FGA ?? 0 },
     { label: "FG%", get: (p) => p["FG %"] ?? "0%" },
@@ -149,7 +151,6 @@ export default function BoxScore() {
     { label: "FTM", get: (p) => p.FTM ?? 0 },
     { label: "FTA", get: (p) => p.FTA ?? 0 },
     { label: "FT%", get: (p) => p["FT %"] ?? "0%" },
-    { label: "REB", get: (p) => p.REB ?? 0 },
     { label: "TOs", get: (p) => p.TOs ?? 0 },
     { label: "Fouls", get: (p) => p.Fouls ?? 0 },
     { label: "STLS/BLKS", get: (p) => p["STLS/BLKS"] ?? 0 },

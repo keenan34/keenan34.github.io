@@ -16,35 +16,21 @@
       "imgUrl": "/seasons/szn4/images/players/jorge_barragan.png"
     },
     {
-      "name": "Shahjehan Sajwani",
+      "name": "Kamran Syed",
       "number": "12",
-      "imgUrl": "/seasons/szn4/images/players/shahjehan_sajwani.png"
+      "imgUrl": "/seasons/szn4/images/players/kamran_syed.png"
     },
     {
-      "name": "Abdulla Abbasi",
-      "number": "34",
-      "imgUrl": "/seasons/szn4/images/players/abdulla_abbasi.png"
-    },
-    {
-      "name": "Usman Hussaini",
-      "number": "77",
-      "imgUrl": "/seasons/szn4/images/players/usman_hussaini.png"
+      "name": "Kay Ogungro",
+      "number": "15",
+      "imgUrl": "/seasons/szn4/images/players/kay_ogungro.png"
     },
     {
       "name": "Moises Moya",
       "number": "78",
       "imgUrl": "/seasons/szn4/images/players/moises_moya.png"
-    },
-    {
-      "name": "Syed Talha Ahmed",
-      "number": "15",
-      "imgUrl": "/seasons/szn4/images/players/syed_talha_ahmed.png"
-    },
-    {
-      "name": "Omer Khan",
-      "number": "8",
-      "imgUrl": "/seasons/szn4/images/players/omer_khan.png"
     }
+
   ],
 
   "Chi-Elite": [
