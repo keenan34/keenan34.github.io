@@ -1,59 +1,60 @@
 {
   "Mujahideens": [
+    { "name": "Jorge Barragan", "number": "00" },
     { "name": "Zuren Shethwala", "number": "1" },
     { "name": "Saad Barkat", "number": "7" },
-    { "name": "Jorge Barragan", "number": "00" },
-    { "name": "Shahjehan Sajwani", "number": "12" },
-    { "name": "Abdulla Abbasi", "number": "34" },
-    { "name": "Usman Hussaini", "number": "77" },
-    { "name": "Moises Moya", "number": "78" },
     { "name": "Kay Ogungro", "number": "15" },
-    { "name": "Omer Khan", "number": "8" }
+    { "name": "Kamran Syed", "number": "77" },
+    { "name": "Moises Moya", "number": "78" }
   ],
+
   "Chi-Elite": [
-    { "name": "Abbaad Bawany", "number": "5" },
     { "name": "Rivera Edmond", "number": "1" },
-    { "name": "Hamad Ejaz", "number": "24" },
-    { "name": "Hayyan Khan", "number": "22" },
-    { "name": "Ammar Osman", "number": "21" },
-    { "name": "Abrar Khan", "number": "8" },
-    { "name": "Adnan Gvozden", "number": "77" },
+    { "name": "Ammar Usmani", "number": "2" },
+    { "name": "Abbaad Bawany", "number": "5" },
     { "name": "Jazib Farooqui", "number": "6" },
+    { "name": "Abrar Khan", "number": "8" },
     { "name": "Ali Zaidi", "number": "10" },
-    { "name": "Ammar Usmani", "number": "2" }
+    { "name": "Ammar Osman", "number": "21" },
+    { "name": "Hayyan Khan", "number": "22" },
+    { "name": "Hamad Ejaz", "number": "24" },
+    { "name": "Adnan Gvozden", "number": "77" }
   ],
+
   "TNB": [
-    { "name": "Faraaz Siyadath", "number": "7" },
-    { "name": "Ali Rogaria", "number": "24" },
-    { "name": "Umer Rogaria", "number": "23" },
     { "name": "Masbah Uddin", "number": "1" },
-    { "name": "Absar Najam", "number": "8" },
-    { "name": "Naader Khan", "number": "11" },
     { "name": "Darius Jones", "number": "4" },
+    { "name": "Faraaz Siyadath", "number": "7" },
+    { "name": "Absar Najam", "number": "8" },
+    { "name": "Julian Dones", "number": "10" },
+    { "name": "Naader Khan", "number": "11" },
     { "name": "Essam Hamwi", "number": "21" },
-    { "name": "Arfan Khan", "number": "67" },
-    { "name": "Julian Dones", "number": "10" }
+    { "name": "Umer Rogaria", "number": "23" },
+    { "name": "Ali Rogaria", "number": "24" },
+    { "name": "Arfan Khan", "number": "67" }
   ],
+
   "The Northmen": [
+    { "name": "Juan Carrera", "number": "0" },
+    { "name": "Gerald Galano", "number": "1" },
+    { "name": "Abdullah Basith", "number": "3" },
     { "name": "Zaid Khan", "number": "2" },
     { "name": "Haris Khan", "number": "7" },
-    { "name": "Shayaan Shaikh", "number": "13" },
-    { "name": "Abdullah Basith", "number": "3" },
     { "name": "Hassan Khan", "number": "9" },
-    { "name": "Gerald Galano", "number": "1" },
-    { "name": "Juan Carrera", "number": "0" },
-    { "name": "Musab Bawaney", "number": "23" }
+    { "name": "Shayaan Shaikh", "number": "13" },
+    { "name": "Musab Bawany", "number": "23" }
   ],
+
   "Umma": [
+    { "name": "Haazim Patel", "number": "0" },
     { "name": "Hamaas Ibrahim", "number": "3" },
+    { "name": "Joseph Zinnerman", "number": "5" },
     { "name": "Casey Miasek", "number": "8" },
-    { "name": "Courtez Dixon", "number": "15" },
     { "name": "Jalen Moore", "number": "11" },
-    { "name": "Cyrus Paddock", "number": "30" },
+    { "name": "Courtez Dixon", "number": "15" },
     { "name": "Quincy Paddock", "number": "20" },
     { "name": "Payton Foster", "number": "21" },
     { "name": "Bilal Khan", "number": "32" },
-    { "name": "Joseph Zinnerman", "number": "5" },
-    { "name": "Haazim Patel", "number": "0" }
+    { "name": "Cyrus Paddock", "number": "30" }
   ]
 }

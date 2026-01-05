@@ -19,6 +19,7 @@
           "FTA": 2,
           "FT %": 50,
           "REB": 2,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 0,
           "STLS/BLKS": 2
@@ -39,6 +40,7 @@
           "FTA": 11,
           "FT %": 36.4,
           "REB": 9,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -59,6 +61,7 @@
           "FTA": 2,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -79,6 +82,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 2,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -99,6 +103,7 @@
           "FTA": 2,
           "FT %": 0,
           "REB": 7,
+          "AST": 3,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -119,6 +124,7 @@
           "FTA": 2,
           "FT %": 0,
           "REB": 5,
+          "AST": 3,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -139,6 +145,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 4,
+          "AST": 1,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -159,6 +166,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 0
@@ -179,6 +187,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -204,6 +213,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -224,6 +234,7 @@
           "FTA": 3,
           "FT %": 66.7,
           "REB": 13,
+          "AST": 2,
           "TOs": 2,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -244,6 +255,7 @@
           "FTA": 1,
           "FT %": 0,
           "REB": 4,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 3,
           "STLS/BLKS": 0
@@ -264,6 +276,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 3,
+          "AST": 1,
           "TOs": 0,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -284,6 +297,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -304,6 +318,7 @@
           "FTA": 4,
           "FT %": 25,
           "REB": 4,
+          "AST": 5,
           "TOs": 2,
           "Fouls": 2,
           "STLS/BLKS": 1
@@ -324,6 +339,7 @@
           "FTA": 1,
           "FT %": 0,
           "REB": 4,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -344,6 +360,7 @@
           "FTA": null,
           "FT %": null,
           "REB": null,
+          "AST": null,
           "TOs": null,
           "Fouls": null,
           "STLS/BLKS": null
@@ -371,6 +388,7 @@
           "FTA": 4,
           "FT %": 0,
           "REB": 5,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -391,6 +409,7 @@
           "FTA": 5,
           "FT %": 40,
           "REB": 10,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 0,
           "STLS/BLKS": 1
@@ -411,6 +430,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 4,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 0,
           "STLS/BLKS": 1
@@ -431,6 +451,7 @@
           "FTA": 2,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 1
@@ -451,6 +472,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 5,
+          "AST": 3,
           "TOs": 0,
           "Fouls": 2,
           "STLS/BLKS": 1
@@ -471,6 +493,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 5,
+          "AST": 3,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -491,6 +514,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 2,
+          "AST": 1,
           "TOs": 0,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -511,6 +535,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 2,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 1,
           "STLS/BLKS": 0
@@ -531,6 +556,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -551,6 +577,7 @@
           "FTA": null,
           "FT %": null,
           "REB": null,
+          "AST": null,
           "TOs": null,
           "Fouls": null,
           "STLS/BLKS": null
@@ -576,6 +603,7 @@
           "FTA": 3,
           "FT %": 33.3,
           "REB": 4,
+          "AST": 1,
           "TOs": 3,
           "Fouls": 3,
           "STLS/BLKS": 0
@@ -596,6 +624,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 2,
+          "AST": 2,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -616,6 +645,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 6,
+          "AST": 1,
           "TOs": 2,
           "Fouls": 3,
           "STLS/BLKS": 1
@@ -636,6 +666,7 @@
           "FTA": 2,
           "FT %": 0,
           "REB": 14,
+          "AST": 2,
           "TOs": 1,
           "Fouls": 3,
           "STLS/BLKS": 0
@@ -656,6 +687,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 6,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 0
@@ -676,6 +708,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -703,6 +736,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -723,6 +757,7 @@
           "FTA": 1,
           "FT %": 0,
           "REB": 6,
+          "AST": 3,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 0
@@ -743,6 +778,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -763,6 +799,7 @@
           "FTA": 1,
           "FT %": 0,
           "REB": 4,
+          "AST": 2,
           "TOs": 1,
           "Fouls": 2,
           "STLS/BLKS": 1
@@ -783,6 +820,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 8,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -803,6 +841,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 2,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 1,
           "STLS/BLKS": 1
@@ -823,6 +862,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 5,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 1,
           "STLS/BLKS": 0
@@ -843,6 +883,7 @@
           "FTA": 9,
           "FT %": 88.9,
           "REB": 5,
+          "AST": 1,
           "TOs": 1,
           "Fouls": 1,
           "STLS/BLKS": 3
@@ -863,6 +904,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 3,
           "STLS/BLKS": 0
@@ -883,6 +925,7 @@
           "FTA": null,
           "FT %": null,
           "REB": null,
+          "AST": null,
           "TOs": null,
           "Fouls": null,
           "STLS/BLKS": null
@@ -908,6 +951,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 5,
+          "AST": 0,
           "TOs": 2,
           "Fouls": 3,
           "STLS/BLKS": 3
@@ -928,6 +972,7 @@
           "FTA": 2,
           "FT %": 50,
           "REB": 5,
+          "AST": 2,
           "TOs": 0,
           "Fouls": 3,
           "STLS/BLKS": 1
@@ -948,6 +993,7 @@
           "FTA": 3,
           "FT %": 100,
           "REB": 9,
+          "AST": 1,
           "TOs": 2,
           "Fouls": 3,
           "STLS/BLKS": 4
@@ -968,6 +1014,7 @@
           "FTA": 7,
           "FT %": 57.1,
           "REB": 5,
+          "AST": 0,
           "TOs": 2,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -988,6 +1035,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -1008,6 +1056,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
+          "AST": 0,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
@@ -1028,6 +1077,7 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 0,
           "TOs": 1,
           "Fouls": 3,
           "STLS/BLKS": 0
@@ -1048,9 +1098,31 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 0,
+          "AST": 1,
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
+        },
+        {
+          "Player": "Julian Dones",
+          "Points": null,
+          "FGM": null,
+          "FGA": null,
+          "FG %": null,
+          "2 PTM": null,
+          "2 PTA": null,
+          "2 Pt %": null,
+          "3 PTM": null,
+          "3 PTA": null,
+          "3 Pt %": null,
+          "FTM": null,
+          "FTA": null,
+          "FT %": null,
+          "REB": null,
+          "AST": null,
+          "TOs": null,
+          "Fouls": null,
+          "STLS/BLKS": null
         }
       ]
     }
