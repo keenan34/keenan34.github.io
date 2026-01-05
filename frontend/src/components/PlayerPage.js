@@ -157,7 +157,7 @@ export default function PlayerPage() {
                   opponent,
                   points: p.Points,
                   rebounds: p.REB,
-                  assists: p.AST, // ✅ AST added
+                  assists: p.AST,
                   fgm: p.FGM,
                   fga: p.FGA,
                   fgPct: p["FG %"],
@@ -171,7 +171,7 @@ export default function PlayerPage() {
                   fta: p.FTA,
                   ftPct: p["FT %"],
                   tos: p.TOs,
-                  steals: p["STLS/BLKS"], // STL/BLK
+                  steals: p["STLS/BLKS"],
                   fouls: p.Fouls,
                 };
 
@@ -199,7 +199,7 @@ export default function PlayerPage() {
           if (!rosterNames.includes(name)) return;
           if (excluded.includes(name)) return;
 
-          const avg = {};
+          const avgObj = {};
           [
             "points",
             "rebounds",
@@ -221,10 +221,10 @@ export default function PlayerPage() {
           ].forEach((k) => {
             const valid = gms.filter((g) => g[k] != null);
             const total = valid.reduce((sum, g) => sum + Number(g[k] || 0), 0);
-            avg[k] = valid.length ? +(total / valid.length).toFixed(1) : 0;
+            avgObj[k] = valid.length ? +(total / valid.length).toFixed(1) : 0;
           });
 
-          allAveragesArr.push({ name, avg });
+          allAveragesArr.push({ name, avg: avgObj });
         });
 
         setGames(allPlayers.get(playerName) || []);
@@ -294,10 +294,14 @@ export default function PlayerPage() {
       onClick={() => setZoomUrl(null)}
     >
       <div
-        className="rounded-full overflow-hidden w-[60vw] h-[60vw] max-w-[600px] max-h-[600px]"
+        className="rounded-full overflow-hidden w-[70vw] h-[70vw] max-w-[520px] max-h-[520px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <img src={zoomUrl} alt="Zoomed player" className="w-full h-full object-cover" />
+        <img
+          src={zoomUrl}
+          alt="Zoomed player"
+          className="w-full h-full object-cover"
+        />
       </div>
       <button
         className="absolute top-4 right-4 text-white text-3xl"
@@ -308,7 +312,7 @@ export default function PlayerPage() {
     </div>
   );
 
-  // ✅ your exact stat order (17 stats)
+  // stat order (17 stats)
   const statOrder = [
     { label: "PTS", key: "points" },
     { label: "REB", key: "rebounds" },
@@ -329,19 +333,18 @@ export default function PlayerPage() {
     { label: "STL/BLK", key: "steals" },
   ];
 
-  // split into 2 chunks so it stays “OG”, but fits 17 stats:
   // chunkA = 9 stats, chunkB = 8 stats
   const chunkA = statOrder.slice(0, 9);
   const chunkB = statOrder.slice(9);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 text-2xl sm:text-3xl">
+    <div className="min-h-screen bg-gray-900 text-white px-3 sm:px-6 py-4 sm:py-6 text-base sm:text-lg">
       <div className="relative w-full max-w-4xl mx-auto mb-6">
         {/* Top Buttons */}
         <div className="flex justify-between items-start mb-4">
           <button
             onClick={() => navigate(backTo)}
-            className="text-gray-400 hover:text-white text-sm"
+            className="text-gray-400 hover:text-white text-xs sm:text-sm"
           >
             ← Back to {backLabel}
           </button>
@@ -355,7 +358,7 @@ export default function PlayerPage() {
                   )}/roster`
                 )
               }
-              className="text-gray-400 hover:text-white text-sm"
+              className="text-gray-400 hover:text-white text-xs sm:text-sm"
             >
               → {playerTeam} Team Page
             </button>
@@ -366,7 +369,7 @@ export default function PlayerPage() {
         <div className="flex flex-col items-center">
           {/* Avatar */}
           <div
-            className="relative h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-gray-700 text-white flex items-center justify-center text-4xl sm:text-5xl font-bold mb-3 overflow-hidden cursor-pointer"
+            className="relative h-24 w-24 sm:h-40 sm:w-40 rounded-full bg-gray-700 text-white flex items-center justify-center text-3xl sm:text-5xl font-bold mb-3 overflow-hidden cursor-pointer"
             onClick={() =>
               setZoomUrl(
                 `${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`
@@ -389,7 +392,7 @@ export default function PlayerPage() {
           </div>
 
           {/* Player Name */}
-          <h1 className="text-4xl mb-4">
+          <h1 className="text-2xl sm:text-4xl font-semibold text-center leading-tight mb-4">
             {playerNumber ? (
               <span className="italic text-gray-500">#{playerNumber} </span>
             ) : (
@@ -398,57 +401,65 @@ export default function PlayerPage() {
             {playerName}
           </h1>
 
-          {/* ✅ OG Averages Box (now includes AST + your full stat list) */}
+          {/* Averages Box */}
           {games.length > 0 && (
-            <div className="w-full max-w-md bg-gray-800 rounded-lg p-3">
+            <div className="w-full max-w-lg sm:max-w-md bg-gray-800 rounded-lg p-2 sm:p-3">
               <div className="text-gray-400 text-xs mb-2">
                 {activeSeason.toUpperCase()}
               </div>
 
-              {/* Chunk A (9 stats) */}
-              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
-                {chunkA.map((s) => (
-                  <div key={s.key} className="whitespace-nowrap">
-                    {s.label}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
-                {chunkA.map((s) => (
-                  <div key={s.key} className="tabular-nums whitespace-nowrap">
-                    {avg[s.key]}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-9 gap-x-3 gap-y-4 mb-5 mt-3 text-center text-gray-500 text-xs sm:text-sm">
-                {chunkA.map((s) => (
-                  <div key={s.key} className="whitespace-nowrap">
-                    {ranks[s.key]}
-                  </div>
-                ))}
+              {/* Chunk A (9 stats) - NO SCROLL */}
+              <div>
+                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 mb-1 text-center font-semibold text-gray-400 text-[9px] sm:text-[12px] leading-none">
+                  {chunkA.map((s) => (
+                    <div key={s.key} className="whitespace-nowrap">
+                      {s.label}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 text-center font-bold text-[11px] sm:text-lg leading-none">
+                  {chunkA.map((s) => (
+                    <div key={s.key} className="tabular-nums whitespace-nowrap">
+                      {avg[s.key]}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 mt-1 text-center text-gray-500 text-[9px] sm:text-sm leading-none">
+                  {chunkA.map((s) => (
+                    <div key={s.key} className="whitespace-nowrap">
+                      {ranks[s.key]}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Chunk B (8 stats) */}
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 mb-1 text-center font-semibold text-gray-400 text-[10px] sm:text-[12px]">
-                {chunkB.map((s) => (
-                  <div key={s.key} className="whitespace-nowrap">
-                    {s.label}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 -mb-1 text-center font-bold text-base sm:text-lg relative z-10">
-                {chunkB.map((s) => (
-                  <div key={s.key} className="tabular-nums whitespace-nowrap">
-                    {avg[s.key]}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-3 gap-y-4 text-center text-gray-500 text-xs sm:text-sm mt-3">
-                {chunkB.map((s) => (
-                  <div key={s.key} className="whitespace-nowrap">
-                    {ranks[s.key]}
-                  </div>
-                ))}
+              {/* Chunk B (8 stats) - NO SCROLL */}
+              <div className="mt-5">
+                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 mb-1 text-center font-semibold text-gray-400 text-[9px] sm:text-[12px] leading-none">
+                  {chunkB.map((s) => (
+                    <div key={s.key} className="whitespace-nowrap">
+                      {s.label}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 text-center font-bold text-[11px] sm:text-lg leading-none">
+                  {chunkB.map((s) => (
+                    <div key={s.key} className="tabular-nums whitespace-nowrap">
+                      {avg[s.key]}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 mt-1 text-center text-gray-500 text-[9px] sm:text-sm leading-none">
+                  {chunkB.map((s) => (
+                    <div key={s.key} className="whitespace-nowrap">
+                      {ranks[s.key]}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -458,7 +469,7 @@ export default function PlayerPage() {
       </div>
 
       {/* GAME LOG TABLE */}
-      <div className="overflow-x-auto mt-10 text-base sm:text-lg">
+      <div className="overflow-x-auto mt-10 text-sm sm:text-lg">
         <table className="w-full border-separate border-spacing-y-2 text-white">
           <thead className="bg-gray-800">
             <tr className="rounded-lg">
@@ -480,14 +491,14 @@ export default function PlayerPage() {
                 "FTA",
                 "FT%",
                 "REB",
-                "AST", // ✅ added
+                "AST",
                 "TO",
                 "FLS",
                 "STL/BLKS",
               ].map((col, idx) => (
                 <th
                   key={col}
-                  className={`px-4 py-3 text-center font-semibold text-sm sm:text-base bg-gray-800 ${
+                  className={`px-2 sm:px-4 py-3 text-center font-semibold text-xs sm:text-base bg-gray-800 ${
                     idx === 0
                       ? "rounded-l-lg"
                       : idx === 20
@@ -540,15 +551,15 @@ export default function PlayerPage() {
                     );
                   }}
                 >
-                  <td className="px-4 py-4 text-left whitespace-nowrap rounded-l-lg">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-left whitespace-nowrap rounded-l-lg">
                     {g.week}
                   </td>
 
-                  <td className="px-4 py-4 text-left whitespace-nowrap">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-left whitespace-nowrap">
                     {g.opponent}
                   </td>
 
-                  <td className="px-4 py-4 text-center font-bold">
+                  <td className="px-2 sm:px-4 py-3 sm:py-4 text-center font-bold">
                     {resultText}
                   </td>
 
@@ -567,14 +578,14 @@ export default function PlayerPage() {
                     g.fta,
                     g.ftPct,
                     g.rebounds,
-                    g.assists, // ✅ added
+                    g.assists,
                     g.tos,
                     g.fouls,
                     g.steals,
                   ].map((val, idx) => (
                     <td
                       key={idx}
-                      className={`px-4 py-4 text-center ${
+                      className={`px-2 sm:px-4 py-3 sm:py-4 text-center ${
                         idx === 17 ? "rounded-r-lg" : ""
                       }`}
                     >
