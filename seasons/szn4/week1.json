@@ -1056,13 +1056,13 @@
           "FTA": 0,
           "FT %": 0,
           "REB": 1,
-          "AST": 0,
+          "AST": 0, 
           "TOs": 0,
           "Fouls": 0,
           "STLS/BLKS": 0
         },
         {
-          "Player": "Absar Najm",
+          "Player": "Absar Najam",
           "Points": 4,
           "FGM": 2,
           "FGA": 5,

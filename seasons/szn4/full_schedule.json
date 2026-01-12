@@ -60,6 +60,8 @@
     "time": "6:00 PM",
     "teamA": "Chi-Elite",
     "teamB": "Umma",
+    "scoreA": 49,
+    "scoreB": 89,
     "gameId": "week3-game1"
   },
   {
@@ -67,6 +69,8 @@
     "time": "7:00 PM",
     "teamA": "The Northmen",
     "teamB": "Umma",
+    "scoreA": 74,
+    "scoreB": 41,
     "gameId": "week3-game2"
   },
   {
@@ -74,6 +78,8 @@
     "time": "8:00 PM",
     "teamA": "TNB",
     "teamB": "Mujahideens",
+    "scoreA": 41,
+    "scoreB": 60,
     "gameId": "week3-game3"
   },
 
