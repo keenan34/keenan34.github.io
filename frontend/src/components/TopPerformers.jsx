@@ -95,7 +95,7 @@ function ProfileImage({ name, season }) {
 }
 
 export default function TopPerformers({
-  week = "week1",
+  week = "week3",
   showIfMissing = true,
 }) {
   const { season } = useParams();

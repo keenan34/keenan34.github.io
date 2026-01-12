@@ -164,7 +164,9 @@ export default function Leaders() {
             p.name !== "Devon" &&
             p.name !== "Sufyan" &&
             p.name !== "Saif Rehman" &&
-            p.name !== "Amaar Zafar"
+            p.name !== "Amaar Zafar" &&
+            p.name !== "Luqman Ali"
+            
         );
 
         if (!cancelled) setPlayers(filtered);
