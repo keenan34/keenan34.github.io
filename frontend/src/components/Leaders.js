@@ -165,7 +165,8 @@ export default function Leaders() {
             p.name !== "Sufyan" &&
             p.name !== "Saif Rehman" &&
             p.name !== "Amaar Zafar" &&
-            p.name !== "Luqman Ali"
+            p.name !== "Luqman Ali" &&
+            p.name !== "Imam Azfar Uddin"
             
         );
 

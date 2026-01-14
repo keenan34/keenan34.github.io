@@ -60,8 +60,8 @@
     "time": "6:00 PM",
     "teamA": "Chi-Elite",
     "teamB": "Umma",
-    "scoreA": 49,
-    "scoreB": 89,
+    "scoreA": 89,
+    "scoreB": 49,
     "gameId": "week3-game1"
   },
   {
@@ -69,8 +69,8 @@
     "time": "7:00 PM",
     "teamA": "The Northmen",
     "teamB": "Umma",
-    "scoreA": 74,
-    "scoreB": 41,
+    "scoreA": 41,
+    "scoreB": 74,
     "gameId": "week3-game2"
   },
   {
@@ -88,6 +88,8 @@
     "time": "5:00 PM",
     "teamA": "TNB",
     "teamB": "Chi-Elite",
+    "scoreA": 62,
+    "scoreB": 74,
     "gameId": "week4-game1"
   },
   {
@@ -95,6 +97,8 @@
     "time": "6:00 PM",
     "teamA": "TNB",
     "teamB": "The Northmen",
+    "scoreA": 80,
+    "scoreB": 76,
     "gameId": "week4-game2"
   },
   {
@@ -102,6 +106,8 @@
     "time": "7:00 PM",
     "teamA": "Umma",
     "teamB": "Mujahideens",
+    "scoreA": 1,
+    "scoreB": 0,
     "gameId": "week4-game3"
   },
 
