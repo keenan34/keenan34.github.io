@@ -160,14 +160,17 @@ export default function Leaders() {
             p.name !== "Danial Asim" &&
             p.name !== "Salman" &&
             p.name !== "Ibrahim" &&
+            p.name !== "Imran" &&
+            p.name !== "Anthony" &&
             p.name !== "Raedh Talha" &&
             p.name !== "Devon" &&
+            p.name !== "Suhail" &&
             p.name !== "Sufyan" &&
             p.name !== "Saif Rehman" &&
             p.name !== "Amaar Zafar" &&
             p.name !== "Luqman Ali" &&
+            p.name !== "Ryan" &&
             p.name !== "Imam Azfar Uddin"
-            
         );
 
         if (!cancelled) setPlayers(filtered);
