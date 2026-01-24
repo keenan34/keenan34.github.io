@@ -1,5 +1,6 @@
 {
   "game1": {
+    "youtubeUrl": "https://www.youtube.com/embed/y_RO10fBgPg?si=Z88X9btaPVPw2Uuf",
     "teamA": {
       "name": "TNB",
       "players": [
@@ -432,6 +433,7 @@
     }
   },
   "game2": {
+    "youtubeUrl": "https://www.youtube.com/embed/V899Pcx7kTE?si=kK2xGxhUIbmuqopQ",
     "teamA": {
       "name": "The Northmen",
       "players": [
@@ -802,6 +804,7 @@
     }
   },
   "game3": {
+    "youtubeUrl": "https://www.youtube.com/embed/F4izTKYrzdM?si=V8aaB4LstJUXN3K5",
     "teamA": {
       "name": "Chi-Elite",
       "players": [
