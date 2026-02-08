@@ -144,6 +144,8 @@
     "time": "6:00 PM",
     "teamA": "Chi-Elite",
     "teamB": "Mujahideens",
+    "scoreA": 72,
+    "scoreB": 50,
     "gameId": "week6-game1"
   },
   {
@@ -151,13 +153,17 @@
     "time": "7:00 PM",
     "teamA": "Umma",
     "teamB": "TNB",
+    "scoreA": 56,
+    "scoreB": 52,
     "gameId": "week6-game2"
   },
   {
     "date": "1/25/2026",
     "time": "8:00 PM",
-    "teamA": "Winner of 6:00 PM",
-    "teamB": "Winner of 7:00 PM",
+    "teamA": "Umma",
+    "teamB": "Chi-Elite",
+    "scoreA": 49,
+    "scoreB": 46,
     "gameId": "week6-game3"
   }
 ]

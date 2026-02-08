@@ -95,11 +95,15 @@ function ProfileImage({ name, season }) {
 }
 
 export default function TopPerformers({
-  week = "week3",
+  week = "week6",
+  label, // ✅ NEW: what you want to show in the UI (ex: "Playoffs")
   showIfMissing = true,
 }) {
   const { season } = useParams();
   const activeSeason = season || "szn4";
+
+  // ✅ NEW: UI label fallback
+  const displayWeek = label ?? week.replace("week", "Week ");
 
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState("loading"); // loading | ok | missing
@@ -172,10 +176,7 @@ export default function TopPerformers({
         <div className="p-4 bg-gray-900 rounded-lg mb-2">
           <div className="text-sm text-gray-400">
             Top Performers not available for{" "}
-            <span className="font-bold text-white">
-              {week.replace("week", "Week ")}
-            </span>{" "}
-            yet.
+            <span className="font-bold text-white">{displayWeek}</span> yet.
           </div>
         </div>
       );
@@ -186,10 +187,7 @@ export default function TopPerformers({
       <div className="p-4 bg-gray-900 rounded-lg mb-2">
         <div className="text-sm text-gray-400">
           No eligible Top Performers for{" "}
-          <span className="font-bold text-white">
-            {week.replace("week", "Week ")}
-          </span>
-          .
+          <span className="font-bold text-white">{displayWeek}</span>.
         </div>
         <div className="text-xs text-gray-500 mt-1">
           Debug: loaded {debug.total} player rows, kept {debug.filtered}.
@@ -219,7 +217,7 @@ export default function TopPerformers({
   return (
     <div className="p-4 bg-gray-900 rounded-lg mb-2">
       <h2 className="text-xl font-bold text-white mb-4">
-        Top Performers ({week.replace("week", "Week ")})
+        Top Performers ({displayWeek})
       </h2>
 
       <div className="flex flex-col gap-2">
