@@ -1,6 +1,6 @@
 {
   "game1": {
-    "youtubeUrl": "",
+    "youtubeUrl": "https://www.youtube.com/embed/aiRGBRRr0E0?si=JzH-uMCDsNholnks",
     "teamA": {
       "name": "Chi-Elite",
       "players": [
@@ -350,7 +350,7 @@
   },
   
   "game2": {
-    "youtubeUrl": "",
+    "youtubeUrl": "https://www.youtube.com/embed/lAiBhF0wb8Q?si=vjDywnjXgd5Iv4e4",
     "teamA": {
       "name": "Umma",
       "players": [
@@ -784,7 +784,7 @@
   },
   
   "game3": {
-    "youtubeUrl": "",
+    "youtubeUrl": "https://www.youtube.com/embed/75UvHhBiAVw?si=AA1AicsbGWxcuvId",
     "teamA": {
       "name": "Umma",
       "players": [
