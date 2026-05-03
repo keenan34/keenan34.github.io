@@ -1,7 +1,8 @@
 
 // --- PlayerPage.js ---
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { resolveApiBaseUrl } from "../api/baseUrl";
 
 function ordinal(n) {
   const rem100 = n % 100;
@@ -18,7 +19,26 @@ function ordinal(n) {
   }
 }
 
+const API_BASE_URL = resolveApiBaseUrl();
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
+async function apiGet(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || `API request failed with ${response.status}`);
+  }
+
+  return data;
+}
+
+const playerImageUrl = (player) =>
+  player?.imgUrl || player?.image_url || player?.imageUrl || null;
+
+function seasonPlayerImageUrl(season, playerSlug) {
+  return `${PUBLIC_URL}/seasons/${season}/images/players/${playerSlug}.png`;
+}
 
 // normalize team names so Umma === UMMA === The Umma, etc
 const normalizeTeam = (s = "") =>
@@ -28,9 +48,11 @@ const normalizeTeam = (s = "") =>
     .replace(/^the\s+/, "")
     .replace(/\s+/g, " ");
 
+const isPlayedGame = (status) => status === "final" || status === "finished";
+
 export default function PlayerPage() {
   const { season, slug } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,52 +63,37 @@ export default function PlayerPage() {
   const [games, setGames] = useState([]);
   const [allAverages, setAllAverages] = useState([]);
   const [zoomUrl, setZoomUrl] = useState(null);
-  const [schedule, setSchedule] = useState([]);
-  const [rosters, setRosters] = useState({});
+  const [profile, setProfile] = useState(null);
+  const [playerTeam, setPlayerTeam] = useState("");
   const [playerNumber, setPlayerNumber] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // load schedule + rosters (cache-busted)
-  useEffect(() => {
-    fetch(`/seasons/${activeSeason}/full_schedule.json?v=${Date.now()}`)
-      .then((r) => r.json())
-      .then((data) => setSchedule(Array.isArray(data) ? data : []))
-      .catch(console.error);
-
-    fetch(`/seasons/${activeSeason}/team_rosters.json?v=${Date.now()}`)
-      .then((r) => r.json())
-      .then((data) => setRosters(data || {}))
-      .catch(console.error);
-  }, [activeSeason]);
-
-  const playerName =
+  const fallbackPlayerName =
     slug === "dujuan_wright"
       ? "Jerremiah Dujuan Wright"
       : slug
           .split("_")
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
-
-  const playerTeam = useMemo(() => {
-    return (
-      Object.entries(rosters).find(([, list]) =>
-        (list || []).some((p) => p.name === playerName)
-      )?.[0] || ""
-    );
-  }, [rosters, playerName]);
+  const playerName = profile?.name || fallbackPlayerName;
+  const apiImageUrl = playerImageUrl(profile);
+  const imageUrl = season ? seasonPlayerImageUrl(activeSeason, slug) : apiImageUrl;
+  const [imageFailed, setImageFailed] = useState(false);
 
   // helper: find the schedule entry for a given week + opponent
   const findScheduleEntry = (weekKey, opponent) => {
-    if (!schedule?.length || !playerTeam) return null;
+    if (!games?.length || !playerTeam) return null;
 
     const teamNorm = normalizeTeam(playerTeam);
     const oppNorm = normalizeTeam(opponent);
 
     // all games in that week involving player's team
-    const teamGames = schedule.filter((gm) => {
+    const teamGames = games.filter((gm) => {
       if (!gm?.gameId?.startsWith(weekKey)) return false;
       const a = normalizeTeam(gm.teamA);
       const b = normalizeTeam(gm.teamB);
@@ -107,131 +114,55 @@ export default function PlayerPage() {
     return exact || null;
   };
 
-  // load weeks -> games + league averages
   useEffect(() => {
-    const rosterNames = Object.values(rosters)
-      .flat()
-      .map((p) => p.name);
+    const controller = new AbortController();
 
-    const playerEntry = Object.values(rosters)
-      .flat()
-      .find((p) => p.name === playerName);
+    setLoading(true);
+    setErrorMsg("");
+    setProfile(null);
+    setGames([]);
+    setAllAverages([]);
+    setPlayerTeam("");
+    setPlayerNumber(null);
+    setImageFailed(false);
 
-    if (playerEntry && playerEntry.number != null) {
-      setPlayerNumber(playerEntry.number);
-    }
+    apiGet(`/api/players/${encodeURIComponent(slug)}`, {
+      signal: controller.signal,
+    })
+      .then((data) => {
+        const selectedSeason =
+          (data?.seasons || []).find((row) => row.season === activeSeason);
 
-    const weekNums = [1, 2, 3, 4, 5, 6, 7, 8];
+        if (!data?.player) {
+          throw new Error("Player not found.");
+        }
 
-    const fetchWeek = async (n) => {
-      const r = await fetch(
-        `/seasons/${activeSeason}/week${n}.json?v=${Date.now()}`
-      );
-      if (!r.ok) return null;
-      try {
-        return await r.json();
-      } catch {
-        return null;
-      }
-    };
+        setProfile(data.player);
 
-    Promise.all(weekNums.map(fetchWeek))
-      .then((weeksRaw) => {
-        const weeks = weeksRaw.filter(Boolean);
-        const allPlayers = new Map();
+        if (!selectedSeason) {
+          setGames([]);
+          setAllAverages([]);
+          setPlayerTeam("");
+          setPlayerNumber(null);
+          return;
+        }
 
-        weeks.forEach((weekData, idx) => {
-          const weekLabel = `Week ${idx + 1}`;
-
-          Object.values(weekData || {}).forEach((game) => {
-            ["teamA", "teamB"].forEach((side) => {
-              (game?.[side]?.players || []).forEach((p) => {
-                const fullName = p?.Player;
-                if (!fullName) return;
-
-                const opponent =
-                  side === "teamA" ? game.teamB.name : game.teamA.name;
-
-                const entry = {
-                  week: weekLabel,
-                  opponent,
-                  points: p.Points,
-                  rebounds: p.REB,
-                  assists: p.AST,
-                  fgm: p.FGM,
-                  fga: p.FGA,
-                  fgPct: p["FG %"],
-                  twoPtM: p["2 PTM"],
-                  twoPtA: p["2 PTA"],
-                  twoPtPct: p["2 Pt %"],
-                  threePtM: p["3 PTM"],
-                  threePtA: p["3 PTA"],
-                  threePtPct: p["3 Pt %"],
-                  ftm: p.FTM,
-                  fta: p.FTA,
-                  ftPct: p["FT %"],
-                  tos: p.TOs,
-                  steals: p["STLS/BLKS"],
-                  fouls: p.Fouls,
-                };
-
-                if (!allPlayers.has(fullName)) allPlayers.set(fullName, []);
-                allPlayers.get(fullName).push(entry);
-              });
-            });
-          });
-        });
-
-        const allAveragesArr = [];
-        const excluded = [
-          "Josiah",
-          "Danial Asim",
-          "Salman",
-          "Ibrahim",
-          "Raedh Talha",
-          "Sufyan",
-          "Devon",
-          "Saif Rehman",
-          "Amaar Zafar",
-        ];
-
-        allPlayers.forEach((gms, name) => {
-          if (!rosterNames.includes(name)) return;
-          if (excluded.includes(name)) return;
-
-          const avgObj = {};
-          [
-            "points",
-            "rebounds",
-            "assists",
-            "fgm",
-            "fga",
-            "fgPct",
-            "twoPtM",
-            "twoPtA",
-            "twoPtPct",
-            "threePtM",
-            "threePtA",
-            "threePtPct",
-            "ftm",
-            "fta",
-            "ftPct",
-            "tos",
-            "steals",
-          ].forEach((k) => {
-            const valid = gms.filter((g) => g[k] != null);
-            const total = valid.reduce((sum, g) => sum + Number(g[k] || 0), 0);
-            avgObj[k] = valid.length ? +(total / valid.length).toFixed(1) : 0;
-          });
-
-          allAveragesArr.push({ name, avg: avgObj });
-        });
-
-        setGames(allPlayers.get(playerName) || []);
-        setAllAverages(allAveragesArr);
+        setGames(selectedSeason.games || []);
+        setAllAverages(selectedSeason.leagueAverages || []);
+        setPlayerTeam(selectedSeason.team?.name || "");
+        setPlayerNumber(selectedSeason.number || null);
       })
-      .catch(console.error);
-  }, [activeSeason, playerName, rosters]);
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        console.error("Error loading player data:", err);
+        setErrorMsg(err.message || "Failed to load player.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [activeSeason, slug]);
 
   // player averages
   const avg = {};
@@ -264,13 +195,8 @@ export default function PlayerPage() {
   // ranks
   const ranks = {};
   if (allAverages.length) {
-    const rosterNames = Object.values(rosters)
-      .flat()
-      .map((p) => p.name);
-
     Object.keys(avg).forEach((stat) => {
-      const filtered = allAverages.filter((p) => rosterNames.includes(p.name));
-      const sorted = filtered
+      const sorted = allAverages
         .slice()
         .sort((a, b) => (b.avg[stat] || 0) - (a.avg[stat] || 0));
 
@@ -337,14 +263,26 @@ export default function PlayerPage() {
   const chunkA = statOrder.slice(0, 9);
   const chunkB = statOrder.slice(9);
 
+  if (loading) {
+    return <p className="py-8 text-center font-bold text-slate-500">Loading player…</p>;
+  }
+
+  if (errorMsg) {
+    return <p className="py-8 text-center font-bold text-red-600">{errorMsg}</p>;
+  }
+
+  if (!profile) {
+    return <p className="py-8 text-center font-bold text-slate-500">No player found.</p>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-3 sm:px-6 py-4 sm:py-6 text-base sm:text-lg">
+    <div className="min-h-screen bg-[#f6f8fb] px-3 py-4 text-base text-slate-950 sm:px-6 sm:py-6 sm:text-lg">
       <div className="relative w-full max-w-4xl mx-auto mb-6">
         {/* Top Buttons */}
         <div className="flex justify-between items-start mb-4">
           <button
             onClick={() => navigate(backTo)}
-            className="text-gray-400 hover:text-white text-xs sm:text-sm"
+            className="text-xs font-bold text-slate-500 hover:text-blue-700 sm:text-sm"
           >
             ← Back to {backLabel}
           </button>
@@ -358,7 +296,7 @@ export default function PlayerPage() {
                   )}/roster`
                 )
               }
-              className="text-gray-400 hover:text-white text-xs sm:text-sm"
+              className="text-xs font-bold text-slate-500 hover:text-blue-700 sm:text-sm"
             >
               → {playerTeam} Team Page
             </button>
@@ -369,21 +307,25 @@ export default function PlayerPage() {
         <div className="flex flex-col items-center">
           {/* Avatar */}
           <div
-            className="relative h-24 w-24 sm:h-40 sm:w-40 rounded-full bg-gray-700 text-white flex items-center justify-center text-3xl sm:text-5xl font-bold mb-3 overflow-hidden cursor-pointer"
+            className="relative mb-3 flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-slate-200 text-3xl font-black text-slate-600 ring-4 ring-white sm:h-40 sm:w-40 sm:text-5xl"
             onClick={() =>
-              setZoomUrl(
-                `${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`
-              )
+              imageUrl && !imageFailed && setZoomUrl(imageUrl)
             }
           >
             <img
-              src={`${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`}
+              src={imageFailed ? "" : imageUrl || ""}
               alt={playerName}
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.style.display = "none";
+                if (!season && apiImageUrl && e.currentTarget.src !== apiImageUrl) {
+                  e.currentTarget.src = apiImageUrl;
+                  return;
+                }
+                setImageFailed(true);
               }}
-              className="absolute inset-0 w-full h-full object-cover"
+              className={`absolute inset-0 h-full w-full object-cover ${
+                imageFailed ? "hidden" : ""
+              }`}
             />
             {playerName
               .split(" ")
@@ -392,9 +334,9 @@ export default function PlayerPage() {
           </div>
 
           {/* Player Name */}
-          <h1 className="text-2xl sm:text-4xl font-semibold text-center leading-tight mb-4">
+          <h1 className="mb-4 text-center text-2xl font-black leading-tight sm:text-4xl">
             {playerNumber ? (
-              <span className="italic text-gray-500">#{playerNumber} </span>
+              <span className="italic text-slate-400">#{playerNumber} </span>
             ) : (
               ""
             )}
@@ -403,14 +345,14 @@ export default function PlayerPage() {
 
           {/* Averages Box */}
           {games.length > 0 && (
-            <div className="w-full max-w-lg sm:max-w-md bg-gray-800 rounded-lg p-2 sm:p-3">
-              <div className="text-gray-400 text-xs mb-2">
+            <div className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:max-w-md sm:p-3">
+              <div className="mb-2 text-xs font-black text-slate-500">
                 {activeSeason.toUpperCase()}
               </div>
 
               {/* Chunk A (9 stats) - NO SCROLL */}
               <div>
-                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 mb-1 text-center font-semibold text-gray-400 text-[9px] sm:text-[12px] leading-none">
+                <div className="mb-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-slate-500 sm:gap-x-3 sm:text-[12px]">
                   {chunkA.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -418,7 +360,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 text-center font-bold text-[11px] sm:text-lg leading-none">
+                <div className="grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-slate-950 sm:gap-x-3 sm:text-lg">
                   {chunkA.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -426,7 +368,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-9 gap-x-1 sm:gap-x-3 gap-y-1 mt-1 text-center text-gray-500 text-[9px] sm:text-sm leading-none">
+                <div className="mt-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-slate-400 sm:gap-x-3 sm:text-sm">
                   {chunkA.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {ranks[s.key]}
@@ -437,7 +379,7 @@ export default function PlayerPage() {
 
               {/* Chunk B (8 stats) - NO SCROLL */}
               <div className="mt-5">
-                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 mb-1 text-center font-semibold text-gray-400 text-[9px] sm:text-[12px] leading-none">
+                <div className="mb-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-slate-500 sm:gap-x-3 sm:text-[12px]">
                   {chunkB.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -445,7 +387,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 text-center font-bold text-[11px] sm:text-lg leading-none">
+                <div className="grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-slate-950 sm:gap-x-3 sm:text-lg">
                   {chunkB.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -453,7 +395,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-8 gap-x-1 sm:gap-x-3 gap-y-1 mt-1 text-center text-gray-500 text-[9px] sm:text-sm leading-none">
+                <div className="mt-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-slate-400 sm:gap-x-3 sm:text-sm">
                   {chunkB.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {ranks[s.key]}
@@ -469,9 +411,9 @@ export default function PlayerPage() {
       </div>
 
       {/* GAME LOG TABLE */}
-      <div className="overflow-x-auto mt-10 text-sm sm:text-lg">
-        <table className="w-full border-separate border-spacing-y-2 text-white">
-          <thead className="bg-gray-800">
+      <div className="mt-10 overflow-x-auto text-sm sm:text-lg">
+        <table className="w-full border-separate border-spacing-y-2 text-slate-950">
+          <thead className="bg-slate-50">
             <tr className="rounded-lg">
               {[
                 "Week",
@@ -498,7 +440,7 @@ export default function PlayerPage() {
               ].map((col, idx) => (
                 <th
                   key={col}
-                  className={`px-2 sm:px-4 py-3 text-center font-semibold text-xs sm:text-base bg-gray-800 ${
+                  className={`bg-slate-50 px-2 py-3 text-center text-xs font-black text-slate-500 sm:px-4 sm:text-base ${
                     idx === 0
                       ? "rounded-l-lg"
                       : idx === 20
@@ -513,13 +455,23 @@ export default function PlayerPage() {
           </thead>
 
           <tbody>
-            {games.map((g, i) => {
+            {games.length === 0 ? (
+              <tr className="bg-white">
+                <td
+                  colSpan={21}
+                  className="rounded-lg px-2 py-6 text-center font-bold text-slate-500 sm:px-4"
+                >
+                  No games found.
+                </td>
+              </tr>
+            ) : (
+              games.map((g, i) => {
               const weekKey = g.week.toLowerCase().replace(/ /g, "");
               const entry = findScheduleEntry(weekKey, g.opponent);
 
               // compute W/L + show score
               let resultText = "-";
-              if (entry) {
+              if (entry && isPlayedGame(entry.status)) {
                 const a = Number(entry.scoreA);
                 const b = Number(entry.scoreB);
 
@@ -540,7 +492,7 @@ export default function PlayerPage() {
                 <tr
                   key={i}
                   className={`${
-                    i % 2 === 0 ? "bg-gray-800/60" : "bg-gray-700/60"
+                    i % 2 === 0 ? "bg-white" : "bg-slate-50"
                   } cursor-pointer`}
                   onClick={() => {
                     if (!entry?.gameId) return;
@@ -594,7 +546,8 @@ export default function PlayerPage() {
                   ))}
                 </tr>
               );
-            })}
+            })
+            )}
           </tbody>
         </table>
       </div>

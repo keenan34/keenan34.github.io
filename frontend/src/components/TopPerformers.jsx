@@ -78,7 +78,7 @@ function ProfileImage({ name, season }) {
 
   if (error) {
     return (
-      <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-200">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-600">
         {initials}
       </div>
     );
@@ -100,7 +100,7 @@ export default function TopPerformers({
   showIfMissing = true,
 }) {
   const { season } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   // ✅ NEW: UI label fallback
   const displayWeek = label ?? week.replace("week", "Week ");
@@ -165,18 +165,18 @@ export default function TopPerformers({
 
     if (status === "loading") {
       return (
-        <div className="p-4 bg-gray-900 rounded-lg mb-2">
-          <div className="text-sm text-gray-400">Loading Top Performers…</div>
+        <div className="mb-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-sm font-bold text-slate-500">Loading Top Performers…</div>
         </div>
       );
     }
 
     if (status === "missing") {
       return (
-        <div className="p-4 bg-gray-900 rounded-lg mb-2">
-          <div className="text-sm text-gray-400">
+        <div className="mb-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-sm font-bold text-slate-500">
             Top Performers not available for{" "}
-            <span className="font-bold text-white">{displayWeek}</span> yet.
+            <span className="font-black text-slate-950">{displayWeek}</span> yet.
           </div>
         </div>
       );
@@ -184,12 +184,12 @@ export default function TopPerformers({
 
     // file loaded but nothing survived filtering -> data format issue
     return (
-      <div className="p-4 bg-gray-900 rounded-lg mb-2">
-        <div className="text-sm text-gray-400">
+      <div className="mb-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="text-sm font-bold text-slate-500">
           No eligible Top Performers for{" "}
-          <span className="font-bold text-white">{displayWeek}</span>.
+          <span className="font-black text-slate-950">{displayWeek}</span>.
         </div>
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="mt-1 text-xs font-bold text-slate-400">
           Debug: loaded {debug.total} player rows, kept {debug.filtered}.
         </div>
       </div>
@@ -215,8 +215,8 @@ export default function TopPerformers({
   };
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg mb-2">
-      <h2 className="text-xl font-bold text-white mb-4">
+    <div className="mx-auto mb-4 max-w-5xl rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 className="mb-4 text-xl font-black text-slate-950">
         Top Performers ({displayWeek})
       </h2>
 
@@ -229,9 +229,9 @@ export default function TopPerformers({
         ].map(({ label, stat, list }) => (
           <div
             key={stat}
-            className="bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors"
+            className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition-colors hover:border-blue-300 hover:bg-blue-50"
           >
-            <div className="text-sm text-gray-400 mb-2">{label}</div>
+            <div className="mb-2 text-sm font-black text-slate-500">{label}</div>
 
             <div className="flex flex-wrap gap-4">
               {list.map((player) => {
@@ -247,17 +247,17 @@ export default function TopPerformers({
                   <Link
                     key={`${stat}-${player.Player}`}
                     to={`/season/${activeSeason}/player/${slug}`}
-                    className="flex items-center"
+                    className="flex items-center rounded-md p-1 transition hover:bg-white"
                   >
                     <ProfileImage name={player.Player} season={activeSeason} />
-                    <div className="ml-2">
-                      <div className="text-sm font-semibold text-white">
+                      <div className="ml-2">
+                      <div className="text-sm font-black text-slate-950">
                         {player.Player}
                       </div>
-                      <div className="text-xs italic text-gray-400">
+                      <div className="text-xs font-bold italic text-slate-500">
                         vs {player.opponent}
                       </div>
-                      <div className="text-xs text-gray-300">
+                      <div className="text-xs font-bold text-slate-600">
                         {safeNum(getStat(player, stat))} {statLabels[stat]}
                       </div>
                     </div>

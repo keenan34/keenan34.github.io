@@ -1,64 +1,80 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getSeasonGames, getSeasonStandings } from "../api/client";
 
-const teamsBySeason = {
-  szn3: [
-    "0pium Hoopers",
-    "Team Flight",
-    "YNS",
-    "Shariah Stepback",
-    "Mambas",
-    "UMMA",
-    "Mujahideens",
-  ],
-  szn4: [
-    "Mujahideens",
-    "Chi-Elite",
-    "TNB",
-    "The Northmen",
-    "Umma",
-  ],
-};
+function seasonTitle(slug) {
+  const match = String(slug || "").match(/(\d+)/);
+  return match ? `Season ${match[1]}` : "Season";
+}
+
+function statusLabel(status) {
+  if (status === "final" || status === "finished") return "Final";
+  if (status === "live") return "Live";
+  return "Scheduled";
+}
+
+function statusClasses(status) {
+  if (status === "final" || status === "finished") {
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  }
+  if (status === "live") {
+    return "bg-red-50 text-red-700 border-red-200";
+  }
+  return "bg-slate-100 text-slate-600 border-slate-200";
+}
+
 export default function Schedule() {
   const { season } = useParams();
-  const activeSeason = season || "szn4";
-  const allTeams = teamsBySeason[activeSeason] || [];
+  const activeSeason = season || "szn5";
 
   const [games, setGames] = useState([]);
+  const [records, setRecords] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoading(true);
+    const controller = new AbortController();
 
-    fetch(`/seasons/${activeSeason}/full_schedule.json`)
-      .then((res) => res.json())
-      .then((data) => {
-        setGames(data);
+    setLoading(true);
+    setError("");
+
+    Promise.all([
+      getSeasonGames(activeSeason, { signal: controller.signal }),
+      getSeasonStandings(activeSeason, { signal: controller.signal }),
+    ])
+      .then(([gamesData, standingsData]) => {
+        const nextGames = Array.isArray(gamesData)
+          ? gamesData
+          : gamesData?.games || [];
+        const nextRecords = (standingsData?.standings || []).reduce(
+          (acc, row) => {
+            const teamName = row.team || row.name;
+            if (teamName) {
+              acc[teamName] = {
+                wins: row.wins || 0,
+                losses: row.losses || 0,
+              };
+            }
+            return acc;
+          },
+          {}
+        );
+
+        setGames(nextGames);
+        setRecords(nextRecords);
         setLoading(false);
       })
       .catch((err) => {
+        if (err.name === "AbortError") return;
         console.error("Error loading schedule:", err);
+        setGames([]);
+        setRecords({});
+        setError("Unable to load the schedule. Please try again later.");
         setLoading(false);
       });
+
+    return () => controller.abort();
   }, [activeSeason]);
-
-  const records = {};
-  allTeams.forEach((team) => {
-    records[team] = { wins: 0, losses: 0 };
-  });
-
-  games.forEach((game) => {
-    const { teamA, teamB, scoreA, scoreB } = game;
-    if (typeof scoreA === "number" && typeof scoreB === "number") {
-      if (scoreA > scoreB) {
-        records[teamA].wins += 1;
-        records[teamB].losses += 1;
-      } else if (scoreB > scoreA) {
-        records[teamB].wins += 1;
-        records[teamA].losses += 1;
-      }
-    }
-  });
 
   const gamesByDate = games.reduce((acc, game) => {
     if (!acc[game.date]) acc[game.date] = [];
@@ -71,105 +87,149 @@ export default function Schedule() {
 
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <h2 className="text-3xl font-bold text-center mb-8 text-white">
-        Season Schedule
-      </h2>
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-8">
+          <p className="mb-2 text-center text-xs font-black uppercase tracking-[0.18em] text-blue-600">
+            {seasonTitle(activeSeason)}
+          </p>
+          <h2 className="text-center text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+            Schedule
+          </h2>
+        </header>
 
-      {loading ? (
-        <p className="text-center text-gray-400">Loading...</p>
-      ) : (
-        dateEntries.map(([date, dayGames], dateIdx) => {
-         
-
-          return (
-            <div key={date} className="mb-10">
-              <h3 className="text-xl font-semibold text-green-400 mb-4">
-                {date}
-              </h3>
-
-              <div className="space-y-4">
-                {dayGames.map((game, idx) => {
-                  const [weekPart, idPart] =
-                    typeof game.gameId === "string"
-                      ? game.gameId.split("-")
-                      : ["", ""];
-                  const teamAWon = game.scoreA > game.scoreB;
-                  const teamBWon = game.scoreB > game.scoreA;
-                  const recA = records[game.teamA] || { wins: 0, losses: 0 };
-                  const recB = records[game.teamB] || { wins: 0, losses: 0 };
-                  const hasScore =
-                    typeof game.scoreA === "number" &&
-                    typeof game.scoreB === "number";
-
-                  const cardClasses =
-                    "flex flex-col items-center bg-gray-800 rounded-xl shadow-lg px-4 py-3 transition-all duration-200";
-
-                  const content = (
-                    <div className={cardClasses}>
-                      {game.time && (
-                        <p className="text-sm text-gray-400 mb-1">
-                          {game.time}
-                        </p>
-                      )}
-                      <div className="flex flex-col items-center gap-1">
-                        <span
-                          className={`max-w-[130px] whitespace-nowrap text-base font-semibold ${
-                            teamAWon ? "text-green-400" : "text-gray-200"
-                          }`}
-                        >
-                          {game.teamA}
-                          <span className="ml-1 text-xs text-gray-400 opacity-70">
-                            ({recA.wins}-{recA.losses})
-                          </span>
-                        </span>
-
-                        {hasScore && (
-                          <span className="block text-blue-300 font-bold text-sm">
-                            ({game.scoreA})
-                          </span>
-                        )}
-
-                        <span className="text-gray-500">vs</span>
-
-                        <span
-                          className={`max-w-[130px] whitespace-nowrap text-base font-semibold ${
-                            teamBWon ? "text-green-400" : "text-gray-200"
-                          }`}
-                        >
-                          {game.teamB}
-                          <span className="ml-1 text-xs text-gray-400 opacity-70">
-                            ({recB.wins}-{recB.losses})
-                          </span>
-                        </span>
-
-                        {hasScore && (
-                          <span className="block text-blue-300 font-bold text-sm">
-                            ({game.scoreB})
-                          </span>
-                        )}
-                      </div>
+        {loading ? (
+          <div className="rounded-lg border border-slate-200 bg-white p-8 text-center font-bold text-slate-500 shadow-sm">
+            Loading schedule...
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-center font-bold text-red-700">
+            {error}
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {dateEntries.map(([date, dayGames]) => {
+              return (
+                <section
+                  key={date}
+                  className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                        Game Day
+                      </p>
+                      <h3 className="text-lg font-black text-slate-950">
+                        {date || "Date TBD"}
+                      </h3>
                     </div>
-                  );
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                      {dayGames.length} {dayGames.length === 1 ? "game" : "games"}
+                    </span>
+                  </div>
 
-                  return hasScore && weekPart && idPart ? (
-                    <Link
-                      key={idx}
-                      to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
-                      className="no-underline block cursor-pointer"
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    <div key={idx}>{content}</div>
-                  );
-                })}
-              </div>
+                  <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+                    {dayGames.map((game, idx) => {
+                      const [weekPart, idPart] =
+                        typeof game.gameId === "string"
+                          ? game.gameId.split("-")
+                          : ["", ""];
+                      const isFinished =
+                        game.status === "final" || game.status === "finished";
+                      const teamAWon = isFinished && game.scoreA > game.scoreB;
+                      const teamBWon = isFinished && game.scoreB > game.scoreA;
+                      const recA = records[game.teamA] || { wins: 0, losses: 0 };
+                      const recB = records[game.teamB] || { wins: 0, losses: 0 };
+                      const hasScore =
+                        isFinished &&
+                        typeof game.scoreA === "number" &&
+                        typeof game.scoreB === "number";
 
-            </div>
-          );
-        })
-      )}
+                      const cardClasses = `h-full rounded-lg border bg-white p-4 shadow-sm transition ${
+                        isFinished
+                          ? "border-slate-200 hover:border-blue-300 hover:shadow-md"
+                          : "border-slate-200 opacity-90"
+                      }`;
+
+                      const teamNameClass = (won) =>
+                        `min-w-0 truncate text-sm font-black ${
+                          won ? "text-emerald-700" : "text-slate-900"
+                        }`;
+
+                      const content = (
+                        <article className={cardClasses}>
+                          <div className="mb-4 flex items-center justify-between gap-3">
+                            <span
+                              className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase ${statusClasses(
+                                game.status
+                              )}`}
+                            >
+                              {statusLabel(game.status)}
+                            </span>
+                            <span className="text-xs font-bold text-slate-500">
+                              {game.time || "TBD"}
+                            </span>
+                          </div>
+
+                          <div className="grid gap-3">
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                              <div className="min-w-0">
+                                <div className={teamNameClass(teamAWon)}>
+                                  {game.teamA}
+                                </div>
+                                <div className="mt-0.5 text-xs font-bold text-slate-500">
+                                  {recA.wins}-{recA.losses}
+                                </div>
+                              </div>
+                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-slate-950">
+                                {hasScore ? game.scoreA : "-"}
+                              </div>
+                            </div>
+
+                            <div className="h-px bg-slate-100" />
+
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                              <div className="min-w-0">
+                                <div className={teamNameClass(teamBWon)}>
+                                  {game.teamB}
+                                </div>
+                                <div className="mt-0.5 text-xs font-bold text-slate-500">
+                                  {recB.wins}-{recB.losses}
+                                </div>
+                              </div>
+                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-slate-950">
+                                {hasScore ? game.scoreB : "-"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {!isFinished && (
+                            <div className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-center text-xs font-black text-slate-500">
+                              Box score available after game
+                            </div>
+                          )}
+                        </article>
+                      );
+
+                      return isFinished && weekPart && idPart ? (
+                        <Link
+                          key={idx}
+                          to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
+                          className="block no-underline"
+                        >
+                          {content}
+                        </Link>
+                      ) : (
+                        <div key={idx}>{content}</div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

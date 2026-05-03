@@ -1,0 +1,29 @@
+[
+  {
+    "date": "5/8/2026",
+    "time": "5:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "The Northmen",
+    "scoreA": null,
+    "scoreB": null,
+    "gameId": "week1-game1"
+  },
+  {
+    "date": "5/8/2026",
+    "time": "6:00 PM",
+    "teamA": "Chi-Elite",
+    "teamB": "Mujahideens",
+    "scoreA": null,
+    "scoreB": null,
+    "gameId": "week1-game2"
+  },
+  {
+    "date": "5/8/2026",
+    "time": "7:00 PM",
+    "teamA": "Umma",
+    "teamB": "TNB",
+    "scoreA": null,
+    "scoreB": null,
+    "gameId": "week1-game3"
+  }
+]

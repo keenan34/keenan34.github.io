@@ -1,20 +1,26 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { resolveApiBaseUrl } from "../api/baseUrl";
 
 const isPlaceholderTeam = (name = "") =>
   name.startsWith("Seed ") || name.startsWith("Winner of ");
 
-// normalize team names so UMMA === Umma === The UMMA
-const normalizeTeam = (s = "") =>
-  s
-    .toLowerCase()
-    .trim()
-    .replace(/^the\s+/, "")
-    .replace(/\s+/g, " ");
+const API_BASE_URL = resolveApiBaseUrl();
+
+async function apiGet(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || `API request failed with ${response.status}`);
+  }
+
+  return data;
+}
 
 export default function TeamList() {
   const { season } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   const [teams, setTeams] = useState([]);
   const [standings, setStandings] = useState({});
@@ -22,79 +28,62 @@ export default function TeamList() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
+
     setLoading(true);
     setErrorMsg("");
 
     Promise.all([
-      fetch(`/seasons/${activeSeason}/team_rosters.json?v=${Date.now()}`),
-      fetch(`/seasons/${activeSeason}/full_schedule.json?v=${Date.now()}`),
+      apiGet(`/api/seasons/${encodeURIComponent(activeSeason)}/teams`, {
+        signal: controller.signal,
+      }),
+      apiGet(`/api/standings/${encodeURIComponent(activeSeason)}`, {
+        signal: controller.signal,
+      }),
     ])
-      .then(async ([rRosters, rGames]) => {
-        if (!rRosters.ok) {
-          throw new Error(`Failed to load team_rosters.json`);
-        }
-        if (!rGames.ok) {
-          throw new Error(`Failed to load full_schedule.json`);
-        }
+      .then(([teamsData, standingsData]) => {
+        const realTeams = (teamsData?.teams || [])
+          .map((team) => team.name)
+          .filter((team) => team && !isPlaceholderTeam(team));
 
-        const rosters = await rRosters.json();
-        const games = await rGames.json();
-
-        // teams from rosters (source of truth)
-        const realTeams = Object.keys(rosters || {}).filter(
-          (t) => t && !isPlaceholderTeam(t)
+        const recordMap = (standingsData?.standings || []).reduce(
+          (acc, row) => {
+            const teamName = row.team || row.name;
+            if (teamName && !isPlaceholderTeam(teamName)) {
+              acc[teamName] = {
+                wins: row.wins || 0,
+                losses: row.losses || 0,
+              };
+            }
+            return acc;
+          },
+          {}
         );
 
         if (!realTeams.length) {
-          throw new Error("No teams found in team_rosters.json");
+          throw new Error("No teams found for this season");
         }
 
-        // build standings map
-        const recordMap = {};
-        realTeams.forEach((t) => (recordMap[t] = { wins: 0, losses: 0 }));
-
-        // normalized → canonical team name
-        const canonicalByNorm = {};
-        realTeams.forEach((t) => {
-          canonicalByNorm[normalizeTeam(t)] = t;
+        realTeams.forEach((team) => {
+          if (!recordMap[team]) recordMap[team] = { wins: 0, losses: 0 };
         });
 
-        // process games
-        (games || []).forEach(({ teamA, teamB, scoreA, scoreB }) => {
-          const aKey = canonicalByNorm[normalizeTeam(teamA)];
-          const bKey = canonicalByNorm[normalizeTeam(teamB)];
-
-          if (!aKey || !bKey) return;
-
-          const a = Number(scoreA);
-          const b = Number(scoreB);
-
-          if (!Number.isFinite(a) || !Number.isFinite(b)) return;
-
-          if (a > b) {
-            recordMap[aKey].wins += 1;
-            recordMap[bKey].losses += 1;
-          } else if (b > a) {
-            recordMap[bKey].wins += 1;
-            recordMap[aKey].losses += 1;
-          }
-        });
-
-        if (cancelled) return;
         setTeams(realTeams);
         setStandings(recordMap);
       })
       .catch((err) => {
+        if (err.name === "AbortError") return;
         console.error(err);
-        if (!cancelled) setErrorMsg(err.message || "Failed to load standings");
+        setTeams([]);
+        setStandings({});
+        setErrorMsg(err.message || "Failed to load standings");
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [activeSeason]);
 
@@ -113,48 +102,54 @@ export default function TeamList() {
   }, [teams, standings]);
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <h1 className="text-3xl font-bold text-center mb-6 text-white">
-        Teams &amp; Standings
-      </h1>
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-8 text-center">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-blue-600">
+            {activeSeason.toUpperCase()}
+          </p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+            Teams &amp; Standings
+          </h1>
+        </header>
 
       {/* STANDINGS TABLE */}
-      <div className="max-w-xl mx-auto bg-gray-800 shadow-xl rounded-lg overflow-hidden mb-10">
-        <div className="bg-gray-700 px-6 py-3">
-          <h2 className="text-lg font-semibold text-gray-100">Standings</h2>
+      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-black text-slate-950">Standings</h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-gray-400">
+          <div className="p-6 text-center font-bold text-slate-500">
             Loading standings…
           </div>
         ) : errorMsg ? (
-          <div className="p-6 text-center text-red-400">{errorMsg}</div>
+          <div className="p-6 text-center font-bold text-red-600">{errorMsg}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table-auto w-full text-center divide-y divide-gray-600">
-              <thead className="bg-gray-700 text-gray-200">
+            <table className="w-full table-auto divide-y divide-slate-200 text-center">
+              <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   {["#", "Team", "W", "L", "Win%"].map((col) => (
                     <th
                       key={col}
-                      className="uppercase text-xs font-medium py-2 px-4"
+                      className="px-4 py-3 text-xs font-black uppercase tracking-wide"
                     >
                       {col}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-gray-800">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {standingsArray.map((row, idx) => (
-                  <tr key={row.team} className={idx % 2 ? "bg-gray-700" : ""}>
-                    <td className="px-4 py-3 text-gray-100">{idx + 1}</td>
-                    <td className="px-4 py-3 text-gray-100 font-medium">
+                  <tr key={row.team} className={idx % 2 ? "bg-slate-50/70" : ""}>
+                    <td className="px-4 py-3 font-bold text-slate-500">{idx + 1}</td>
+                    <td className="px-4 py-3 font-black text-slate-950">
                       {row.team}
                     </td>
-                    <td className="px-4 py-3 text-gray-100">{row.wins}</td>
-                    <td className="px-4 py-3 text-gray-100">{row.losses}</td>
-                    <td className="px-4 py-3 text-gray-100">
+                    <td className="px-4 py-3 font-bold text-slate-700">{row.wins}</td>
+                    <td className="px-4 py-3 font-bold text-slate-700">{row.losses}</td>
+                    <td className="px-4 py-3 font-bold text-slate-700">
                       {(row.winPct * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -166,7 +161,7 @@ export default function TeamList() {
       </div>
 
       {/* TEAM CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {teams.map((team) => (
           <Link
             key={team}
@@ -177,11 +172,12 @@ export default function TeamList() {
                   )}/roster`
                 : `/teams/${encodeURIComponent(team)}/roster`
             }
-            className="bg-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition p-5 flex items-center justify-center border border-gray-700"
+            className="flex min-h-[88px] items-center justify-center rounded-lg border border-slate-200 bg-white p-5 text-center shadow-sm transition hover:border-blue-300 hover:shadow-md"
           >
-            <span className="text-lg font-semibold text-white">{team}</span>
+            <span className="text-lg font-black text-slate-950">{team}</span>
           </Link>
         ))}
+      </div>
       </div>
     </div>
   );

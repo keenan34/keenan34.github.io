@@ -7,26 +7,29 @@ export default function PreviousSeasons() {
 
   const seasons = [
     { id: "szn3", label: "Season 3" },
+    { id: "szn4", label: "Season 4" }
     // add more later:
     // { id: "szn2", label: "Season 2" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6 text-white">
-      <h1 className="text-3xl font-bold text-center mb-8">Previous Seasons</h1>
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+      <h1 className="mb-8 text-center text-3xl font-black tracking-tight sm:text-4xl">
+        Previous Seasons
+      </h1>
 
       {/* Season selector */}
-      <div className="max-w-xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="mx-auto mb-8 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
         {seasons.map((s) => {
           const active = selectedSeason === s.id;
           return (
             <button
               key={s.id}
               onClick={() => setSelectedSeason(s.id)}
-              className={`rounded-lg p-4 font-semibold transition border ${
+              className={`rounded-lg border p-4 font-black transition ${
                 active
-                  ? "bg-gray-700 border-green-400"
-                  : "bg-gray-800 border-gray-700 hover:bg-gray-700"
+                  ? "border-blue-300 bg-blue-50 text-blue-700 shadow-sm"
+                  : "border-slate-200 bg-white text-slate-800 shadow-sm hover:border-blue-200"
               }`}
             >
               {s.label}
@@ -37,29 +40,29 @@ export default function PreviousSeasons() {
 
       {/* Season nav buttons (only after selecting) */}
       {selectedSeason ? (
-        <div className="max-w-xl mx-auto bg-gray-800 border border-gray-700 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-center mb-4">
+        <div className="mx-auto max-w-xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-center text-xl font-black text-slate-950">
             {selectedSeason.toUpperCase()} Navigation
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Link
               to={`/season/${selectedSeason}/teams`}
-              className="text-center bg-gray-900 hover:bg-gray-700 transition rounded-lg p-4 font-semibold"
+              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
             >
               Teams / Rosters
             </Link>
 
             <Link
               to={`/season/${selectedSeason}/schedule`}
-              className="text-center bg-gray-900 hover:bg-gray-700 transition rounded-lg p-4 font-semibold"
+              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
             >
               Schedule
             </Link>
 
             <Link
               to={`/season/${selectedSeason}/leaders`}
-              className="text-center bg-gray-900 hover:bg-gray-700 transition rounded-lg p-4 font-semibold"
+              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
             >
               Leaders
             </Link>
@@ -67,13 +70,13 @@ export default function PreviousSeasons() {
 
           <button
             onClick={() => setSelectedSeason(null)}
-            className="mt-6 w-full bg-gray-900 hover:bg-gray-700 transition rounded-lg p-3 text-gray-200"
+            className="mt-6 w-full rounded-lg bg-slate-100 p-3 font-bold text-slate-700 transition hover:bg-slate-200"
           >
-            ← Back to season list
+            Back to season list
           </button>
         </div>
       ) : (
-        <p className="text-center text-gray-400">
+        <p className="text-center font-bold text-slate-500">
           Pick a season to see options.
         </p>
       )}

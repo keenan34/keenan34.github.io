@@ -20,8 +20,12 @@ import TopPerformers from "./components/TopPerformers";
 import PlayerPage from "./components/PlayerPage";
 import Footer from "./components/Footer";
 import PreviousSeasons from "./components/PreviousSeasons";
+import AdminLogin from "./admin/AdminLogin";
+import AdminGames from "./admin/AdminGames";
+import AdminLiveGame from "./admin/AdminLiveGame";
 
 import "./App.css";
+import "./admin/Admin.css";
 
 function SeasonRootRedirect() {
   const { season } = useParams();
@@ -39,9 +43,8 @@ function NavLink({ to, children, active }) {
 function useActiveSeason() {
   const { pathname } = useLocation();
 
-  // supports: /season/szn3/... or default current season
   const match = pathname.match(/^\/season\/([^/]+)/);
-  return match?.[1] || "szn4";
+  return match?.[1] || "szn5";
 }
 
 function HeaderNav() {
@@ -84,8 +87,9 @@ function HeaderNav() {
 
 function AppShell() {
   const activeSeason = useActiveSeason();
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith("/admin");
 
-  // pick a theme per season
   const themeClass = useMemo(() => {
     if (activeSeason === "szn3") return "theme-szn3";
     return "theme-szn4";
@@ -93,16 +97,21 @@ function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass}`}>
-      <HeaderNav />
+      {!isAdminRoute && <HeaderNav />}
 
       <main className="app-main">
         <Routes>
+          {/* ADMIN */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/games" element={<AdminGames />} />
+          <Route path="/admin/games/:gameId/live" element={<AdminLiveGame />} />
+
           {/* HOME */}
           <Route
             path="/"
             element={
               <>
-                <TopPerformers week="week6" label="Playoffs" />
+                <TopPerformers week="week1" label="Season 5" />
                 <div className="text-center px-4">
                   <GameSlider />
                 </div>
@@ -138,7 +147,7 @@ function AppShell() {
         </Routes>
       </main>
 
-      <Footer />
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }

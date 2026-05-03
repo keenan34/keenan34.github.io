@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { resolveApiBaseUrl } from "../api/baseUrl";
 
 const slugify = (str) =>
   str
@@ -8,27 +9,50 @@ const slugify = (str) =>
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "");
 
+const API_BASE_URL = resolveApiBaseUrl();
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
 
-function ProfileImage({ name, season, onClick }) {
+async function apiGet(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || `API request failed with ${response.status}`);
+  }
+
+  return data;
+}
+
+const playerImageUrl = (player) =>
+  player.imgUrl || player.image_url || player.imageUrl || null;
+
+function seasonPlayerImageUrl(season, name) {
+  const fileName =
+    name === "Jerremiah Dujuan Wright"
+      ? "dujuan_wright"
+      : slugify(name);
+  return `${PUBLIC_URL}/seasons/${season}/images/players/${fileName}.png`;
+}
+
+function ProfileImage({ name, src, fallbackSrc, onClick }) {
   const [error, setError] = useState(false);
+  const [triedFallback, setTriedFallback] = useState(false);
 
-  // single exception for three-part name
-  const slug =
-    name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
-
-  const src = `${PUBLIC_URL}/seasons/${season}/images/players/${slug}.png`;
+  useEffect(() => {
+    setError(false);
+    setTriedFallback(false);
+  }, [src, fallbackSrc]);
 
   const initials = name
     .split(" ")
     .map((n) => n[0])
     .join("");
 
-  if (error) {
+  if ((!src && !fallbackSrc) || error) {
     return (
       <div
         onClick={onClick}
-        className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-700 flex items-center justify-center text-base font-bold text-gray-200 mr-2 cursor-pointer"
+        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-base font-black text-slate-600"
       >
         {initials}
       </div>
@@ -38,123 +62,48 @@ function ProfileImage({ name, season, onClick }) {
   return (
     <img
       onClick={onClick}
-      src={src}
+      src={triedFallback ? fallbackSrc : src}
       alt={name}
       width="40"
       height="40"
       className="h-10 w-10 flex-shrink-0 rounded-full object-cover mr-2 cursor-pointer"
-      onError={() => setError(true)}
+      onError={() => {
+        if (!triedFallback && fallbackSrc) {
+          setTriedFallback(true);
+          return;
+        }
+        setError(true);
+      }}
     />
   );
 }
 
 export default function Leaders() {
   const { season } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   const [players, setPlayers] = useState([]);
   const [modalImage, setModalImage] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const weekNums = [1, 2, 3, 4, 5, 6, 7];
-
-    const fetchWeek = async (n) => {
-      // skip weeks that don't exist yet (prevents infinite "loading")
-      const r = await fetch(
-        `/seasons/${activeSeason}/week${n}.json?v=${Date.now()}`
-      );
-      if (!r.ok) return null;
-      try {
-        return await r.json();
-      } catch {
-        return null;
-      }
-    };
+    const controller = new AbortController();
 
     const run = async () => {
+      setLoading(true);
       setError("");
       setPlayers([]);
 
       try {
-        const weeks = (await Promise.all(weekNums.map(fetchWeek))).filter(
-          Boolean
+        const data = await apiGet(
+          `/api/leaders/${encodeURIComponent(activeSeason)}`,
+          {
+            signal: controller.signal,
+          }
         );
 
-        if (!weeks.length) {
-          if (!cancelled)
-            setError(
-              `No week JSON files found for ${activeSeason} (expected week1.json, week2.json, etc).`
-            );
-          return;
-        }
-
-        const playerMap = {};
-
-        const extractWeek = (weekJson) => {
-          Object.values(weekJson || {}).forEach((game) => {
-            ["teamA", "teamB"].forEach((side) => {
-              (game?.[side]?.players || []).forEach((p) => {
-                if (!p?.Player) return;
-                if (p.Points == null) return; // DNP
-
-                const name = p.Player;
-
-                const pts = Number(p.Points) || 0;
-                const ast = Number(p.AST ?? p.Assists ?? p.assists) || 0; // ✅ ASSISTS
-                const three = Number(p["3 PTM"]) || 0;
-                const reb = Number(p.REB) || 0;
-                const tos = Number(p.TOs) || 0;
-                const fouls = Number(p.Fouls) || 0;
-                const stlBlk = Number(p["STLS/BLKS"]) || 0;
-
-                if (!playerMap[name]) {
-                  playerMap[name] = {
-                    name,
-                    totalPts: pts,
-                    totalAst: ast, // ✅
-                    total3: three,
-                    totalReb: reb,
-                    totalTO: tos,
-                    totalFouls: fouls,
-                    totalStlBlk: stlBlk,
-                    games: 1,
-                  };
-                } else {
-                  const cur = playerMap[name];
-                  cur.totalPts += pts;
-                  cur.totalAst += ast; // ✅
-                  cur.total3 += three;
-                  cur.totalReb += reb;
-                  cur.totalTO += tos;
-                  cur.totalFouls += fouls;
-                  cur.totalStlBlk += stlBlk;
-                  cur.games += 1;
-                }
-              });
-            });
-          });
-        };
-
-        weeks.forEach(extractWeek);
-
-        const arr = Object.values(playerMap).map((p) => {
-          const g = p.games || 1;
-          return {
-            ...p,
-            avgPts: +(p.totalPts / g).toFixed(1),
-            avgAst: +(p.totalAst / g).toFixed(1), // ✅
-            avg3: +(p.total3 / g).toFixed(1),
-            avgReb: +(p.totalReb / g).toFixed(1),
-            avgTO: +(p.totalTO / g).toFixed(1),
-            avgFouls: +(p.totalFouls / g).toFixed(1),
-            avgStlBlk: +(p.totalStlBlk / g).toFixed(1),
-          };
-        });
-
-        const filtered = arr.filter(
+        const filtered = (data?.leaders || []).filter(
           (p) =>
             p.name !== "Josiah" &&
             p.name !== "Danial Asim" &&
@@ -173,20 +122,21 @@ export default function Leaders() {
             p.name !== "Imam Azfar Uddin"
         );
 
-        if (!cancelled) setPlayers(filtered);
+        setPlayers(filtered);
       } catch (e) {
+        if (e.name === "AbortError") return;
         console.error("Error loading leader data:", e);
-        if (!cancelled) {
-          setError(e?.message || "Failed to load leaders.");
-          setPlayers([]);
-        }
+        setError(e?.message || "Failed to load leaders.");
+        setPlayers([]);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     run();
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [activeSeason]);
 
@@ -203,24 +153,24 @@ export default function Leaders() {
     const top10 = getTopByAverage(avgKey);
 
     return (
-      <div className="w-full max-w-full md:max-w-md mx-auto rounded-lg overflow-hidden shadow-lg bg-gray-800">
-        <div className="bg-gray-900 py-2">
-          <h2 className="text-center text-base font-semibold text-white">
+      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:max-w-md">
+        <div className="border-b border-slate-200 bg-slate-50 py-3">
+          <h2 className="text-center text-base font-black text-slate-950">
             {label}
           </h2>
         </div>
-        <div className="bg-gray-700 p-2 rounded-b-lg overflow-x-auto">
-          <table className="table-fixed w-full text-sm border-collapse">
-            <thead className="bg-gray-600">
+        <div className="overflow-x-auto bg-white p-2">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="w-1/2 p-1 text-left text-gray-200">Player</th>
-                <th className="w-1/6 px-1 py-2 text-right text-gray-200 font-bold border-l border-gray-500">
+                <th className="w-1/2 p-1 text-left font-black text-slate-500">Player</th>
+                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
                   GP
                 </th>
-                <th className="w-1/6 px-1 py-2 text-right text-gray-200 font-bold border-l border-gray-500">
+                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
                   {avgLabel}
                 </th>
-                <th className="w-1/6 px-1 py-2 text-right text-gray-200 font-bold border-l border-gray-500">
+                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
                   {totalLabel}
                 </th>
               </tr>
@@ -232,20 +182,24 @@ export default function Leaders() {
                     ? "dujuan_wright"
                     : slugify(p.name);
 
-                const imgSrc = `${PUBLIC_URL}/seasons/${activeSeason}/images/players/${slug}.png`;
+                const apiImgSrc = playerImageUrl(p);
+                const imgSrc = season
+                  ? seasonPlayerImageUrl(activeSeason, p.name)
+                  : apiImgSrc;
 
                 return (
                   <tr
                     key={p.name}
-                    className={idx % 2 === 1 ? "bg-gray-700" : "bg-gray-800"}
+                    className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}
                   >
-                    <td className="p-1 flex items-center whitespace-nowrap text-white">
+                    <td className="flex items-center whitespace-nowrap p-1 text-slate-950">
                       <ProfileImage
                         name={p.name}
-                        season={activeSeason}
-                        onClick={() => setModalImage(imgSrc)}
+                        src={imgSrc}
+                        fallbackSrc={season ? null : apiImgSrc}
+                        onClick={() => imgSrc && setModalImage(imgSrc)}
                       />
-                      <span className="font-bold mr-1 text-xs">
+                      <span className="mr-1 text-xs font-black">
                         {idx === 0
                           ? "🥇"
                           : idx === 1
@@ -267,19 +221,19 @@ export default function Leaders() {
                             : "/leaders",
                           label: "Leaders",
                         }}
-                        className="font-bold text-xs hover:underline text-white"
+                        className="text-xs font-black text-slate-950 hover:text-blue-700 hover:underline"
                       >
                         {p.name}
                       </Link>
                     </td>
 
-                    <td className="px-1 py-2 text-right text-white font-bold">
+                    <td className="px-1 py-2 text-right font-black text-slate-800">
                       {p.games}
                     </td>
-                    <td className="px-1 py-2 text-right text-white font-bold">
+                    <td className="px-1 py-2 text-right font-black text-slate-800">
                       {p[avgKey]}
                     </td>
-                    <td className="px-1 py-2 text-right text-white font-bold">
+                    <td className="px-1 py-2 text-right font-black text-slate-800">
                       {p[totalKey]}
                     </td>
                   </tr>
@@ -316,12 +270,14 @@ export default function Leaders() {
       )}
 
       {error ? (
-        <p className="text-center py-4 text-red-400">{error}</p>
+        <p className="py-4 text-center font-bold text-red-600">{error}</p>
+      ) : loading ? (
+        <p className="py-4 text-center font-bold text-slate-500">Loading leaders…</p>
       ) : players.length === 0 ? (
-        <p className="text-center py-4 text-gray-400">Loading leaders…</p>
+        <p className="py-4 text-center font-bold text-slate-500">No leaders found.</p>
       ) : (
-        <div className="bg-gray-900 p-4">
-          <h1 className="text-xl font-bold text-center mb-4 text-white">
+        <div className="min-h-screen bg-[#f6f8fb] px-4 py-8">
+          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-slate-950">
             League Leaders
           </h1>
 
