@@ -61,15 +61,6 @@
     { "name": "Imam Azfar", "number": "23" }
   ],
 
-  "Hustlers": [
-    { "name": "Sufian Macci", "number": "1" },
-    { "name": "Hashim Khan", "number": "6" },
-    { "name": "Peter Atsaves", "number": "30" },
-    { "name": "Muhib Khan", "number": "31" },
-    { "name": "Absar Najam", "number": "24" },
-    { "name": "Ansaar Ahmed", "number": "10" }
-  ],
-
   "AVO": [
     { "name": "Ali Mahmoud", "number": "3" },
     { "name": "Ali Tolba", "number": "0" },
@@ -77,6 +68,7 @@
     { "name": "Karim Rahmy", "number": "2" },
     { "name": "Mowaffak Alraiyes", "number": "11" },
     { "name": "Omar Tamer", "number": "16" },
-    { "name": "Ibrahim Ben Hadj Tahar", "number": "34" }
+    { "name": "Ibrahim Ben Hadj Tahar", "number": "34" },
+    { "name": "Henok Wojack", "number": "4" }
   ]
 }

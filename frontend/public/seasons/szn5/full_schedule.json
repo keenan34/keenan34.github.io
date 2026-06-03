@@ -1,37 +1,28 @@
 [
   {
     "date": "6/7/2026",
-    "time": "4:00 PM",
-    "teamA": "The Northmen",
-    "teamB": "Real Ikhwan",
+    "time": "5:00 PM",
+    "teamA": "UMMA",
+    "teamB": "5 Pillars",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week1-game1"
   },
   {
     "date": "6/7/2026",
-    "time": "5:00 PM",
-    "teamA": "UMMA",
-    "teamB": "5 Pillars",
+    "time": "6:00 PM",
+    "teamA": "Brick Squad",
+    "teamB": "Real Ikhwan",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week1-game2"
-  },
-  {
-    "date": "6/7/2026",
-    "time": "6:00 PM",
-    "teamA": "Brick Squad",
-    "teamB": "Hustlers",
-    "scoreA": null,
-    "scoreB": null,
-    "gameId": "week1-game3"
   },
 
   {
     "date": "6/14/2026",
     "time": "4:00 PM",
-    "teamA": "The Northmen",
-    "teamB": "5 Pillars",
+    "teamA": "Brick Squad",
+    "teamB": "Real Ikhwan",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week2-game1"
@@ -39,8 +30,8 @@
   {
     "date": "6/14/2026",
     "time": "5:00 PM",
-    "teamA": "AVO",
-    "teamB": "Real Ikhwan",
+    "teamA": "5 Pillars",
+    "teamB": "The Northmen",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week2-game2"
@@ -48,27 +39,18 @@
   {
     "date": "6/14/2026",
     "time": "6:00 PM",
-    "teamA": "AVO",
-    "teamB": "Hustlers",
+    "teamA": "UMMA",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week2-game3"
-  },
-  {
-    "date": "6/14/2026",
-    "time": "7:00 PM",
-    "teamA": "Brick Squad",
-    "teamB": "UMMA",
-    "scoreA": null,
-    "scoreB": null,
-    "gameId": "week2-game4"
   },
 
   {
     "date": "6/21/2026",
     "time": "4:00 PM",
-    "teamA": "Hustlers",
-    "teamB": "Real Ikhwan",
+    "teamA": "UMMA",
+    "teamB": "The Northmen",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week3-game1"
@@ -76,8 +58,8 @@
   {
     "date": "6/21/2026",
     "time": "5:00 PM",
-    "teamA": "AVO",
-    "teamB": "UMMA",
+    "teamA": "UMMA",
+    "teamB": "Real Ikhwan",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week3-game2"
@@ -86,7 +68,7 @@
     "date": "6/21/2026",
     "time": "6:00 PM",
     "teamA": "Brick Squad",
-    "teamB": "The Northmen",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week3-game3"
@@ -104,8 +86,8 @@
   {
     "date": "6/28/2026",
     "time": "5:00 PM",
-    "teamA": "Hustlers",
-    "teamB": "The Northmen",
+    "teamA": "The Northmen",
+    "teamB": "Real Ikhwan",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week4-game2"
@@ -113,27 +95,18 @@
   {
     "date": "6/28/2026",
     "time": "6:00 PM",
-    "teamA": "Hustlers",
-    "teamB": "UMMA",
+    "teamA": "UMMA",
+    "teamB": "Brick Squad",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week4-game3"
-  },
-  {
-    "date": "6/28/2026",
-    "time": "7:00 PM",
-    "teamA": "Brick Squad",
-    "teamB": "Real Ikhwan",
-    "scoreA": null,
-    "scoreB": null,
-    "gameId": "week4-game4"
   },
 
   {
     "date": "7/5/2026",
     "time": "4:00 PM",
-    "teamA": "AVO",
-    "teamB": "The Northmen",
+    "teamA": "5 Pillars",
+    "teamB": "Real Ikhwan",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week5-game1"
@@ -142,7 +115,7 @@
     "date": "7/5/2026",
     "time": "5:00 PM",
     "teamA": "5 Pillars",
-    "teamB": "Real Ikhwan",
+    "teamB": "Brick Squad",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week5-game2"
@@ -150,8 +123,8 @@
   {
     "date": "7/5/2026",
     "time": "6:00 PM",
-    "teamA": "5 Pillars",
-    "teamB": "Brick Squad",
+    "teamA": "The Northmen",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week5-game3"
@@ -160,8 +133,8 @@
   {
     "date": "7/12/2026",
     "time": "4:00 PM",
-    "teamA": "5 Pillars",
-    "teamB": "Hustlers",
+    "teamA": "UMMA",
+    "teamB": "5 Pillars",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week6-game1"
@@ -169,8 +142,8 @@
   {
     "date": "7/12/2026",
     "time": "5:00 PM",
-    "teamA": "Brick Squad",
-    "teamB": "AVO",
+    "teamA": "The Northmen",
+    "teamB": "Brick Squad",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week6-game2"
@@ -178,8 +151,8 @@
   {
     "date": "7/12/2026",
     "time": "6:00 PM",
-    "teamA": "UMMA",
-    "teamB": "The Northmen",
+    "teamA": "The Northmen",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week6-game3"
@@ -187,8 +160,8 @@
   {
     "date": "7/12/2026",
     "time": "7:00 PM",
-    "teamA": "UMMA",
-    "teamB": "Real Ikhwan",
+    "teamA": "Real Ikhwan",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
     "gameId": "week6-game4"
