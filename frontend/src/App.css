@@ -13,29 +13,29 @@
 }
 
 .theme-szn4 {
-  --bg: #f6f8fb;
-  --nav: rgba(255, 255, 255, 0.88);
-  --panel: #ffffff;
-  --border: #e2e8f0;
+  --bg: #0f172a;
+  --nav: rgba(15, 23, 42, 0.88);
+  --panel: #1e293b;
+  --border: #334155;
 
-  --text: #111827;
-  --muted: #64748b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
 
-  --accent: #2563eb;
-  --accent2: #16a34a;
+  --accent: #38bdf8;
+  --accent2: #34d399;
 }
 
 
-/* SZN3 Theme (example: slightly brighter slate + blue accent) */
+/* SZN3 Theme */
 .theme-szn3 {
-  --bg: #f6f8fb;
-  --nav: rgba(255, 255, 255, 0.88);
-  --panel: #ffffff;
-  --border: #e2e8f0;
-  --text: #111827;
-  --muted: #64748b;
-  --accent: #2563eb;
-  --accent2: #16a34a;
+  --bg: #0f172a;
+  --nav: rgba(15, 23, 42, 0.88);
+  --panel: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent2: #34d399;
 }
 
 /* ====== NAV ====== */
@@ -107,13 +107,13 @@
 
 .site-nav-link:hover {
   color: var(--text);
-  background: #f8fafc;
+  background: #1e293b;
   border-color: var(--border);
 }
 
 .site-nav-link.is-active {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.1);
 }

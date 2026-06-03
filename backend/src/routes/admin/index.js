@@ -2,6 +2,7 @@ const { Router } = require("express");
 const { requireAuth } = require("../../middleware/auth.middleware");
 const { login, logout } = require("./auth.routes");
 const { createGamesRouter } = require("./games.routes");
+const rosterRouter = require("./roster.routes");
 
 function registerAdminRoutes(app, options = {}) {
   const router = Router();
@@ -10,6 +11,7 @@ function registerAdminRoutes(app, options = {}) {
   router.use(requireAuth);
   router.post("/logout", logout);
   router.use("/games", createGamesRouter(options));
+  router.use("/roster", rosterRouter);
 
   app.use("/api/admin", router);
 }

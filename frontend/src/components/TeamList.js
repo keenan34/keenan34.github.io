@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 
 const isPlaceholderTeam = (name = "") =>
-  name.startsWith("Seed ") || name.startsWith("Winner of ");
+  /^Seed\s+\d+/i.test(name) || /\bWinner\b/i.test(name);
 
 const API_BASE_URL = resolveApiBaseUrl();
 
@@ -102,33 +102,33 @@ export default function TeamList() {
   }, [teams, standings]);
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+    <div className="min-h-screen bg-[#0f172a] px-4 py-8 text-[#e2e8f0] sm:px-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 text-center">
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-blue-600">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[#38bdf8]">
             {activeSeason.toUpperCase()}
           </p>
-          <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-[#e2e8f0] sm:text-4xl">
             Teams &amp; Standings
           </h1>
         </header>
 
       {/* STANDINGS TABLE */}
-      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-black text-slate-950">Standings</h2>
+      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm">
+        <div className="border-b border-[#334155] px-6 py-4">
+          <h2 className="text-lg font-black text-[#e2e8f0]">Standings</h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center font-bold text-slate-500">
+          <div className="p-6 text-center font-bold text-[#94a3b8]">
             Loading standings…
           </div>
         ) : errorMsg ? (
-          <div className="p-6 text-center font-bold text-red-600">{errorMsg}</div>
+          <div className="p-6 text-center font-bold text-[#f87171]">{errorMsg}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full table-auto divide-y divide-slate-200 text-center">
-              <thead className="bg-slate-50 text-slate-500">
+            <table className="w-full table-auto divide-y divide-[#334155] text-center">
+              <thead className="bg-[#0f172a] text-[#94a3b8]">
                 <tr>
                   {["#", "Team", "W", "L", "Win%"].map((col) => (
                     <th
@@ -140,16 +140,16 @@ export default function TeamList() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-[#334155] bg-[#1e293b]">
                 {standingsArray.map((row, idx) => (
-                  <tr key={row.team} className={idx % 2 ? "bg-slate-50/70" : ""}>
-                    <td className="px-4 py-3 font-bold text-slate-500">{idx + 1}</td>
-                    <td className="px-4 py-3 font-black text-slate-950">
+                  <tr key={row.team} className={idx % 2 ? "bg-[#0f172a]" : ""}>
+                    <td className="px-4 py-3 font-bold text-[#94a3b8]">{idx + 1}</td>
+                    <td className="px-4 py-3 font-black text-[#e2e8f0]">
                       {row.team}
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-700">{row.wins}</td>
-                    <td className="px-4 py-3 font-bold text-slate-700">{row.losses}</td>
-                    <td className="px-4 py-3 font-bold text-slate-700">
+                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">{row.wins}</td>
+                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">{row.losses}</td>
+                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">
                       {(row.winPct * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -172,9 +172,9 @@ export default function TeamList() {
                   )}/roster`
                 : `/teams/${encodeURIComponent(team)}/roster`
             }
-            className="flex min-h-[88px] items-center justify-center rounded-lg border border-slate-200 bg-white p-5 text-center shadow-sm transition hover:border-blue-300 hover:shadow-md"
+            className="flex min-h-[88px] items-center justify-center rounded-lg border border-[#334155] bg-[#1e293b] p-5 text-center shadow-sm transition hover:border-[#38bdf8] hover:shadow-md"
           >
-            <span className="text-lg font-black text-slate-950">{team}</span>
+            <span className="text-lg font-black text-[#e2e8f0]">{team}</span>
           </Link>
         ))}
       </div>

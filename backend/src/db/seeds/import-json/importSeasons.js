@@ -5,6 +5,7 @@ const { pool } = require("../../pool");
 const PROJECT_ROOT = path.resolve(__dirname, "../../../../..");
 const SEASONS_ROOT = path.join(PROJECT_ROOT, "frontend", "public", "seasons");
 const SEASON_SLUGS = ["szn3", "szn4", "szn5"];
+const CURRENT_SEASON_SLUG = "szn5";
 
 const STAT_MAP = {
   points: ["Points"],
@@ -207,7 +208,7 @@ async function upsertSeason(client, slug) {
         updated_at = now()
       RETURNING id
     `,
-    [slug, seasonName(slug), "completed", false]
+    [slug, seasonName(slug), slug === CURRENT_SEASON_SLUG ? "active" : "completed", slug === CURRENT_SEASON_SLUG]
   );
 
   return result.rows[0].id;
@@ -317,14 +318,15 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
       parseScheduledAt(scheduleGame?.date, scheduleGame?.time),
       homeTeamId,
       awayTeamId,
-      Number.isFinite(Number(scheduleGame?.scoreA))
+      scheduleGame?.scoreA != null && Number.isFinite(Number(scheduleGame.scoreA))
         ? Number(scheduleGame.scoreA)
         : null,
-      Number.isFinite(Number(scheduleGame?.scoreB))
+      scheduleGame?.scoreB != null && Number.isFinite(Number(scheduleGame.scoreB))
         ? Number(scheduleGame.scoreB)
         : null,
-      Number.isFinite(Number(scheduleGame?.scoreA)) &&
-      Number.isFinite(Number(scheduleGame?.scoreB))
+      scheduleGame?.scoreA != null && scheduleGame?.scoreB != null &&
+      Number.isFinite(Number(scheduleGame.scoreA)) &&
+      Number.isFinite(Number(scheduleGame.scoreB))
         ? "final"
         : "scheduled",
       fallback.youtubeUrl || null,
@@ -406,14 +408,18 @@ async function upsertGamePlayerStats(client, gameId, teamId, playerId, row, cont
   );
 }
 
+function isPlaceholderTeam(name) {
+  return /^Seed\s+\d+/i.test(name) || /\bWinner\b/i.test(name);
+}
+
 function collectTeamNames(rosters, playersWithImages, schedule, weekDataByFile) {
   const names = new Set();
 
   Object.keys(rosters || {}).forEach((name) => names.add(name));
   Object.keys(playersWithImages || {}).forEach((name) => names.add(name));
   (schedule || []).forEach((game) => {
-    if (game.teamA) names.add(game.teamA);
-    if (game.teamB) names.add(game.teamB);
+    if (game.teamA && !isPlaceholderTeam(game.teamA)) names.add(game.teamA);
+    if (game.teamB && !isPlaceholderTeam(game.teamB)) names.add(game.teamB);
   });
 
   for (const weekData of Object.values(weekDataByFile)) {
@@ -440,6 +446,11 @@ function buildImageInfo(playersWithImages) {
   return info;
 }
 
+async function resetSeasonData(client, seasonId) {
+  await client.query(`DELETE FROM games WHERE season_id = $1`, [seasonId]);
+  await client.query(`DELETE FROM teams WHERE season_id = $1`, [seasonId]);
+}
+
 async function importSeason(client, seasonSlug) {
   const seasonPath = path.join(SEASONS_ROOT, seasonSlug);
   const rosters = await readJson(path.join(seasonPath, "team_rosters.json"), {});
@@ -456,6 +467,7 @@ async function importSeason(client, seasonSlug) {
   }
 
   const seasonId = await upsertSeason(client, seasonSlug);
+  await resetSeasonData(client, seasonId);
   const teamIdsByName = new Map();
   const playerIdsByName = new Map();
   const imageInfo = buildImageInfo(playersWithImages);
@@ -501,6 +513,7 @@ async function importSeason(client, seasonSlug) {
 
   for (const scheduleGame of schedule || []) {
     if (!scheduleGame?.gameId) continue;
+    if (isPlaceholderTeam(scheduleGame.teamA) || isPlaceholderTeam(scheduleGame.teamB)) continue;
     await upsertGame(client, seasonId, teamIdsByName, scheduleGame);
   }
 

@@ -362,6 +362,33 @@ function gameStatusLabel(status) {
   return status ? status[0].toUpperCase() + status.slice(1) : "Scheduled";
 }
 
+function FeedAvatar({ player, team }) {
+  const [error, setError] = useState(false);
+  const imgUrl = player?.imgUrl;
+  const fallback = teamInitials(player?.name || team?.name);
+  if (!imgUrl || error) return <>{fallback}</>;
+  return <img src={imgUrl} alt="" onError={() => setError(true)} />;
+}
+
+function SheetPlayerPhoto({ imgUrl, name }) {
+  const [error, setError] = useState(false);
+  if (!imgUrl || error) {
+    return (
+      <span className="admin-sheet-player-photo admin-sheet-player-photo-fallback">
+        {teamInitials(name)}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={imgUrl}
+      alt=""
+      className="admin-sheet-player-photo"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 function AdminLiveGame() {
   const { gameId } = useParams();
   const navigate = useNavigate();
@@ -394,6 +421,7 @@ function AdminLiveGame() {
   const [scoreDraft, setScoreDraft] = useState({ away: "0", home: "0" });
   const [scoreDraftDirty, setScoreDraftDirty] = useState(false);
   const [scoreEditorOpen, setScoreEditorOpen] = useState(false);
+  const [reassigningEvent, setReassigningEvent] = useState(null);
 
   const handleAdminError = useCallback(
     (error) => {
@@ -960,6 +988,34 @@ function AdminLiveGame() {
     }
   }
 
+  async function reassignEvent(event, newPlayerId) {
+    const newPlayer = findPlayer(newPlayerId);
+    if (!newPlayer) return;
+
+    const newStats = { ...newPlayer.stats, didPlay: true };
+    STAT_FIELDS.forEach(([field]) => {
+      const delta = (event.afterStats?.[field] ?? 0) - (event.beforeStats?.[field] ?? 0);
+      newStats[field] = Math.max(0, (newStats[field] ?? 0) + delta);
+    });
+
+    setReassigningEvent(null);
+    setError("");
+    setNotice("Reassigning...");
+
+    try {
+      await undoAdminGameEvent(gameId, event.id, token);
+      await updateAdminPlayerStats(gameId, newPlayerId, newStats, token);
+      const data = await getAdminLiveGame(gameId, token);
+      applyLiveGameState(data);
+      await loadEvents();
+      setNotice(`Reassigned to ${newPlayer.name}`);
+    } catch (err) {
+      if (handleAdminError(err)) return;
+      setError(err.message);
+      setNotice("");
+    }
+  }
+
   async function resetEvents() {
     const confirmed = window.confirm(
       "Reset all play-by-play events for this game?"
@@ -1458,11 +1514,7 @@ function AdminLiveGame() {
                 key={assistEvent ? `${event.id}-${assistEvent.id}` : event.id}
               >
                 <div className="admin-feed-avatar">
-                  {event.player?.imgUrl ? (
-                    <img src={event.player.imgUrl} alt="" />
-                  ) : (
-                    teamInitials(event.player?.name || event.team?.name)
-                  )}
+                  <FeedAvatar player={event.player} team={event.team} />
                 </div>
 
                 <div className="admin-feed-body">
@@ -1487,14 +1539,24 @@ function AdminLiveGame() {
 
                 <div className="admin-event-actions">
                   {event.eventType === "player_stats_updated" && (
-                    <button
-                      className="admin-secondary-button"
-                      disabled={undoingEventId === event.id || finalized}
-                      onClick={() => undoEvent(event)}
-                      type="button"
-                    >
-                      {undoingEventId === event.id ? "Undoing..." : "Undo"}
-                    </button>
+                    <>
+                      <button
+                        className="admin-secondary-button"
+                        disabled={undoingEventId === event.id || finalized}
+                        onClick={() => undoEvent(event)}
+                        type="button"
+                      >
+                        {undoingEventId === event.id ? "Undoing..." : "Undo"}
+                      </button>
+                      <button
+                        className="admin-secondary-button"
+                        disabled={finalized}
+                        onClick={() => setReassigningEvent(event)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                    </>
                   )}
                   {assistEvent?.eventType === "player_stats_updated" && (
                     <button
@@ -1702,13 +1764,7 @@ function AdminLiveGame() {
           onClick={onClick}
           type="button"
         >
-          {player.imgUrl ? (
-            <img src={player.imgUrl} alt="" className="admin-sheet-player-photo" />
-          ) : (
-            <span className="admin-sheet-player-photo admin-sheet-player-photo-fallback">
-              {teamInitials(player.name)}
-            </span>
-          )}
+          <SheetPlayerPhoto imgUrl={player.imgUrl} name={player.name} />
           <strong>{player.number || "-"}</strong>
           <span>{player.name}</span>
           {metaLabel && <em>{metaLabel}</em>}
@@ -1860,6 +1916,40 @@ function AdminLiveGame() {
     );
   }
 
+  function renderReassignSheet() {
+    if (!reassigningEvent) return null;
+    return (
+      <div className="admin-sheet-backdrop" onClick={() => setReassigningEvent(null)}>
+        <div className="admin-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-sheet-handle" />
+          <div className="admin-sheet-title">
+            <span className="admin-sheet-title-icon" aria-hidden="true">EDT</span>
+            <h3>Reassign to</h3>
+            <p>Pick the correct player</p>
+          </div>
+          <div className="admin-sheet-player-grid">
+            {rosters.flatMap((roster) =>
+              roster.players.map((player) => (
+                <button
+                  key={player.id}
+                  className={`admin-sheet-player-card ${player.stats.didPlay ? "admin-sheet-player-card-active" : ""} ${player.id === reassigningEvent.player?.id ? "admin-sheet-player-card-selected" : ""}`}
+                  disabled={player.id === reassigningEvent.player?.id}
+                  onClick={() => void reassignEvent(reassigningEvent, player.id)}
+                  type="button"
+                >
+                  <SheetPlayerPhoto imgUrl={player.imgUrl} name={player.name} />
+                  <strong>{player.number || "-"}</strong>
+                  <span>{player.name}</span>
+                  <em>{roster.team.name}</em>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="admin-page admin-live-page">
       <div className="admin-live-shell">
@@ -1885,6 +1975,7 @@ function AdminLiveGame() {
       </div>
 
       {renderShotSheet()}
+      {renderReassignSheet()}
     </section>
   );
 }

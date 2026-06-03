@@ -84,6 +84,7 @@ export default function PlayerPage() {
   const apiImageUrl = playerImageUrl(profile);
   const imageUrl = season ? seasonPlayerImageUrl(activeSeason, slug) : apiImageUrl;
   const [imageFailed, setImageFailed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // helper: find the schedule entry for a given week + opponent
   const findScheduleEntry = (weekKey, opponent) => {
@@ -125,6 +126,7 @@ export default function PlayerPage() {
     setPlayerTeam("");
     setPlayerNumber(null);
     setImageFailed(false);
+    setImageLoaded(false);
 
     apiGet(`/api/players/${encodeURIComponent(slug)}`, {
       signal: controller.signal,
@@ -264,25 +266,25 @@ export default function PlayerPage() {
   const chunkB = statOrder.slice(9);
 
   if (loading) {
-    return <p className="py-8 text-center font-bold text-slate-500">Loading player…</p>;
+    return <p className="py-8 text-center font-bold text-[#94a3b8]">Loading player…</p>;
   }
 
   if (errorMsg) {
-    return <p className="py-8 text-center font-bold text-red-600">{errorMsg}</p>;
+    return <p className="py-8 text-center font-bold text-[#f87171]">{errorMsg}</p>;
   }
 
   if (!profile) {
-    return <p className="py-8 text-center font-bold text-slate-500">No player found.</p>;
+    return <p className="py-8 text-center font-bold text-[#94a3b8]">No player found.</p>;
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-3 py-4 text-base text-slate-950 sm:px-6 sm:py-6 sm:text-lg">
+    <div className="min-h-screen bg-[#0f172a] px-3 py-4 text-base text-[#e2e8f0] sm:px-6 sm:py-6 sm:text-lg">
       <div className="relative w-full max-w-4xl mx-auto mb-6">
         {/* Top Buttons */}
         <div className="flex justify-between items-start mb-4">
           <button
             onClick={() => navigate(backTo)}
-            className="text-xs font-bold text-slate-500 hover:text-blue-700 sm:text-sm"
+            className="text-xs font-bold text-[#94a3b8] hover:text-[#38bdf8] sm:text-sm"
           >
             ← Back to {backLabel}
           </button>
@@ -296,7 +298,7 @@ export default function PlayerPage() {
                   )}/roster`
                 )
               }
-              className="text-xs font-bold text-slate-500 hover:text-blue-700 sm:text-sm"
+              className="text-xs font-bold text-[#94a3b8] hover:text-[#38bdf8] sm:text-sm"
             >
               → {playerTeam} Team Page
             </button>
@@ -307,26 +309,29 @@ export default function PlayerPage() {
         <div className="flex flex-col items-center">
           {/* Avatar */}
           <div
-            className="relative mb-3 flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-slate-200 text-3xl font-black text-slate-600 ring-4 ring-white sm:h-40 sm:w-40 sm:text-5xl"
+            className="relative mb-3 flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#1e293b] text-3xl font-black text-[#94a3b8] ring-4 ring-[#334155] sm:h-40 sm:w-40 sm:text-5xl"
             onClick={() =>
               imageUrl && !imageFailed && setZoomUrl(imageUrl)
             }
           >
-            <img
-              src={imageFailed ? "" : imageUrl || ""}
-              alt={playerName}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                if (!season && apiImageUrl && e.currentTarget.src !== apiImageUrl) {
-                  e.currentTarget.src = apiImageUrl;
-                  return;
-                }
-                setImageFailed(true);
-              }}
-              className={`absolute inset-0 h-full w-full object-cover ${
-                imageFailed ? "hidden" : ""
-              }`}
-            />
+            {imageUrl && !imageFailed && (
+              <img
+                src={imageUrl}
+                alt={playerName}
+                onLoad={() => setImageLoaded(true)}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  if (!season && apiImageUrl && e.currentTarget.src !== apiImageUrl) {
+                    e.currentTarget.src = apiImageUrl;
+                    return;
+                  }
+                  setImageFailed(true);
+                }}
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-150 ${
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            )}
             {playerName
               .split(" ")
               .map((n) => n[0])
@@ -336,7 +341,7 @@ export default function PlayerPage() {
           {/* Player Name */}
           <h1 className="mb-4 text-center text-2xl font-black leading-tight sm:text-4xl">
             {playerNumber ? (
-              <span className="italic text-slate-400">#{playerNumber} </span>
+              <span className="italic text-[#64748b]">#{playerNumber} </span>
             ) : (
               ""
             )}
@@ -345,14 +350,14 @@ export default function PlayerPage() {
 
           {/* Averages Box */}
           {games.length > 0 && (
-            <div className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-2 shadow-sm sm:max-w-md sm:p-3">
-              <div className="mb-2 text-xs font-black text-slate-500">
+            <div className="w-full max-w-lg rounded-lg border border-[#334155] bg-[#1e293b] p-2 shadow-sm sm:max-w-md sm:p-3">
+              <div className="mb-2 text-xs font-black text-[#94a3b8]">
                 {activeSeason.toUpperCase()}
               </div>
 
               {/* Chunk A (9 stats) - NO SCROLL */}
               <div>
-                <div className="mb-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-slate-500 sm:gap-x-3 sm:text-[12px]">
+                <div className="mb-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#94a3b8] sm:gap-x-3 sm:text-[12px]">
                   {chunkA.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -360,7 +365,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-slate-950 sm:gap-x-3 sm:text-lg">
+                <div className="grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#e2e8f0] sm:gap-x-3 sm:text-lg">
                   {chunkA.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -368,7 +373,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="mt-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-slate-400 sm:gap-x-3 sm:text-sm">
+                <div className="mt-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-[#64748b] sm:gap-x-3 sm:text-sm">
                   {chunkA.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {ranks[s.key]}
@@ -379,7 +384,7 @@ export default function PlayerPage() {
 
               {/* Chunk B (8 stats) - NO SCROLL */}
               <div className="mt-5">
-                <div className="mb-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-slate-500 sm:gap-x-3 sm:text-[12px]">
+                <div className="mb-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#94a3b8] sm:gap-x-3 sm:text-[12px]">
                   {chunkB.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -387,7 +392,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-slate-950 sm:gap-x-3 sm:text-lg">
+                <div className="grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#e2e8f0] sm:gap-x-3 sm:text-lg">
                   {chunkB.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -395,7 +400,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="mt-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-slate-400 sm:gap-x-3 sm:text-sm">
+                <div className="mt-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-bold leading-none text-[#64748b] sm:gap-x-3 sm:text-sm">
                   {chunkB.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {ranks[s.key]}
@@ -412,8 +417,8 @@ export default function PlayerPage() {
 
       {/* GAME LOG TABLE */}
       <div className="mt-10 overflow-x-auto text-sm sm:text-lg">
-        <table className="w-full border-separate border-spacing-y-2 text-slate-950">
-          <thead className="bg-slate-50">
+        <table className="w-full border-separate border-spacing-y-2 text-[#e2e8f0]">
+          <thead className="bg-[#0f172a]">
             <tr className="rounded-lg">
               {[
                 "Week",
@@ -440,7 +445,7 @@ export default function PlayerPage() {
               ].map((col, idx) => (
                 <th
                   key={col}
-                  className={`bg-slate-50 px-2 py-3 text-center text-xs font-black text-slate-500 sm:px-4 sm:text-base ${
+                  className={`bg-[#0f172a] px-2 py-3 text-center text-xs font-black text-[#94a3b8] sm:px-4 sm:text-base ${
                     idx === 0
                       ? "rounded-l-lg"
                       : idx === 20
@@ -456,10 +461,10 @@ export default function PlayerPage() {
 
           <tbody>
             {games.length === 0 ? (
-              <tr className="bg-white">
+              <tr className="bg-[#1e293b]">
                 <td
                   colSpan={21}
-                  className="rounded-lg px-2 py-6 text-center font-bold text-slate-500 sm:px-4"
+                  className="rounded-lg px-2 py-6 text-center font-bold text-[#94a3b8] sm:px-4"
                 >
                   No games found.
                 </td>
@@ -492,7 +497,7 @@ export default function PlayerPage() {
                 <tr
                   key={i}
                   className={`${
-                    i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                    i % 2 === 0 ? "bg-[#1e293b]" : "bg-[#0f172a]"
                   } cursor-pointer`}
                   onClick={() => {
                     if (!entry?.gameId) return;

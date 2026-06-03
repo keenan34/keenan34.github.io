@@ -7,7 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 export default function GameSlider() {
   const { season } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   const [upcomingGames, setUpcomingGames] = useState([]);
 
@@ -36,24 +36,24 @@ export default function GameSlider() {
 
   return (
     <div className="max-w-2xl mx-auto mt-3 transform scale-90">
-      <h2 className="mb-4 text-center text-2xl font-black text-slate-950">
+      <h2 className="mb-4 text-center text-2xl font-black text-[#e2e8f0]">
         Upcoming Games
       </h2>
       {upcomingGames.length > 0 ? (
         <Slider {...settings}>
           {upcomingGames.map((game, index) => (
             <div key={index} className="px-4 py-3 text-center">
-              <h3 className="text-lg font-black text-slate-950">
+              <h3 className="text-lg font-black text-[#e2e8f0]">
                 {game.teamA} vs {game.teamB}
               </h3>
-              <p className="mt-2 text-sm font-bold text-slate-500">
+              <p className="mt-2 text-sm font-bold text-[#94a3b8]">
                 {game.date} — {game.time}
               </p>
             </div>
           ))}
         </Slider>
       ) : (
-        <p className="text-center font-bold text-slate-500">No upcoming games found.</p>
+        <p className="text-center font-bold text-[#94a3b8]">No upcoming games found.</p>
       )}
     </div>
   );

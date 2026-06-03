@@ -3,17 +3,17 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 const teamColors = {
-  UMMA: "bg-white text-slate-950",
-  Umma: "bg-white text-slate-950",
+  UMMA: "bg-[#1e293b] text-[#e2e8f0]",
+  Umma: "bg-[#1e293b] text-[#e2e8f0]",
 
-  TNB: "bg-white text-slate-950",
+  TNB: "bg-[#1e293b] text-[#e2e8f0]",
 
-  "The Northmen": "bg-white text-slate-950",
+  "The Northmen": "bg-[#1e293b] text-[#e2e8f0]",
 
-  "Chi-Elite": "bg-white text-slate-950",
+  "Chi-Elite": "bg-[#1e293b] text-[#e2e8f0]",
 
-  Mujahideens: "bg-white text-slate-950",
-  "The Mujahideens": "bg-white text-slate-950",
+  Mujahideens: "bg-[#1e293b] text-[#e2e8f0]",
+  "The Mujahideens": "bg-[#1e293b] text-[#e2e8f0]",
 };
 
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
@@ -49,7 +49,7 @@ function ProfileImage({ name, season, imgUrl }) {
 
   if (error) {
     return (
-      <div className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-600">
+      <div className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#0f172a] text-xs font-black text-[#94a3b8]">
         {initials}
       </div>
     );
@@ -70,10 +70,10 @@ function ProfileImage({ name, season, imgUrl }) {
 
 export default function TeamRoster() {
   const { season, id } = useParams();
-  const activeSeason = season || "szn4";
+  const activeSeason = season || "szn5";
 
   const teamName = decodeURIComponent(id);
-  const colorClass = teamColors[teamName] || "bg-white text-slate-950";
+  const colorClass = teamColors[teamName] || "bg-[#1e293b] text-[#e2e8f0]";
 
   const [roster, setRoster] = useState([]);
   const [games, setGames] = useState([]);
@@ -123,20 +123,20 @@ export default function TeamRoster() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+    <div className="min-h-screen bg-[#0f172a] px-4 py-8 text-[#e2e8f0] sm:px-6">
       <h2
-        className={`mx-auto mb-8 max-w-3xl rounded-lg border border-slate-200 p-5 text-center text-3xl font-black shadow-sm ${colorClass}`}
+        className={`mx-auto mb-8 max-w-3xl rounded-lg border border-[#334155] p-5 text-center text-3xl font-black shadow-sm ${colorClass}`}
       >
         {teamName} Team Page
       </h2>
 
       {loading ? (
-        <p className="text-center font-bold text-slate-500">Loading...</p>
+        <p className="text-center font-bold text-[#94a3b8]">Loading...</p>
       ) : (
         <div className="mx-auto max-w-3xl space-y-8">
           {/* ROSTER */}
           <div>
-            <h3 className="mb-3 text-xl font-black text-slate-950">Roster</h3>
+            <h3 className="mb-3 text-xl font-black text-[#e2e8f0]">Roster</h3>
             <div className="space-y-3">
               {roster.map((player, idx) => {
                 const overrideSlugMap = {
@@ -148,7 +148,7 @@ export default function TeamRoster() {
                   <Link
                     key={idx}
                     to={playerLink(slug)}
-                    className="flex w-full items-center rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+                    className="flex w-full items-center rounded-lg border border-[#334155] bg-[#1e293b] p-4 shadow-sm transition hover:border-[#38bdf8] hover:shadow-md"
                   >
                     <ProfileImage
                       name={player.name}
@@ -157,12 +157,12 @@ export default function TeamRoster() {
                     />
 
                     <div className="flex-1 min-w-0">
-                      <span className="text-gray-800 font-semibold block truncate">
+                      <span className="text-[#e2e8f0] font-semibold block truncate">
                         {player.name}
                       </span>
                     </div>
 
-                    <span className="text-gray-600 ml-2 flex-shrink-0">
+                    <span className="text-[#94a3b8] ml-2 flex-shrink-0">
                       #{player.number}
                     </span>
                   </Link>
@@ -173,10 +173,10 @@ export default function TeamRoster() {
 
           {/* GAME HISTORY */}
           <div>
-            <h3 className="mb-3 text-xl font-black text-slate-950">Game History</h3>
+            <h3 className="mb-3 text-xl font-black text-[#e2e8f0]">Game History</h3>
 
             {games.length === 0 ? (
-              <p className="font-bold text-slate-500">No games yet.</p>
+              <p className="font-bold text-[#94a3b8]">No games yet.</p>
             ) : (
               <div className="space-y-3">
                 {games.map((g, idx) => {
@@ -195,34 +195,34 @@ export default function TeamRoster() {
                   const link = hasScore ? boxscoreLink(g) : null;
 
                   const row = (
-                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <div className="flex items-center justify-between rounded-lg border border-[#334155] bg-[#1e293b] px-4 py-3 shadow-sm">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-500">
+                        <span className="text-sm font-bold text-[#94a3b8]">
                           {g.date} {g.time ? `· ${g.time}` : ""}
                         </span>
-                        <span className="font-black text-slate-950">vs {opp}</span>
+                        <span className="font-black text-[#e2e8f0]">vs {opp}</span>
                       </div>
 
                       <div className="text-right">
                         {hasScore ? (
                           <>
-                            <span className="font-black text-slate-950">
+                            <span className="font-black text-[#e2e8f0]">
                               {myScore}-{oppScore}
                             </span>
                             <div
                               className={`text-xs font-semibold ${
                                 won
-                                  ? "text-emerald-600"
+                                  ? "text-[#34d399]"
                                   : lost
-                                  ? "text-red-600"
-                                  : "text-slate-500"
+                                  ? "text-[#f87171]"
+                                  : "text-[#94a3b8]"
                               }`}
                             >
                               {won ? "W" : lost ? "L" : ""}
                             </div>
                           </>
                         ) : (
-                          <span className="text-sm font-bold text-slate-500">Scheduled</span>
+                          <span className="text-sm font-bold text-[#94a3b8]">Scheduled</span>
                         )}
                       </div>
                     </div>

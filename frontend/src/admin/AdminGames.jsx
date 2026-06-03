@@ -92,9 +92,14 @@ function AdminGames() {
           <p className="admin-kicker">Admin</p>
           <h2>Games</h2>
         </div>
-        <button className="admin-secondary-button" onClick={handleLogout}>
-          Log out
-        </button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Link to="/admin/roster" className="admin-secondary-button" style={{ textDecoration: "none" }}>
+            Rosters
+          </Link>
+          <button className="admin-secondary-button" onClick={handleLogout}>
+            Log out
+          </button>
+        </div>
       </div>
 
       {error && <div className="admin-alert">{error}</div>}

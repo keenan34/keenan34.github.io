@@ -3,3 +3,17 @@
 @tailwind utilities;
 @import "~slick-carousel/slick/slick.css";
 @import "~slick-carousel/slick/slick-theme.css";
+
+/* Slick carousel dark theme overrides */
+.slick-dots li button:before {
+  color: #94a3b8;
+  opacity: 0.6;
+}
+.slick-dots li.slick-active button:before {
+  color: #38bdf8;
+  opacity: 1;
+}
+.slick-prev:before,
+.slick-next:before {
+  color: #94a3b8;
+}

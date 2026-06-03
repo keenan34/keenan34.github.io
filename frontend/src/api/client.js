@@ -210,6 +210,35 @@ export function addAdminTempPlayer(gameId, teamId, player, token) {
   );
 }
 
+export function getAdminRoster(seasonSlug, token) {
+  return apiGet(`/api/admin/roster/${encodeURIComponent(seasonSlug)}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function addAdminRosterPlayer(seasonSlug, teamId, player, token) {
+  return apiRequest(`/api/admin/roster/${encodeURIComponent(seasonSlug)}/teams/${encodeURIComponent(teamId)}/players`, {
+    method: "POST",
+    headers: { ...authHeaders(token), "Content-Type": "application/json" },
+    body: JSON.stringify(player),
+  });
+}
+
+export function updateAdminRosterPlayerNumber(seasonSlug, teamId, playerId, number, token) {
+  return apiRequest(`/api/admin/roster/${encodeURIComponent(seasonSlug)}/teams/${encodeURIComponent(teamId)}/players/${encodeURIComponent(playerId)}`, {
+    method: "PATCH",
+    headers: { ...authHeaders(token), "Content-Type": "application/json" },
+    body: JSON.stringify({ number }),
+  });
+}
+
+export function deleteAdminRosterPlayer(seasonSlug, teamId, playerId, token) {
+  return apiRequest(`/api/admin/roster/${encodeURIComponent(seasonSlug)}/teams/${encodeURIComponent(teamId)}/players/${encodeURIComponent(playerId)}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+}
+
 export function removeAdminRosterPlayer(gameId, teamId, playerId, token) {
   return apiRequest(
     `/api/admin/games/${encodeURIComponent(

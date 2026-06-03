@@ -23,6 +23,7 @@ import PreviousSeasons from "./components/PreviousSeasons";
 import AdminLogin from "./admin/AdminLogin";
 import AdminGames from "./admin/AdminGames";
 import AdminLiveGame from "./admin/AdminLiveGame";
+import AdminRoster from "./admin/AdminRoster";
 
 import "./App.css";
 import "./admin/Admin.css";
@@ -105,6 +106,7 @@ function AppShell() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/games" element={<AdminGames />} />
           <Route path="/admin/games/:gameId/live" element={<AdminLiveGame />} />
+          <Route path="/admin/roster" element={<AdminRoster />} />
 
           {/* HOME */}
           <Route

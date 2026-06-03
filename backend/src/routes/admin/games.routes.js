@@ -96,6 +96,33 @@ function legacyTeamBoxScore(rosters, teamId, teamName) {
   };
 }
 
+async function clearGameFromWeekJson(liveGameState) {
+  const { game } = liveGameState || {};
+  if (!game?.season?.slug || !game.weekNumber || !game.gameNumber) return;
+
+  const weekFile = path.join(
+    PUBLIC_SEASONS_DIR,
+    game.season.slug,
+    `week${game.weekNumber}.json`
+  );
+
+  let weekData = {};
+  try {
+    weekData = JSON.parse(await fs.readFile(weekFile, "utf8"));
+  } catch (err) {
+    if (err.code === "ENOENT") return;
+    throw err;
+  }
+
+  delete weekData[`game${game.gameNumber}`];
+
+  if (Object.keys(weekData).length === 0) {
+    await fs.unlink(weekFile).catch(() => {});
+  } else {
+    await fs.writeFile(weekFile, `${JSON.stringify(weekData, null, 2)}\n`);
+  }
+}
+
 async function publishGameToWeekJson(liveGameState) {
   const { game, rosters } = liveGameState || {};
   if (!game?.season?.slug || !game.weekNumber || !game.gameNumber) {
@@ -1316,6 +1343,10 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
     await client.query("COMMIT");
 
     const liveGameState = await getLiveGameState(gameId);
+
+    if (resetPlayerStats) {
+      await clearGameFromWeekJson(liveGameState).catch(() => {});
+    }
 
     res.json(liveGameState);
     await notifyLiveGameState(gameId, "score-updated");

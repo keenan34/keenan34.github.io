@@ -1,237 +1,82 @@
 {
-  "Mujahideens": [
-    {
-      "name": "Zuren Shethwala",
-      "number": "1",
-      "imgUrl": "/seasons/szn5/images/players/zuren_shethwala.png"
-    },
-    {
-      "name": "Saad Barkat",
-      "number": "7",
-      "imgUrl": "/seasons/szn5/images/players/saad_barkat.png"
-    },
-    {
-      "name": "Jorge Barragan",
-      "number": "00",
-      "imgUrl": "/seasons/szn5/images/players/jorge_barragan.png"
-    },
-    {
-      "name": "Kamran Syed",
-      "number": "12",
-      "imgUrl": "/seasons/szn5/images/players/kamran_syed.png"
-    },
-    {
-      "name": "Kay Ogungro",
-      "number": "15",
-      "imgUrl": "/seasons/szn5/images/players/kay_ogungro.png"
-    },
-    {
-      "name": "Moises Moya",
-      "number": "78",
-      "imgUrl": "/seasons/szn5/images/players/moises_moya.png"
-    }
-
+  "5 Pillars": [
+    { "name": "Mohsin Safvi", "number": "14", "imgUrl": "/seasons/szn5/images/players/mohsin_safvi.png" },
+    { "name": "Ali Zaidi", "number": "2", "imgUrl": "/seasons/szn5/images/players/ali_zaidi.png" },
+    { "name": "Abbaad Bawany", "number": "28", "imgUrl": "/seasons/szn5/images/players/abbaad_bawany.png" },
+    { "name": "Ammar Usmani", "number": "1", "imgUrl": "/seasons/szn5/images/players/ammar_usmani.png" },
+    { "name": "Irfan Safvi", "number": "3", "imgUrl": "/seasons/szn5/images/players/irfan_safvi.png" },
+    { "name": "Jazib Farooqui", "number": "24", "imgUrl": "/seasons/szn5/images/players/jazib_farooqui.png" },
+    { "name": "Ammar Osman", "number": "21", "imgUrl": "/seasons/szn5/images/players/ammar_osman.png" },
+    { "name": "Tareq Abdelkarim", "number": "4", "imgUrl": "/seasons/szn5/images/players/tareq_abdelkarim.png" },
+    { "name": "Essam Hamwi", "number": "0", "imgUrl": "/seasons/szn5/images/players/essam_hamwi.png" }
   ],
 
-  "Chi-Elite": [
-    {
-      "name": "Abbaad Bawany",
-      "number": "5",
-      "imgUrl": "/seasons/szn5/images/players/abbaad_bawany.png"
-    },
-    {
-      "name": "Rivera Edmond",
-      "number": "1",
-      "imgUrl": "/seasons/szn5/images/players/rivera_edmond.png"
-    },
-    {
-      "name": "Hamad Ejaz",
-      "number": "24",
-      "imgUrl": "/seasons/szn5/images/players/hamad_ejaz.png"
-    },
-    {
-      "name": "Hayyan Khan",
-      "number": "22",
-      "imgUrl": "/seasons/szn5/images/players/hayyan_khan.png"
-    },
-    {
-      "name": "Ammar Osman",
-      "number": "21",
-      "imgUrl": "/seasons/szn5/images/players/ammar_osman.png"
-    },
-    {
-      "name": "Abrar Khan",
-      "number": "8",
-      "imgUrl": "/seasons/szn5/images/players/abrar_khan.png"
-    },
-    {
-      "name": "Adnan Gvozden",
-      "number": "77",
-      "imgUrl": "/seasons/szn5/images/players/adnan_gvozden.png"
-    },
-    {
-      "name": "Jazib Farooqui",
-      "number": "6",
-      "imgUrl": "/seasons/szn5/images/players/jazib_farooqui.png"
-    },
-    {
-      "name": "Ali Zaidi",
-      "number": "10",
-      "imgUrl": "/seasons/szn5/images/players/ali_zaidi.png"
-    },
-    {
-      "name": "Ammar Usmani",
-      "number": "2",
-      "imgUrl": "/seasons/szn5/images/players/ammar_usmani.png"
-    }
-  ],
-
-  "TNB": [
-    {
-      "name": "Faraaz Siyadath",
-      "number": "7",
-      "imgUrl": "/seasons/szn5/images/players/faraaz_siyadath.png"
-    },
-    {
-      "name": "Ali Rogaria",
-      "number": "24",
-      "imgUrl": "/seasons/szn5/images/players/ali_rogaria.png"
-    },
-    {
-      "name": "Umer Rogaria",
-      "number": "23",
-      "imgUrl": "/seasons/szn5/images/players/umer_rogaria.png"
-    },
-    {
-      "name": "Masbah Uddin",
-      "number": "1",
-      "imgUrl": "/seasons/szn5/images/players/masbah_uddin.png"
-    },
-    {
-      "name": "Absar Najam",
-      "number": "8",
-      "imgUrl": "/seasons/szn5/images/players/absar_najam.png"
-    },
-    {
-      "name": "Naader Khan",
-      "number": "11",
-      "imgUrl": "/seasons/szn5/images/players/naader_khan.png"
-    },
-    {
-      "name": "Darius Jones",
-      "number": "4",
-      "imgUrl": "/seasons/szn5/images/players/darius_jones.png"
-    },
-    {
-      "name": "Essam Hamwi",
-      "number": "21",
-      "imgUrl": "/seasons/szn5/images/players/essam_hamwi.png"
-    },
-    {
-      "name": "Arfan Khan",
-      "number": "67",
-      "imgUrl": "/seasons/szn5/images/players/arfan_khan.png"
-    },
-    {
-      "name": "Julian Dones",
-      "number": "10",
-      "imgUrl": "/seasons/szn5/images/players/julian_dones.png"
-    }
+  "Real Ikhwan": [
+    { "name": "Taabish Abba", "number": "77", "imgUrl": "/seasons/szn5/images/players/taabish_abba.png" },
+    { "name": "Syed T Ahmed", "number": "5", "imgUrl": "/seasons/szn5/images/players/syed_t_ahmed.png" },
+    { "name": "Moosa Kaleemullah", "number": "2", "imgUrl": "/seasons/szn5/images/players/moosa_kaleemullah.png" },
+    { "name": "Jorge Barragan", "number": "23", "imgUrl": "/seasons/szn5/images/players/jorge_barragan.png" },
+    { "name": "Zuren Shethwala", "number": "24", "imgUrl": "/seasons/szn5/images/players/zuren_shethwala.png" },
+    { "name": "Ziad Subedar", "number": "16", "imgUrl": "/seasons/szn5/images/players/ziad_subedar.png" },
+    { "name": "Murtaza Mirza", "number": "3", "imgUrl": "/seasons/szn5/images/players/murtaza_mirza.png" },
+    { "name": "Moises Moya", "number": "10", "imgUrl": "/seasons/szn5/images/players/moises_moya.png" },
+    { "name": "Ali Quereshi", "number": "6", "imgUrl": "/seasons/szn5/images/players/ali_quereshi.png" }
   ],
 
   "The Northmen": [
-    {
-      "name": "Zaid Khan",
-      "number": "2",
-      "imgUrl": "/seasons/szn5/images/players/zaid_khan.png"
-    },
-    {
-      "name": "Haris Khan",
-      "number": "7",
-      "imgUrl": "/seasons/szn5/images/players/haris_khan.png"
-    },
-    {
-      "name": "Shayaan Shaikh",
-      "number": "13",
-      "imgUrl": "/seasons/szn5/images/players/shayaan_shaikh.png"
-    },
-    {
-      "name": "Abdullah Basith",
-      "number": "3",
-      "imgUrl": "/seasons/szn5/images/players/abdullah_basith.png"
-    },
-    {
-      "name": "Hassan Khan",
-      "number": "9",
-      "imgUrl": "/seasons/szn5/images/players/hassan_khan.png"
-    },
-    {
-      "name": "Gerald Galano",
-      "number": "1",
-      "imgUrl": "/seasons/szn5/images/players/gerald_galano.png"
-    },
-    {
-      "name": "Juan Carrera",
-      "number": "0",
-      "imgUrl": "/seasons/szn5/images/players/juan_carrera.png"
-    },
-    {
-      "name": "Musab Bawany",
-      "number": "23",
-      "imgUrl": "/seasons/szn5/images/players/musab_bawaney.png"
-    }
+    { "name": "Zaid Khan", "number": "2", "imgUrl": "/seasons/szn5/images/players/zaid_khan.png" },
+    { "name": "Haroon Khan", "number": "27", "imgUrl": "/seasons/szn5/images/players/haroon_khan.png" },
+    { "name": "Haris Khan", "number": "0", "imgUrl": "/seasons/szn5/images/players/haris_khan.png" },
+    { "name": "Ayan Malek", "number": "00", "imgUrl": "/seasons/szn5/images/players/ayan_malek.png" },
+    { "name": "Abdullah Basith", "number": "3", "imgUrl": "/seasons/szn5/images/players/abdullah_basith.png" },
+    { "name": "Shayaan Shaikh", "number": "13", "imgUrl": "/seasons/szn5/images/players/shayaan_shaikh.png" },
+    { "name": "Raedh Talha", "number": "34", "imgUrl": "/seasons/szn5/images/players/raedh_talha.png" },
+    { "name": "Kay Ogungro", "number": "50", "imgUrl": "/seasons/szn5/images/players/kay_ogungro.png" },
+    { "name": "Juan Carrera", "number": "25", "imgUrl": "/seasons/szn5/images/players/juan_carrera.png" },
+    { "name": "Tony Perez", "number": "1", "imgUrl": "/seasons/szn5/images/players/tony_perez.png" }
   ],
 
-  "Umma": [
-    {
-      "name": "Hamaas Ibrahim",
-      "number": "3",
-      "imgUrl": "/seasons/szn5/images/players/hamaas_ibrahim.png"
-    },
-    {
-      "name": "Casey Miasek",
-      "number": "8",
-      "imgUrl": "/seasons/szn5/images/players/casey_miasek.png"
-    },
-    {
-      "name": "Courtez Dixon",
-      "number": "15",
-      "imgUrl": "/seasons/szn5/images/players/courtez_dixon.png"
-    },
-    {
-      "name": "Jalen Moore",
-      "number": "11",
-      "imgUrl": "/seasons/szn5/images/players/jalen_moore.png"
-    },
-    {
-      "name": "Cyrus Paddock",
-      "number": "30",
-      "imgUrl": "/seasons/szn5/images/players/cyrus_paddock.png"
-    },
-    {
-      "name": "Quincy Paddock",
-      "number": "20",
-      "imgUrl": "/seasons/szn5/images/players/quincy_paddock.png"
-    },
-    {
-      "name": "Payton Foster",
-      "number": "21",
-      "imgUrl": "/seasons/szn5/images/players/payton_foster.png"
-    },
-    {
-      "name": "Bilal Khan",
-      "number": "32",
-      "imgUrl": "/seasons/szn5/images/players/bilal_khan.png"
-    },
-    {
-      "name": "Joseph Zinnerman",
-      "number": "5",
-      "imgUrl": "/seasons/szn5/images/players/joseph_zinnerman.png"
-    },{
-      "name": "Haazim Patel",
-      "number": "0",
-      "imgUrl": "/seasons/szn5/images/players/haazim_patel.png"
-    }
+  "Brick Squad": [
+    { "name": "Ali Rahman", "number": "15", "imgUrl": "/seasons/szn5/images/players/ali_rahman.png" },
+    { "name": "Abbas Yousafzai", "number": "1", "imgUrl": "/seasons/szn5/images/players/abbas_yousafzai.png" },
+    { "name": "Waleed Saleem", "number": "0", "imgUrl": "/seasons/szn5/images/players/waleed_saleem.png" },
+    { "name": "Hamzah Yousafzai", "number": "2", "imgUrl": "/seasons/szn5/images/players/hamzah_yousafzai.png" },
+    { "name": "Basit Malik", "number": "3", "imgUrl": "/seasons/szn5/images/players/basit_malik.png" },
+    { "name": "Omer Mirza", "number": "67", "imgUrl": "/seasons/szn5/images/players/omer_mirza.png" },
+    { "name": "Samvit Ram", "number": "7", "imgUrl": "/seasons/szn5/images/players/samvit_ram.png" },
+    { "name": "Ali Siddiqui", "number": "9", "imgUrl": "/seasons/szn5/images/players/ali_siddiqui.png" }
+  ],
+
+  "UMMA": [
+    { "name": "Hamaas Ibrahim", "number": "3", "imgUrl": "/seasons/szn5/images/players/hamaas_ibrahim.png" },
+    { "name": "Cyrus Paddock", "number": "30", "imgUrl": "/seasons/szn5/images/players/cyrus_paddock.png" },
+    { "name": "Quincy Paddock", "number": "20", "imgUrl": "/seasons/szn5/images/players/quincy_paddock.png" },
+    { "name": "Payton Foster", "number": "21", "imgUrl": "/seasons/szn5/images/players/payton_foster.png" },
+    { "name": "Brady Foster", "number": "24", "imgUrl": "/seasons/szn5/images/players/brady_foster.png" },
+    { "name": "Casey Miasek", "number": "8", "imgUrl": "/seasons/szn5/images/players/casey_miasek.png" },
+    { "name": "John Grana", "number": "2", "imgUrl": "/seasons/szn5/images/players/john_grana.png" },
+    { "name": "Nick Weber", "number": "4", "imgUrl": "/seasons/szn5/images/players/nick_weber.png" },
+    { "name": "Bilal Khan", "number": "32", "imgUrl": "/seasons/szn5/images/players/bilal_khan.png" },
+    { "name": "Jack Himel", "number": "10", "imgUrl": "/seasons/szn5/images/players/jack_himel.png" },
+    { "name": "Imam Azfar", "number": "23", "imgUrl": "/seasons/szn5/images/players/imam_azfar.png" }
+  ],
+
+  "Hustlers": [
+    { "name": "Sufian Macci", "number": "1", "imgUrl": "/seasons/szn5/images/players/sufian_macci.png" },
+    { "name": "Hashim Khan", "number": "6", "imgUrl": "/seasons/szn5/images/players/hashim_khan.png" },
+    { "name": "Peter Atsaves", "number": "30", "imgUrl": "/seasons/szn5/images/players/peter_atsaves.png" },
+    { "name": "Muhib Khan", "number": "31", "imgUrl": "/seasons/szn5/images/players/muhib_khan.png" },
+    { "name": "Absar Najam", "number": "24", "imgUrl": "/seasons/szn5/images/players/absar_najam.png" },
+    { "name": "Ansaar Ahmed", "number": "10", "imgUrl": "/seasons/szn5/images/players/ansaar_ahmed.png" }
+  ],
+
+  "AVO": [
+    { "name": "Ali Mahmoud", "number": "3", "imgUrl": "/seasons/szn5/images/players/ali_mahmoud.png" },
+    { "name": "Ali Tolba", "number": "0", "imgUrl": "/seasons/szn5/images/players/ali_tolba.png" },
+    { "name": "Jacob Bahrani", "number": "1", "imgUrl": "/seasons/szn5/images/players/jacob_bahrani.png" },
+    { "name": "Karim Rahmy", "number": "2", "imgUrl": "/seasons/szn5/images/players/karim_rahmy.png" },
+    { "name": "Mowaffak Alraiyes", "number": "11", "imgUrl": "/seasons/szn5/images/players/mowaffak_alraiyes.png" },
+    { "name": "Omar Tamer", "number": "16", "imgUrl": "/seasons/szn5/images/players/omar_tamer.png" },
+    { "name": "Ibrahim Ben Hadj Tahar", "number": "34", "imgUrl": "/seasons/szn5/images/players/ibrahim_ben_hadj_tahar.png" }
   ]
 }
-

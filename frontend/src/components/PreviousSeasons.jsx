@@ -13,7 +13,7 @@ export default function PreviousSeasons() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-4 py-8 text-slate-950 sm:px-6">
+    <div className="min-h-screen bg-[#0f172a] px-4 py-8 text-[#e2e8f0] sm:px-6">
       <h1 className="mb-8 text-center text-3xl font-black tracking-tight sm:text-4xl">
         Previous Seasons
       </h1>
@@ -28,8 +28,8 @@ export default function PreviousSeasons() {
               onClick={() => setSelectedSeason(s.id)}
               className={`rounded-lg border p-4 font-black transition ${
                 active
-                  ? "border-blue-300 bg-blue-50 text-blue-700 shadow-sm"
-                  : "border-slate-200 bg-white text-slate-800 shadow-sm hover:border-blue-200"
+                  ? "border-[#38bdf8] bg-[rgba(56,189,248,0.12)] text-[#38bdf8] shadow-sm"
+                  : "border-[#334155] bg-[#1e293b] text-[#e2e8f0] shadow-sm hover:border-[#38bdf8]"
               }`}
             >
               {s.label}
@@ -40,29 +40,29 @@ export default function PreviousSeasons() {
 
       {/* Season nav buttons (only after selecting) */}
       {selectedSeason ? (
-        <div className="mx-auto max-w-xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-center text-xl font-black text-slate-950">
+        <div className="mx-auto max-w-xl rounded-lg border border-[#334155] bg-[#1e293b] p-6 shadow-sm">
+          <h2 className="mb-4 text-center text-xl font-black text-[#e2e8f0]">
             {selectedSeason.toUpperCase()} Navigation
           </h2>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Link
               to={`/season/${selectedSeason}/teams`}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
+              className="rounded-lg border border-[#334155] bg-[#0f172a] p-4 text-center font-black text-[#e2e8f0] transition hover:border-[#38bdf8] hover:bg-[rgba(56,189,248,0.08)]"
             >
               Teams / Rosters
             </Link>
 
             <Link
               to={`/season/${selectedSeason}/schedule`}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
+              className="rounded-lg border border-[#334155] bg-[#0f172a] p-4 text-center font-black text-[#e2e8f0] transition hover:border-[#38bdf8] hover:bg-[rgba(56,189,248,0.08)]"
             >
               Schedule
             </Link>
 
             <Link
               to={`/season/${selectedSeason}/leaders`}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-900 transition hover:border-blue-300 hover:bg-blue-50"
+              className="rounded-lg border border-[#334155] bg-[#0f172a] p-4 text-center font-black text-[#e2e8f0] transition hover:border-[#38bdf8] hover:bg-[rgba(56,189,248,0.08)]"
             >
               Leaders
             </Link>
@@ -70,13 +70,13 @@ export default function PreviousSeasons() {
 
           <button
             onClick={() => setSelectedSeason(null)}
-            className="mt-6 w-full rounded-lg bg-slate-100 p-3 font-bold text-slate-700 transition hover:bg-slate-200"
+            className="mt-6 w-full rounded-lg bg-[#0f172a] p-3 font-bold text-[#94a3b8] transition hover:bg-[#334155]"
           >
             Back to season list
           </button>
         </div>
       ) : (
-        <p className="text-center font-bold text-slate-500">
+        <p className="text-center font-bold text-[#94a3b8]">
           Pick a season to see options.
         </p>
       )}

@@ -34,25 +34,25 @@ function seasonPlayerImageUrl(season, name) {
   return `${PUBLIC_URL}/seasons/${season}/images/players/${fileName}.png`;
 }
 
-function ProfileImage({ name, src, fallbackSrc, onClick }) {
+function ProfileImage({ name, src, onClick }) {
   const [error, setError] = useState(false);
-  const [triedFallback, setTriedFallback] = useState(false);
 
   useEffect(() => {
     setError(false);
-    setTriedFallback(false);
-  }, [src, fallbackSrc]);
+  }, [src]);
 
   const initials = name
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
-    .join("");
+    .join("")
+    .slice(0, 3);
 
-  if ((!src && !fallbackSrc) || error) {
+  if (!src || error) {
     return (
       <div
         onClick={onClick}
-        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-base font-black text-slate-600"
+        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#1e293b] text-base font-black text-[#94a3b8]"
       >
         {initials}
       </div>
@@ -62,18 +62,12 @@ function ProfileImage({ name, src, fallbackSrc, onClick }) {
   return (
     <img
       onClick={onClick}
-      src={triedFallback ? fallbackSrc : src}
+      src={src}
       alt={name}
       width="40"
       height="40"
       className="h-10 w-10 flex-shrink-0 rounded-full object-cover mr-2 cursor-pointer"
-      onError={() => {
-        if (!triedFallback && fallbackSrc) {
-          setTriedFallback(true);
-          return;
-        }
-        setError(true);
-      }}
+      onError={() => setError(true)}
     />
   );
 }
@@ -153,24 +147,24 @@ export default function Leaders() {
     const top10 = getTopByAverage(avgKey);
 
     return (
-      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:max-w-md">
-        <div className="border-b border-slate-200 bg-slate-50 py-3">
-          <h2 className="text-center text-base font-black text-slate-950">
+      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm md:max-w-md">
+        <div className="border-b border-[#334155] bg-[#0f172a] py-3">
+          <h2 className="text-center text-base font-black text-[#e2e8f0]">
             {label}
           </h2>
         </div>
-        <div className="overflow-x-auto bg-white p-2">
+        <div className="overflow-x-auto bg-[#1e293b] p-2">
           <table className="w-full table-fixed border-collapse text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-[#0f172a]">
               <tr>
-                <th className="w-1/2 p-1 text-left font-black text-slate-500">Player</th>
-                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
+                <th className="w-1/2 p-1 text-left font-black text-[#94a3b8]">Player</th>
+                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
                   GP
                 </th>
-                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
+                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
                   {avgLabel}
                 </th>
-                <th className="w-1/6 border-l border-slate-200 px-1 py-2 text-right font-black text-slate-500">
+                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
                   {totalLabel}
                 </th>
               </tr>
@@ -190,13 +184,12 @@ export default function Leaders() {
                 return (
                   <tr
                     key={p.name}
-                    className={idx % 2 === 1 ? "bg-slate-50" : "bg-white"}
+                    className={idx % 2 === 1 ? "bg-[#0f172a]" : "bg-[#1e293b]"}
                   >
-                    <td className="flex items-center whitespace-nowrap p-1 text-slate-950">
+                    <td className="flex items-center whitespace-nowrap p-1 text-[#e2e8f0]">
                       <ProfileImage
                         name={p.name}
                         src={imgSrc}
-                        fallbackSrc={season ? null : apiImgSrc}
                         onClick={() => imgSrc && setModalImage(imgSrc)}
                       />
                       <span className="mr-1 text-xs font-black">
@@ -221,19 +214,19 @@ export default function Leaders() {
                             : "/leaders",
                           label: "Leaders",
                         }}
-                        className="text-xs font-black text-slate-950 hover:text-blue-700 hover:underline"
+                        className="text-xs font-black text-[#e2e8f0] hover:text-[#38bdf8] hover:underline"
                       >
                         {p.name}
                       </Link>
                     </td>
 
-                    <td className="px-1 py-2 text-right font-black text-slate-800">
+                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
                       {p.games}
                     </td>
-                    <td className="px-1 py-2 text-right font-black text-slate-800">
+                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
                       {p[avgKey]}
                     </td>
-                    <td className="px-1 py-2 text-right font-black text-slate-800">
+                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
                       {p[totalKey]}
                     </td>
                   </tr>
@@ -270,14 +263,14 @@ export default function Leaders() {
       )}
 
       {error ? (
-        <p className="py-4 text-center font-bold text-red-600">{error}</p>
+        <p className="py-4 text-center font-bold text-[#f87171]">{error}</p>
       ) : loading ? (
-        <p className="py-4 text-center font-bold text-slate-500">Loading leaders…</p>
+        <p className="py-4 text-center font-bold text-[#94a3b8]">Loading leaders…</p>
       ) : players.length === 0 ? (
-        <p className="py-4 text-center font-bold text-slate-500">No leaders found.</p>
+        <p className="py-4 text-center font-bold text-[#94a3b8]">No leaders found.</p>
       ) : (
-        <div className="min-h-screen bg-[#f6f8fb] px-4 py-8">
-          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-slate-950">
+        <div className="min-h-screen bg-[#0f172a] px-4 py-8">
+          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-[#e2e8f0]">
             League Leaders
           </h1>
 

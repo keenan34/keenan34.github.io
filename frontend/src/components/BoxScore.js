@@ -169,7 +169,7 @@ function ProfileImage({ src, fallbackSrc, name, onClick }) {
     return (
       <div
         onClick={onClick}
-        className={`${baseClasses} bg-slate-100 text-xs font-black text-slate-600`}
+        className={`${baseClasses} bg-[#1e293b] text-xs font-black text-[#94a3b8]`}
       >
         {initials}
       </div>
@@ -265,17 +265,17 @@ export default function BoxScore() {
 
   // --- always show teamA on left, teamB on right ---
   const Header = () => (
-    <div className="mb-4 grid grid-cols-3 justify-items-center rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="mb-4 grid grid-cols-3 justify-items-center rounded-lg border border-[#334155] bg-[#1e293b] p-4 shadow-sm">
       <div className="flex flex-col items-center">
         <span className="text-3xl font-black">{isScheduled ? "-" : totalA}</span>
-        <span className="mt-1 text-xs font-bold text-slate-500">{teamA.name}</span>
+        <span className="mt-1 text-xs font-bold text-[#94a3b8]">{teamA.name}</span>
       </div>
       <div className="flex flex-col items-center">
-        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase text-blue-700">
+        <span className="rounded-full bg-[rgba(56,189,248,0.12)] px-3 py-1 text-xs font-black uppercase text-[#38bdf8]">
           {isScheduled ? "Scheduled" : matchInfo?.status === "live" ? "Live" : "Final"}
         </span>
         {matchInfo?.date && (
-          <span className="mt-1 text-xs font-bold text-slate-500">
+          <span className="mt-1 text-xs font-bold text-[#94a3b8]">
             {matchInfo.date}
             {matchInfo.time ? ` · ${matchInfo.time}` : ""}
           </span>
@@ -283,7 +283,7 @@ export default function BoxScore() {
       </div>
       <div className="flex flex-col items-center">
         <span className="text-3xl font-black">{isScheduled ? "-" : totalB}</span>
-        <span className="mt-1 text-xs font-bold text-slate-500">{teamB.name}</span>
+        <span className="mt-1 text-xs font-bold text-[#94a3b8]">{teamB.name}</span>
       </div>
     </div>
   );
@@ -322,7 +322,7 @@ export default function BoxScore() {
         return (
           <div
             key={idx}
-            className="relative flex h-32 items-start justify-center border-b border-slate-100"
+            className="relative flex h-32 items-start justify-center border-b border-[#334155]"
           >
             <ProfileImage
               src={season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl}
@@ -344,7 +344,7 @@ export default function BoxScore() {
                   : `/boxscore/${week}/${gameId}`,
                 label: "Box Score",
               }}
-              className="absolute bottom-1 w-full whitespace-normal break-words px-.5 text-center text-xs font-black text-slate-800 hover:text-blue-700"
+              className="absolute bottom-1 w-full whitespace-normal break-words px-.5 text-center text-xs font-black text-[#cbd5e1] hover:text-[#38bdf8]"
             >
               {p.Player}
             </Link>
@@ -357,13 +357,13 @@ export default function BoxScore() {
   // stats table (horizontal scroll)
   const StatsTable = ({ team }) => (
     <div className="-mt-8 flex-1 overflow-x-auto" ref={scrollRef}>
-      <table className="min-w-full table-auto border-separate border-spacing-0 text-slate-950">
+      <table className="min-w-full table-auto border-separate border-spacing-0 text-[#e2e8f0]">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
+          <tr className="border-b border-[#334155] bg-[#0f172a]">
             {statFields.map(({ label }) => (
               <th
                 key={label}
-                className="whitespace-nowrap px-4 py-2 text-center text-xs font-black text-slate-500"
+                className="whitespace-nowrap px-4 py-2 text-center text-xs font-black text-[#94a3b8]"
               >
                 {label}
               </th>
@@ -376,7 +376,7 @@ export default function BoxScore() {
             return (
               <tr
                 key={idx}
-                className={`border-b border-slate-100 even:bg-slate-50 ${
+                className={`border-b border-[#334155] even:bg-[#0f172a] ${
                   isDNP ? "opacity-55" : ""
                 }`}
               >
@@ -386,15 +386,15 @@ export default function BoxScore() {
                     className="h-32 whitespace-nowrap px-4 py-1 text-center"
                   >
                     {isDNP ? (
-                      <span className="text-lg font-black leading-none text-slate-500">
+                      <span className="text-lg font-black leading-none text-[#94a3b8]">
                         DNP
                       </span>
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center">
-                        <span className="text-lg font-black leading-none text-slate-950">
+                        <span className="text-lg font-black leading-none text-[#e2e8f0]">
                           {get(p)}
                         </span>
-                        <span className="mt-1 text-[12px] font-bold text-slate-500">
+                        <span className="mt-1 text-[12px] font-bold text-[#94a3b8]">
                           {label}
                         </span>
                       </div>
@@ -411,7 +411,7 @@ export default function BoxScore() {
 
   // glue left + right
   const renderBoard = (team) => (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm">
       <div className="flex">
         <LeftColumn team={team} />
         <StatsTable team={team} />
@@ -447,12 +447,12 @@ export default function BoxScore() {
   return (
     <div
       style={{ zoom: 0.9 }}
-      className="mx-auto min-h-screen max-w-full bg-[#f6f8fb] p-4 text-slate-950"
+      className="mx-auto min-h-screen max-w-full bg-[#0f172a] p-4 text-[#e2e8f0]"
     >
       <Header />
 
       {/* tabs */}
-      <div className="mb-12 flex border-b border-slate-200">
+      <div className="mb-12 flex border-b border-[#334155]">
         {[
           { id: "home", label: teamA.name },
           { id: "away", label: teamB.name },
@@ -464,8 +464,8 @@ export default function BoxScore() {
             className={
               "flex-1 py-2 text-center " +
               (tab === t.id
-                ? "border-b-2 border-blue-600 text-blue-700"
-                : "text-slate-500")
+                ? "border-b-2 border-[#38bdf8] text-[#38bdf8]"
+                : "text-[#94a3b8]")
             }
           >
             {t.label}

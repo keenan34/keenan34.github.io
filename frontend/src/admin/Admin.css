@@ -620,7 +620,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
-  background: #f3f5f9;
+  background: #faf9f6;
   color: #0f172a;
   padding: max(10px, env(safe-area-inset-top)) 0 max(24px, env(safe-area-inset-bottom));
 }
@@ -1609,6 +1609,10 @@
 
 .admin-live-page .admin-playbyplay-panel .admin-events-list {
   gap: 0;
+}
+
+.admin-live-page .admin-playbyplay-panel .admin-muted-note {
+  padding: 18px 16px;
 }
 
 .admin-live-page .admin-events-header h3 {
