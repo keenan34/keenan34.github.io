@@ -1,6 +1,7 @@
 // File: src/components/TopPerformers.jsx
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getWeekPlayerStats } from "../api/client";
 
 const EXCLUDED_PLAYERS = [
   "Josiah",
@@ -115,13 +116,10 @@ export default function TopPerformers({
     setStatus("loading");
     setDebug({ total: 0, filtered: 0 });
 
-    const url = `${PUBLIC_URL}/seasons/${activeSeason}/${week}.json?v=${Date.now()}`;
+    const weekNum = parseInt(week.replace("week", ""), 10);
 
-    fetch(url)
-      .then(async (res) => {
-        if (!res.ok) throw new Error("missing");
-        const json = await res.json();
-
+    getWeekPlayerStats(activeSeason, weekNum)
+      .then((json) => {
         const all = [];
         Object.values(json || {}).forEach((game) => {
           const teamA = game?.teamA?.name || "";

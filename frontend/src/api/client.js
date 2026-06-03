@@ -38,6 +38,13 @@ export function getSeasonStandings(seasonSlug, options) {
   return apiGet(`/api/standings/${encodeURIComponent(seasonSlug)}`, options);
 }
 
+export function getWeekPlayerStats(seasonSlug, weekNumber, options) {
+  return apiGet(
+    `/api/seasons/${encodeURIComponent(seasonSlug)}/weeks/${weekNumber}/player-stats`,
+    options
+  );
+}
+
 export function adminLogin(username, password) {
   return apiRequest("/api/admin/login", {
     method: "POST",

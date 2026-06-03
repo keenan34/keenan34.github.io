@@ -231,4 +231,88 @@ router.get("/games/:publicGameId", async (req, res, next) => {
   }
 });
 
+router.get("/seasons/:seasonSlug/weeks/:weekNumber/player-stats", async (req, res, next) => {
+  try {
+    const { seasonSlug, weekNumber } = req.params;
+    const weekNum = parseInt(weekNumber, 10);
+    if (!Number.isFinite(weekNum)) {
+      return res.status(400).json({ error: "Invalid week number" });
+    }
+
+    const { rows } = await pool.query(
+      `
+        SELECT
+          g.game_number       AS "gameNumber",
+          home.id             AS "homeTeamId",
+          home.name           AS "homeTeamName",
+          away.id             AS "awayTeamId",
+          away.name           AS "awayTeamName",
+          t.id                AS "teamId",
+          p.name              AS "playerName",
+          gps.did_play        AS "didPlay",
+          gps.points,
+          gps.fgm,
+          gps.fga,
+          gps.two_pm          AS "twoPm",
+          gps.two_pa          AS "twoPa",
+          gps.three_pm        AS "threePm",
+          gps.three_pa        AS "threePa",
+          gps.ftm,
+          gps.fta,
+          gps.rebounds,
+          gps.assists,
+          gps.turnovers,
+          gps.fouls,
+          gps.steals_blocks   AS "stealsBlocks"
+        FROM games g
+        JOIN seasons s         ON s.id = g.season_id
+        JOIN teams home        ON home.id = g.home_team_id
+        JOIN teams away        ON away.id = g.away_team_id
+        JOIN game_player_stats gps ON gps.game_id = g.id
+        JOIN teams t           ON t.id = gps.team_id
+        JOIN players p         ON p.id = gps.player_id
+        WHERE s.slug = $1
+          AND g.week_number = $2
+          AND g.status IN ('final', 'finished')
+        ORDER BY g.game_number, t.id, p.name
+      `,
+      [seasonSlug, weekNum]
+    );
+
+    const games = {};
+    rows.forEach((row) => {
+      const key = `game${row.gameNumber}`;
+      if (!games[key]) {
+        games[key] = {
+          teamA: { name: row.homeTeamName, players: [] },
+          teamB: { name: row.awayTeamName, players: [] },
+        };
+      }
+      const side = row.teamId === row.homeTeamId ? "teamA" : "teamB";
+      const played = row.didPlay;
+      games[key][side].players.push({
+        Player:       normalizePlayerName(row.playerName),
+        Points:       played ? row.points       : null,
+        FGM:          played ? row.fgm          : null,
+        FGA:          played ? row.fga          : null,
+        "2 PTM":      played ? row.twoPm        : null,
+        "2 PTA":      played ? row.twoPa        : null,
+        "3 PTM":      played ? row.threePm      : null,
+        "3 PTA":      played ? row.threePa      : null,
+        FTM:          played ? row.ftm          : null,
+        FTA:          played ? row.fta          : null,
+        REB:          played ? row.rebounds     : null,
+        AST:          played ? row.assists      : null,
+        TOs:          played ? row.turnovers    : null,
+        Fouls:        played ? row.fouls        : null,
+        "STLS/BLKS":  played ? row.stealsBlocks : null,
+      });
+    });
+
+    res.json(games);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
