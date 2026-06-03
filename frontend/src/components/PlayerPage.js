@@ -266,7 +266,7 @@ export default function PlayerPage() {
   const chunkB = statOrder.slice(9);
 
   if (loading) {
-    return <p className="py-8 text-center font-bold text-[#94a3b8]">Loading player…</p>;
+    return <p className="py-8 text-center font-bold text-[#64748b]">Loading player…</p>;
   }
 
   if (errorMsg) {
@@ -274,17 +274,17 @@ export default function PlayerPage() {
   }
 
   if (!profile) {
-    return <p className="py-8 text-center font-bold text-[#94a3b8]">No player found.</p>;
+    return <p className="py-8 text-center font-bold text-[#64748b]">No player found.</p>;
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] px-3 py-4 text-base text-[#e2e8f0] sm:px-6 sm:py-6 sm:text-lg">
+    <div className="min-h-screen bg-[#f8fafc] px-3 py-4 text-base text-[#0f172a] sm:px-6 sm:py-6 sm:text-lg">
       <div className="relative w-full max-w-4xl mx-auto mb-6">
         {/* Top Buttons */}
         <div className="flex justify-between items-start mb-4">
           <button
             onClick={() => navigate(backTo)}
-            className="text-xs font-bold text-[#94a3b8] hover:text-[#38bdf8] sm:text-sm"
+            className="text-xs font-bold text-[#64748b] hover:text-[#0284c7] sm:text-sm"
           >
             ← Back to {backLabel}
           </button>
@@ -298,7 +298,7 @@ export default function PlayerPage() {
                   )}/roster`
                 )
               }
-              className="text-xs font-bold text-[#94a3b8] hover:text-[#38bdf8] sm:text-sm"
+              className="text-xs font-bold text-[#64748b] hover:text-[#0284c7] sm:text-sm"
             >
               → {playerTeam} Team Page
             </button>
@@ -309,7 +309,7 @@ export default function PlayerPage() {
         <div className="flex flex-col items-center">
           {/* Avatar */}
           <div
-            className="relative mb-3 flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#1e293b] text-3xl font-black text-[#94a3b8] ring-4 ring-[#334155] sm:h-40 sm:w-40 sm:text-5xl"
+            className="relative mb-3 flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#ffffff] text-3xl font-black text-[#64748b] ring-4 ring-[#0f172a] sm:h-40 sm:w-40 sm:text-5xl"
             onClick={() =>
               imageUrl && !imageFailed && setZoomUrl(imageUrl)
             }
@@ -350,14 +350,14 @@ export default function PlayerPage() {
 
           {/* Averages Box */}
           {games.length > 0 && (
-            <div className="w-full max-w-lg rounded-lg border border-[#334155] bg-[#1e293b] p-2 shadow-sm sm:max-w-md sm:p-3">
-              <div className="mb-2 text-xs font-black text-[#94a3b8]">
+            <div className="w-full max-w-lg rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-2 shadow-sm sm:max-w-md sm:p-3">
+              <div className="mb-2 text-xs font-black text-[#64748b]">
                 {activeSeason.toUpperCase()}
               </div>
 
               {/* Chunk A (9 stats) - NO SCROLL */}
               <div>
-                <div className="mb-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#94a3b8] sm:gap-x-3 sm:text-[12px]">
+                <div className="mb-1 grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#64748b] sm:gap-x-3 sm:text-[12px]">
                   {chunkA.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -365,7 +365,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#e2e8f0] sm:gap-x-3 sm:text-lg">
+                <div className="grid grid-cols-9 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#0f172a] sm:gap-x-3 sm:text-lg">
                   {chunkA.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -384,7 +384,7 @@ export default function PlayerPage() {
 
               {/* Chunk B (8 stats) - NO SCROLL */}
               <div className="mt-5">
-                <div className="mb-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#94a3b8] sm:gap-x-3 sm:text-[12px]">
+                <div className="mb-1 grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[9px] font-black leading-none text-[#64748b] sm:gap-x-3 sm:text-[12px]">
                   {chunkB.map((s) => (
                     <div key={s.key} className="whitespace-nowrap">
                       {s.label}
@@ -392,7 +392,7 @@ export default function PlayerPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#e2e8f0] sm:gap-x-3 sm:text-lg">
+                <div className="grid grid-cols-8 gap-x-1 gap-y-1 text-center text-[11px] font-black leading-none text-[#0f172a] sm:gap-x-3 sm:text-lg">
                   {chunkB.map((s) => (
                     <div key={s.key} className="tabular-nums whitespace-nowrap">
                       {avg[s.key]}
@@ -417,8 +417,8 @@ export default function PlayerPage() {
 
       {/* GAME LOG TABLE */}
       <div className="mt-10 overflow-x-auto text-sm sm:text-lg">
-        <table className="w-full border-separate border-spacing-y-2 text-[#e2e8f0]">
-          <thead className="bg-[#0f172a]">
+        <table className="w-full border-separate border-spacing-y-2 text-[#0f172a]">
+          <thead className="bg-[#f8fafc]">
             <tr className="rounded-lg">
               {[
                 "Week",
@@ -445,7 +445,7 @@ export default function PlayerPage() {
               ].map((col, idx) => (
                 <th
                   key={col}
-                  className={`bg-[#0f172a] px-2 py-3 text-center text-xs font-black text-[#94a3b8] sm:px-4 sm:text-base ${
+                  className={`bg-[#f8fafc] px-2 py-3 text-center text-xs font-black text-[#64748b] sm:px-4 sm:text-base ${
                     idx === 0
                       ? "rounded-l-lg"
                       : idx === 20
@@ -461,10 +461,10 @@ export default function PlayerPage() {
 
           <tbody>
             {games.length === 0 ? (
-              <tr className="bg-[#1e293b]">
+              <tr className="bg-[#ffffff]">
                 <td
                   colSpan={21}
-                  className="rounded-lg px-2 py-6 text-center font-bold text-[#94a3b8] sm:px-4"
+                  className="rounded-lg px-2 py-6 text-center font-bold text-[#64748b] sm:px-4"
                 >
                   No games found.
                 </td>
@@ -497,7 +497,7 @@ export default function PlayerPage() {
                 <tr
                   key={i}
                   className={`${
-                    i % 2 === 0 ? "bg-[#1e293b]" : "bg-[#0f172a]"
+                    i % 2 === 0 ? "bg-[#ffffff]" : "bg-[#f8fafc]"
                   } cursor-pointer`}
                   onClick={() => {
                     if (!entry?.gameId) return;

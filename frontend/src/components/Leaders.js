@@ -52,7 +52,7 @@ function ProfileImage({ name, src, onClick }) {
     return (
       <div
         onClick={onClick}
-        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#1e293b] text-base font-black text-[#94a3b8]"
+        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#ffffff] text-base font-black text-[#64748b]"
       >
         {initials}
       </div>
@@ -147,24 +147,24 @@ export default function Leaders() {
     const top10 = getTopByAverage(avgKey);
 
     return (
-      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm md:max-w-md">
-        <div className="border-b border-[#334155] bg-[#0f172a] py-3">
-          <h2 className="text-center text-base font-black text-[#e2e8f0]">
+      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm md:max-w-md">
+        <div className="border-b border-[#e2e8f0] bg-[#f8fafc] py-3">
+          <h2 className="text-center text-base font-black text-[#0f172a]">
             {label}
           </h2>
         </div>
-        <div className="overflow-x-auto bg-[#1e293b] p-2">
+        <div className="overflow-x-auto bg-[#ffffff] p-2">
           <table className="w-full table-fixed border-collapse text-sm">
-            <thead className="bg-[#0f172a]">
+            <thead className="bg-[#f8fafc]">
               <tr>
-                <th className="w-1/2 p-1 text-left font-black text-[#94a3b8]">Player</th>
-                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
+                <th className="w-1/2 p-1 text-left font-black text-[#64748b]">Player</th>
+                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
                   GP
                 </th>
-                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
+                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
                   {avgLabel}
                 </th>
-                <th className="w-1/6 border-l border-[#334155] px-1 py-2 text-right font-black text-[#94a3b8]">
+                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
                   {totalLabel}
                 </th>
               </tr>
@@ -184,9 +184,9 @@ export default function Leaders() {
                 return (
                   <tr
                     key={p.name}
-                    className={idx % 2 === 1 ? "bg-[#0f172a]" : "bg-[#1e293b]"}
+                    className={idx % 2 === 1 ? "bg-[#f8fafc]" : "bg-[#ffffff]"}
                   >
-                    <td className="flex items-center whitespace-nowrap p-1 text-[#e2e8f0]">
+                    <td className="flex items-center whitespace-nowrap p-1 text-[#0f172a]">
                       <ProfileImage
                         name={p.name}
                         src={imgSrc}
@@ -214,19 +214,19 @@ export default function Leaders() {
                             : "/leaders",
                           label: "Leaders",
                         }}
-                        className="text-xs font-black text-[#e2e8f0] hover:text-[#38bdf8] hover:underline"
+                        className="text-xs font-black text-[#0f172a] hover:text-[#0284c7] hover:underline"
                       >
                         {p.name}
                       </Link>
                     </td>
 
-                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
+                    <td className="px-1 py-2 text-right font-black text-[#475569]">
                       {p.games}
                     </td>
-                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
+                    <td className="px-1 py-2 text-right font-black text-[#475569]">
                       {p[avgKey]}
                     </td>
-                    <td className="px-1 py-2 text-right font-black text-[#cbd5e1]">
+                    <td className="px-1 py-2 text-right font-black text-[#475569]">
                       {p[totalKey]}
                     </td>
                   </tr>
@@ -265,12 +265,12 @@ export default function Leaders() {
       {error ? (
         <p className="py-4 text-center font-bold text-[#f87171]">{error}</p>
       ) : loading ? (
-        <p className="py-4 text-center font-bold text-[#94a3b8]">Loading leaders…</p>
+        <p className="py-4 text-center font-bold text-[#64748b]">Loading leaders…</p>
       ) : players.length === 0 ? (
-        <p className="py-4 text-center font-bold text-[#94a3b8]">No leaders found.</p>
+        <p className="py-4 text-center font-bold text-[#64748b]">No leaders found.</p>
       ) : (
-        <div className="min-h-screen bg-[#0f172a] px-4 py-8">
-          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-[#e2e8f0]">
+        <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
+          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-[#0f172a]">
             League Leaders
           </h1>
 

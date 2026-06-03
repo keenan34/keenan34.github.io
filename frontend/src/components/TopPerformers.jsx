@@ -78,7 +78,7 @@ function ProfileImage({ name, season }) {
 
   if (error) {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0f172a] text-xs font-black text-[#94a3b8]">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f8fafc] text-xs font-black text-[#64748b]">
         {initials}
       </div>
     );
@@ -165,18 +165,18 @@ export default function TopPerformers({
 
     if (status === "loading") {
       return (
-        <div className="mb-2 rounded-lg border border-[#334155] bg-[#1e293b] p-4 shadow-sm">
-          <div className="text-sm font-bold text-[#94a3b8]">Loading Top Performers…</div>
+        <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+          <div className="text-sm font-bold text-[#64748b]">Loading Top Performers…</div>
         </div>
       );
     }
 
     if (status === "missing") {
       return (
-        <div className="mb-2 rounded-lg border border-[#334155] bg-[#1e293b] p-4 shadow-sm">
-          <div className="text-sm font-bold text-[#94a3b8]">
+        <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+          <div className="text-sm font-bold text-[#64748b]">
             Top Performers not available for{" "}
-            <span className="font-black text-[#e2e8f0]">{displayWeek}</span> yet.
+            <span className="font-black text-[#0f172a]">{displayWeek}</span> yet.
           </div>
         </div>
       );
@@ -215,8 +215,8 @@ export default function TopPerformers({
   };
 
   return (
-    <div className="mx-auto mb-4 max-w-5xl rounded-lg border border-[#334155] bg-[#1e293b] p-4 shadow-sm">
-      <h2 className="mb-4 text-xl font-black text-[#e2e8f0]">
+    <div className="mx-auto mb-4 max-w-5xl rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+      <h2 className="mb-4 text-xl font-black text-[#0f172a]">
         Top Performers ({displayWeek})
       </h2>
 
@@ -229,9 +229,9 @@ export default function TopPerformers({
         ].map(({ label, stat, list }) => (
           <div
             key={stat}
-            className="rounded-lg border border-[#334155] bg-[#0f172a] p-4 transition-colors hover:border-[#38bdf8]"
+            className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4 transition-colors hover:border-[#0284c7]"
           >
-            <div className="mb-2 text-sm font-black text-[#94a3b8]">{label}</div>
+            <div className="mb-2 text-sm font-black text-[#64748b]">{label}</div>
 
             <div className="flex flex-wrap gap-4">
               {list.map((player) => {
@@ -247,17 +247,17 @@ export default function TopPerformers({
                   <Link
                     key={`${stat}-${player.Player}`}
                     to={`/season/${activeSeason}/player/${slug}`}
-                    className="flex items-center rounded-md p-1 transition hover:bg-[#1e293b]"
+                    className="flex items-center rounded-md p-1 transition hover:bg-[#ffffff]"
                   >
                     <ProfileImage name={player.Player} season={activeSeason} />
                       <div className="ml-2">
-                      <div className="text-sm font-black text-[#e2e8f0]">
+                      <div className="text-sm font-black text-[#0f172a]">
                         {player.Player}
                       </div>
-                      <div className="text-xs font-bold italic text-[#94a3b8]">
+                      <div className="text-xs font-bold italic text-[#64748b]">
                         vs {player.opponent}
                       </div>
-                      <div className="text-xs font-bold text-[#38bdf8]">
+                      <div className="text-xs font-bold text-[#0284c7]">
                         {safeNum(getStat(player, stat))} {statLabels[stat]}
                       </div>
                     </div>

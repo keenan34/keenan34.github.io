@@ -36,24 +36,24 @@ export default function GameSlider() {
 
   return (
     <div className="max-w-2xl mx-auto mt-3 transform scale-90">
-      <h2 className="mb-4 text-center text-2xl font-black text-[#e2e8f0]">
+      <h2 className="mb-4 text-center text-2xl font-black text-[#0f172a]">
         Upcoming Games
       </h2>
       {upcomingGames.length > 0 ? (
         <Slider {...settings}>
           {upcomingGames.map((game, index) => (
             <div key={index} className="px-4 py-3 text-center">
-              <h3 className="text-lg font-black text-[#e2e8f0]">
+              <h3 className="text-lg font-black text-[#0f172a]">
                 {game.teamA} vs {game.teamB}
               </h3>
-              <p className="mt-2 text-sm font-bold text-[#94a3b8]">
+              <p className="mt-2 text-sm font-bold text-[#64748b]">
                 {game.date} — {game.time}
               </p>
             </div>
           ))}
         </Slider>
       ) : (
-        <p className="text-center font-bold text-[#94a3b8]">No upcoming games found.</p>
+        <p className="text-center font-bold text-[#64748b]">No upcoming games found.</p>
       )}
     </div>
   );

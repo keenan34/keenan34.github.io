@@ -102,33 +102,33 @@ export default function TeamList() {
   }, [teams, standings]);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] px-4 py-8 text-[#e2e8f0] sm:px-6">
+    <div className="min-h-screen bg-[#f8fafc] px-4 py-8 text-[#0f172a] sm:px-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 text-center">
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[#38bdf8]">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[#0284c7]">
             {activeSeason.toUpperCase()}
           </p>
-          <h1 className="text-3xl font-black tracking-tight text-[#e2e8f0] sm:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">
             Teams &amp; Standings
           </h1>
         </header>
 
       {/* STANDINGS TABLE */}
-      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm">
-        <div className="border-b border-[#334155] px-6 py-4">
-          <h2 className="text-lg font-black text-[#e2e8f0]">Standings</h2>
+      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+        <div className="border-b border-[#e2e8f0] px-6 py-4">
+          <h2 className="text-lg font-black text-[#0f172a]">Standings</h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center font-bold text-[#94a3b8]">
+          <div className="p-6 text-center font-bold text-[#64748b]">
             Loading standings…
           </div>
         ) : errorMsg ? (
           <div className="p-6 text-center font-bold text-[#f87171]">{errorMsg}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full table-auto divide-y divide-[#334155] text-center">
-              <thead className="bg-[#0f172a] text-[#94a3b8]">
+            <table className="w-full table-auto divide-y divide-[#e2e8f0] text-center">
+              <thead className="bg-[#f8fafc] text-[#64748b]">
                 <tr>
                   {["#", "Team", "W", "L", "Win%"].map((col) => (
                     <th
@@ -140,16 +140,16 @@ export default function TeamList() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#334155] bg-[#1e293b]">
+              <tbody className="divide-y divide-[#e2e8f0] bg-[#ffffff]">
                 {standingsArray.map((row, idx) => (
-                  <tr key={row.team} className={idx % 2 ? "bg-[#0f172a]" : ""}>
-                    <td className="px-4 py-3 font-bold text-[#94a3b8]">{idx + 1}</td>
-                    <td className="px-4 py-3 font-black text-[#e2e8f0]">
+                  <tr key={row.team} className={idx % 2 ? "bg-[#f8fafc]" : ""}>
+                    <td className="px-4 py-3 font-bold text-[#64748b]">{idx + 1}</td>
+                    <td className="px-4 py-3 font-black text-[#0f172a]">
                       {row.team}
                     </td>
-                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">{row.wins}</td>
-                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">{row.losses}</td>
-                    <td className="px-4 py-3 font-bold text-[#cbd5e1]">
+                    <td className="px-4 py-3 font-bold text-[#475569]">{row.wins}</td>
+                    <td className="px-4 py-3 font-bold text-[#475569]">{row.losses}</td>
+                    <td className="px-4 py-3 font-bold text-[#475569]">
                       {(row.winPct * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -172,9 +172,9 @@ export default function TeamList() {
                   )}/roster`
                 : `/teams/${encodeURIComponent(team)}/roster`
             }
-            className="flex min-h-[88px] items-center justify-center rounded-lg border border-[#334155] bg-[#1e293b] p-5 text-center shadow-sm transition hover:border-[#38bdf8] hover:shadow-md"
+            className="flex min-h-[88px] items-center justify-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-5 text-center shadow-sm transition hover:border-[#0284c7] hover:shadow-md"
           >
-            <span className="text-lg font-black text-[#e2e8f0]">{team}</span>
+            <span className="text-lg font-black text-[#0f172a]">{team}</span>
           </Link>
         ))}
       </div>

@@ -20,7 +20,7 @@ function statusClasses(status) {
   if (status === "live") {
     return "bg-[rgba(248,113,113,0.12)] text-[#f87171] border-[#f87171]";
   }
-  return "bg-[#1e293b] text-[#94a3b8] border-[#334155]";
+  return "bg-[#ffffff] text-[#64748b] border-[#e2e8f0]";
 }
 
 export default function Schedule() {
@@ -87,19 +87,19 @@ export default function Schedule() {
 
 
   return (
-    <div className="min-h-screen bg-[#0f172a] px-4 py-8 text-[#e2e8f0] sm:px-6">
+    <div className="min-h-screen bg-[#f8fafc] px-4 py-8 text-[#0f172a] sm:px-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8">
-          <p className="mb-2 text-center text-xs font-black uppercase tracking-[0.18em] text-[#38bdf8]">
+          <p className="mb-2 text-center text-xs font-black uppercase tracking-[0.18em] text-[#0284c7]">
             {seasonTitle(activeSeason)}
           </p>
-          <h2 className="text-center text-3xl font-black tracking-tight text-[#e2e8f0] sm:text-4xl">
+          <h2 className="text-center text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">
             Schedule
           </h2>
         </header>
 
         {loading ? (
-          <div className="rounded-lg border border-[#334155] bg-[#1e293b] p-8 text-center font-bold text-[#94a3b8] shadow-sm">
+          <div className="rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-8 text-center font-bold text-[#64748b] shadow-sm">
             Loading schedule...
           </div>
         ) : error ? (
@@ -112,18 +112,18 @@ export default function Schedule() {
               return (
                 <section
                   key={date}
-                  className="overflow-hidden rounded-lg border border-[#334155] bg-[#1e293b] shadow-sm"
+                  className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-3 border-b border-[#334155] px-4 py-3 sm:px-5">
+                  <div className="flex items-center justify-between gap-3 border-b border-[#e2e8f0] px-4 py-3 sm:px-5">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.14em] text-[#64748b]">
                         Game Day
                       </p>
-                      <h3 className="text-lg font-black text-[#e2e8f0]">
+                      <h3 className="text-lg font-black text-[#0f172a]">
                         {date || "Date TBD"}
                       </h3>
                     </div>
-                    <span className="rounded-full bg-[rgba(56,189,248,0.12)] px-3 py-1 text-xs font-black text-[#38bdf8]">
+                    <span className="rounded-full bg-[rgba(56,189,248,0.12)] px-3 py-1 text-xs font-black text-[#0284c7]">
                       {dayGames.length} {dayGames.length === 1 ? "game" : "games"}
                     </span>
                   </div>
@@ -145,15 +145,15 @@ export default function Schedule() {
                         typeof game.scoreA === "number" &&
                         typeof game.scoreB === "number";
 
-                      const cardClasses = `h-full rounded-lg border bg-[#0f172a] p-4 shadow-sm transition ${
+                      const cardClasses = `h-full rounded-lg border bg-[#f8fafc] p-4 shadow-sm transition ${
                         isFinished
-                          ? "border-[#334155] hover:border-[#38bdf8] hover:shadow-md"
-                          : "border-[#334155] opacity-80"
+                          ? "border-[#e2e8f0] hover:border-[#0284c7] hover:shadow-md"
+                          : "border-[#e2e8f0] opacity-80"
                       }`;
 
                       const teamNameClass = (won) =>
                         `min-w-0 truncate text-sm font-black ${
-                          won ? "text-[#34d399]" : "text-[#e2e8f0]"
+                          won ? "text-[#34d399]" : "text-[#0f172a]"
                         }`;
 
                       const content = (
@@ -166,7 +166,7 @@ export default function Schedule() {
                             >
                               {statusLabel(game.status)}
                             </span>
-                            <span className="text-xs font-bold text-[#94a3b8]">
+                            <span className="text-xs font-bold text-[#64748b]">
                               {game.time || "TBD"}
                             </span>
                           </div>
@@ -177,34 +177,34 @@ export default function Schedule() {
                                 <div className={teamNameClass(teamAWon)}>
                                   {game.teamA}
                                 </div>
-                                <div className="mt-0.5 text-xs font-bold text-[#94a3b8]">
+                                <div className="mt-0.5 text-xs font-bold text-[#64748b]">
                                   {recA.wins}-{recA.losses}
                                 </div>
                               </div>
-                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#e2e8f0]">
+                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#0f172a]">
                                 {hasScore ? game.scoreA : "-"}
                               </div>
                             </div>
 
-                            <div className="h-px bg-[#334155]" />
+                            <div className="h-px bg-[#0f172a]" />
 
                             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                               <div className="min-w-0">
                                 <div className={teamNameClass(teamBWon)}>
                                   {game.teamB}
                                 </div>
-                                <div className="mt-0.5 text-xs font-bold text-[#94a3b8]">
+                                <div className="mt-0.5 text-xs font-bold text-[#64748b]">
                                   {recB.wins}-{recB.losses}
                                 </div>
                               </div>
-                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#e2e8f0]">
+                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#0f172a]">
                                 {hasScore ? game.scoreB : "-"}
                               </div>
                             </div>
                           </div>
 
                           {!isFinished && (
-                            <div className="mt-4 rounded-md bg-[#1e293b] px-3 py-2 text-center text-xs font-black text-[#94a3b8]">
+                            <div className="mt-4 rounded-md bg-[#ffffff] px-3 py-2 text-center text-xs font-black text-[#64748b]">
                               Box score available after game
                             </div>
                           )}
