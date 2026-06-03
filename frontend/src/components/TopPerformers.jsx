@@ -180,15 +180,11 @@ export default function TopPerformers({
       );
     }
 
-    // file loaded but nothing survived filtering -> data format issue
     return (
-      <div className="mb-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="text-sm font-bold text-slate-500">
-          No eligible Top Performers for{" "}
-          <span className="font-black text-slate-950">{displayWeek}</span>.
-        </div>
-        <div className="mt-1 text-xs font-bold text-[#64748b]">
-          Debug: loaded {debug.total} player rows, kept {debug.filtered}.
+      <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+        <div className="text-sm font-bold text-[#64748b]">
+          Top Performers not available for{" "}
+          <span className="font-black text-[#0f172a]">{displayWeek}</span> yet.
         </div>
       </div>
     );

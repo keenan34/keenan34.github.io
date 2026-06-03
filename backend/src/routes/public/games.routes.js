@@ -273,7 +273,6 @@ router.get("/seasons/:seasonSlug/weeks/:weekNumber/player-stats", async (req, re
         JOIN players p         ON p.id = gps.player_id
         WHERE s.slug = $1
           AND g.week_number = $2
-          AND g.status IN ('final', 'finished')
         ORDER BY g.game_number, t.id, p.name
       `,
       [seasonSlug, weekNum]
