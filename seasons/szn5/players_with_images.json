@@ -61,15 +61,6 @@
     { "name": "Imam Azfar", "number": "23", "imgUrl": "/seasons/szn5/images/players/imam_azfar.png" }
   ],
 
-  "Hustlers": [
-    { "name": "Sufian Macci", "number": "1", "imgUrl": "/seasons/szn5/images/players/sufian_macci.png" },
-    { "name": "Hashim Khan", "number": "6", "imgUrl": "/seasons/szn5/images/players/hashim_khan.png" },
-    { "name": "Peter Atsaves", "number": "30", "imgUrl": "/seasons/szn5/images/players/peter_atsaves.png" },
-    { "name": "Muhib Khan", "number": "31", "imgUrl": "/seasons/szn5/images/players/muhib_khan.png" },
-    { "name": "Absar Najam", "number": "24", "imgUrl": "/seasons/szn5/images/players/absar_najam.png" },
-    { "name": "Ansaar Ahmed", "number": "10", "imgUrl": "/seasons/szn5/images/players/ansaar_ahmed.png" }
-  ],
-
   "AVO": [
     { "name": "Ali Mahmoud", "number": "3", "imgUrl": "/seasons/szn5/images/players/ali_mahmoud.png" },
     { "name": "Ali Tolba", "number": "0", "imgUrl": "/seasons/szn5/images/players/ali_tolba.png" },
@@ -77,6 +68,7 @@
     { "name": "Karim Rahmy", "number": "2", "imgUrl": "/seasons/szn5/images/players/karim_rahmy.png" },
     { "name": "Mowaffak Alraiyes", "number": "11", "imgUrl": "/seasons/szn5/images/players/mowaffak_alraiyes.png" },
     { "name": "Omar Tamer", "number": "16", "imgUrl": "/seasons/szn5/images/players/omar_tamer.png" },
-    { "name": "Ibrahim Ben Hadj Tahar", "number": "34", "imgUrl": "/seasons/szn5/images/players/ibrahim_ben_hadj_tahar.png" }
+    { "name": "Ibrahim Ben Hadj Tahar", "number": "34", "imgUrl": "/seasons/szn5/images/players/ibrahim_ben_hadj_tahar.png" },
+    { "name": "Henok Wojack", "number": "4", "imgUrl": "/seasons/szn5/images/players/henok_wojack.png" }
   ]
 }
