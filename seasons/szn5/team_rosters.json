@@ -1,0 +1,82 @@
+{
+  "5 Pillars": [
+    { "name": "Mohsin Safvi", "number": "14" },
+    { "name": "Ali Zaidi", "number": "2" },
+    { "name": "Abbaad Bawany", "number": "28" },
+    { "name": "Ammar Usmani", "number": "1" },
+    { "name": "Irfan Safvi", "number": "3" },
+    { "name": "Jazib Farooqui", "number": "24" },
+    { "name": "Ammar Osman", "number": "21" },
+    { "name": "Tareq Abdelkarim", "number": "4" },
+    { "name": "Essam Hamwi", "number": "0" }
+  ],
+
+  "Real Ikhwan": [
+    { "name": "Taabish Abba", "number": "77" },
+    { "name": "Syed T Ahmed", "number": "5" },
+    { "name": "Moosa Kaleemullah", "number": "2" },
+    { "name": "Jorge Barragan", "number": "23" },
+    { "name": "Zuren Shethwala", "number": "24" },
+    { "name": "Ziad Subedar", "number": "16" },
+    { "name": "Murtaza Mirza", "number": "3" },
+    { "name": "Moises Moya", "number": "10" },
+    { "name": "Ali Quereshi", "number": "6" }
+  ],
+
+  "The Northmen": [
+    { "name": "Zaid Khan", "number": "2" },
+    { "name": "Haroon Khan", "number": "27" },
+    { "name": "Haris Khan", "number": "0" },
+    { "name": "Ayan Malek", "number": "00" },
+    { "name": "Abdullah Basith", "number": "3" },
+    { "name": "Shayaan Shaikh", "number": "13" },
+    { "name": "Raedh Talha", "number": "34" },
+    { "name": "Kay Ogungro", "number": "50" },
+    { "name": "Juan Carrera", "number": "25" },
+    { "name": "Tony Perez", "number": "1" }
+  ],
+
+  "Brick Squad": [
+    { "name": "Ali Rahman", "number": "15" },
+    { "name": "Abbas Yousafzai", "number": "1" },
+    { "name": "Waleed Saleem", "number": "0" },
+    { "name": "Hamzah Yousafzai", "number": "2" },
+    { "name": "Basit Malik", "number": "3" },
+    { "name": "Omer Mirza", "number": "67" },
+    { "name": "Samvit Ram", "number": "7" },
+    { "name": "Ali Siddiqui", "number": "9" }
+  ],
+
+  "UMMA": [
+    { "name": "Hamaas Ibrahim", "number": "3" },
+    { "name": "Cyrus Paddock", "number": "30" },
+    { "name": "Quincy Paddock", "number": "20" },
+    { "name": "Payton Foster", "number": "21" },
+    { "name": "Brady Foster", "number": "24" },
+    { "name": "Casey Miasek", "number": "8" },
+    { "name": "John Grana", "number": "2" },
+    { "name": "Nick Weber", "number": "4" },
+    { "name": "Bilal Khan", "number": "32" },
+    { "name": "Jack Himel", "number": "10" },
+    { "name": "Imam Azfar", "number": "23" }
+  ],
+
+  "Hustlers": [
+    { "name": "Sufian Macci", "number": "1" },
+    { "name": "Hashim Khan", "number": "6" },
+    { "name": "Peter Atsaves", "number": "30" },
+    { "name": "Muhib Khan", "number": "31" },
+    { "name": "Absar Najam", "number": "24" },
+    { "name": "Ansaar Ahmed", "number": "10" }
+  ],
+
+  "AVO": [
+    { "name": "Ali Mahmoud", "number": "3" },
+    { "name": "Ali Tolba", "number": "0" },
+    { "name": "Jacob Bahrani", "number": "1" },
+    { "name": "Karim Rahmy", "number": "2" },
+    { "name": "Mowaffak Alraiyes", "number": "11" },
+    { "name": "Omar Tamer", "number": "16" },
+    { "name": "Ibrahim Ben Hadj Tahar", "number": "34" }
+  ]
+}
