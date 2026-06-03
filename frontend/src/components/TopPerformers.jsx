@@ -108,13 +108,11 @@ export default function TopPerformers({
 
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState("loading"); // loading | ok | missing
-  const [debug, setDebug] = useState({ total: 0, filtered: 0 });
 
   useEffect(() => {
     let cancelled = false;
     setRows([]);
     setStatus("loading");
-    setDebug({ total: 0, filtered: 0 });
 
     const weekNum = parseInt(week.replace("week", ""), 10);
 
@@ -144,7 +142,6 @@ export default function TopPerformers({
         });
 
         if (!cancelled) {
-          setDebug({ total: all.length, filtered: filtered.length });
           setRows(filtered);
           setStatus("ok");
         }
