@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
+import { getSeasonGames } from "../api/client";
 
 function ordinal(n) {
   const rem100 = n % 100;
@@ -66,6 +67,7 @@ export default function PlayerPage() {
   const [profile, setProfile] = useState(null);
   const [playerTeam, setPlayerTeam] = useState("");
   const [playerNumber, setPlayerNumber] = useState(null);
+  const [scheduleGames, setScheduleGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -88,13 +90,13 @@ export default function PlayerPage() {
 
   // helper: find the schedule entry for a given week + opponent
   const findScheduleEntry = (weekKey, opponent) => {
-    if (!games?.length || !playerTeam) return null;
+    if (!scheduleGames?.length || !playerTeam) return null;
 
     const teamNorm = normalizeTeam(playerTeam);
     const oppNorm = normalizeTeam(opponent);
 
     // all games in that week involving player's team
-    const teamGames = games.filter((gm) => {
+    const teamGames = scheduleGames.filter((gm) => {
       if (!gm?.gameId?.startsWith(weekKey)) return false;
       const a = normalizeTeam(gm.teamA);
       const b = normalizeTeam(gm.teamB);
@@ -122,16 +124,20 @@ export default function PlayerPage() {
     setErrorMsg("");
     setProfile(null);
     setGames([]);
+    setScheduleGames([]);
     setAllAverages([]);
     setPlayerTeam("");
     setPlayerNumber(null);
     setImageFailed(false);
     setImageLoaded(false);
 
-    apiGet(`/api/players/${encodeURIComponent(slug)}`, {
-      signal: controller.signal,
-    })
-      .then((data) => {
+    Promise.all([
+      apiGet(`/api/players/${encodeURIComponent(slug)}`, {
+        signal: controller.signal,
+      }),
+      getSeasonGames(activeSeason, { signal: controller.signal }),
+    ])
+      .then(([data, gamesData]) => {
         const selectedSeason =
           (data?.seasons || []).find((row) => row.season === activeSeason);
 
@@ -140,6 +146,11 @@ export default function PlayerPage() {
         }
 
         setProfile(data.player);
+
+        const sched = Array.isArray(gamesData)
+          ? gamesData
+          : gamesData?.games || [];
+        setScheduleGames(sched);
 
         if (!selectedSeason) {
           setGames([]);

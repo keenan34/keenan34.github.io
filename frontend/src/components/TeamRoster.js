@@ -82,12 +82,13 @@ export default function TeamRoster() {
   useEffect(() => {
     setLoading(true);
 
+    const v = Date.now();
     Promise.all([
-      fetch(`/seasons/${activeSeason}/team_rosters.json`).then((r) => r.json()),
-      fetch(`/seasons/${activeSeason}/players_with_images.json`).then((r) =>
+      fetch(`/seasons/${activeSeason}/team_rosters.json?v=${v}`).then((r) => r.json()),
+      fetch(`/seasons/${activeSeason}/players_with_images.json?v=${v}`).then((r) =>
         r.json()
       ),
-      fetch(`/seasons/${activeSeason}/full_schedule.json?v=${Date.now()}`).then(
+      fetch(`/seasons/${activeSeason}/full_schedule.json?v=${v}`).then(
         (r) => r.json()
       ),
     ])

@@ -13,6 +13,7 @@ import {
   undoAdminGameEvent,
   updateAdminGameStatus,
   updateAdminGameScore,
+  updateAdminGameYoutubeUrl,
   updateAdminPlayerStats,
 } from "../api/client";
 import { resolveApiBaseUrl } from "../api/baseUrl";
@@ -421,6 +422,9 @@ function AdminLiveGame() {
   const [scoreDraft, setScoreDraft] = useState({ away: "0", home: "0" });
   const [scoreDraftDirty, setScoreDraftDirty] = useState(false);
   const [scoreEditorOpen, setScoreEditorOpen] = useState(false);
+  const [videoEditorOpen, setVideoEditorOpen] = useState(false);
+  const [youtubeDraft, setYoutubeDraft] = useState("");
+  const [isSavingYoutubeUrl, setIsSavingYoutubeUrl] = useState(false);
   const [reassigningEvent, setReassigningEvent] = useState(null);
 
   const handleAdminError = useCallback(
@@ -537,6 +541,11 @@ function AdminLiveGame() {
       home: String(game.homeTeam?.score ?? 0),
     });
   }, [game, scoreDraftDirty]);
+
+  useEffect(() => {
+    if (!game || videoEditorOpen) return;
+    setYoutubeDraft(game.youtubeUrl ?? "");
+  }, [game, videoEditorOpen]);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -968,6 +977,35 @@ function AdminLiveGame() {
 
     await saveScore({ awayScore: 0, homeScore: 0, resetPlayerStats: true });
     await loadEvents();
+  }
+
+  function toEmbedUrl(url) {
+    if (!url) return null;
+    if (url.includes("youtube.com/embed/")) return url;
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+    const watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]+)/);
+    if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+    return url;
+  }
+
+  async function saveYoutubeUrl() {
+    setIsSavingYoutubeUrl(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const embedUrl = toEmbedUrl(youtubeDraft.trim()) || null;
+      const data = await updateAdminGameYoutubeUrl(gameId, embedUrl, token);
+      setGame(data.game);
+      setVideoEditorOpen(false);
+      setNotice(embedUrl ? "Replay link saved" : "Replay link removed");
+    } catch (err) {
+      if (handleAdminError(err)) return;
+      setError(err.message);
+    } finally {
+      setIsSavingYoutubeUrl(false);
+    }
   }
 
   async function undoEvent(event) {
@@ -1623,6 +1661,13 @@ function AdminLiveGame() {
         >
           {isSwappingHomeAway ? "Swapping..." : "Swap home/away"}
         </button>
+        <button
+          className="admin-score-edit-toggle"
+          onClick={() => setVideoEditorOpen((current) => !current)}
+          type="button"
+        >
+          {game?.youtubeUrl ? "Edit replay" : "Add replay"}
+        </button>
       </div>
     );
 
@@ -1710,6 +1755,54 @@ function AdminLiveGame() {
                 type="button"
               >
                 {isSavingScore ? "Saving..." : "Save score"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {videoEditorOpen && (
+          <div className="admin-score-edit-panel">
+            <label className="admin-score-team-input" style={{ flex: 1 }}>
+              <span>YouTube URL</span>
+              <input
+                type="url"
+                placeholder="Paste any YouTube link"
+                value={youtubeDraft}
+                onChange={(event) => setYoutubeDraft(event.target.value)}
+              />
+            </label>
+            <div className="admin-score-quick-actions">
+              <button
+                className="admin-secondary-button"
+                disabled={isSavingYoutubeUrl}
+                onClick={async () => {
+                  setIsSavingYoutubeUrl(true);
+                  setError("");
+                  setNotice("");
+                  try {
+                    const data = await updateAdminGameYoutubeUrl(gameId, null, token);
+                    setGame(data.game);
+                    setYoutubeDraft("");
+                    setVideoEditorOpen(false);
+                    setNotice("Replay link removed");
+                  } catch (err) {
+                    if (handleAdminError(err)) return;
+                    setError(err.message);
+                  } finally {
+                    setIsSavingYoutubeUrl(false);
+                  }
+                }}
+                type="button"
+              >
+                Remove
+              </button>
+              <button
+                className="admin-primary-button admin-score-save-button"
+                disabled={isSavingYoutubeUrl}
+                onClick={() => void saveYoutubeUrl()}
+                type="button"
+              >
+                {isSavingYoutubeUrl ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

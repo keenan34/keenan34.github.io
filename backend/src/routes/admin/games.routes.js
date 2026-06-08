@@ -1775,6 +1775,42 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
   }
 });
 
+  router.patch("/:gameId/youtube-url", async (req, res, next) => {
+  const { gameId } = req.params;
+
+  if (!isUuid(gameId)) {
+    res.status(404).json({ error: "Game not found" });
+    return;
+  }
+
+  const rawUrl = req.body?.youtubeUrl ?? null;
+
+  if (rawUrl !== null && typeof rawUrl !== "string") {
+    res.status(400).json({ error: "youtubeUrl must be a string or null" });
+    return;
+  }
+
+  const youtubeUrl = rawUrl ? String(rawUrl).trim() || null : null;
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE games SET youtube_url = $2, updated_at = now() WHERE id = $1 RETURNING id`,
+      [gameId, youtubeUrl]
+    );
+
+    if (!rows.length) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    const game = await getGame(rows[0].id);
+    res.json({ game });
+    await notifyLiveGameState(gameId, "youtube-url-updated");
+  } catch (err) {
+    next(err);
+  }
+});
+
   router.post("/:gameId/finalize", async (req, res, next) => {
   const { gameId } = req.params;
 

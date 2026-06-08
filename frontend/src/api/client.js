@@ -246,6 +246,17 @@ export function deleteAdminRosterPlayer(seasonSlug, teamId, playerId, token) {
   });
 }
 
+export function updateAdminGameYoutubeUrl(gameId, youtubeUrl, token) {
+  return apiRequest(`/api/admin/games/${encodeURIComponent(gameId)}/youtube-url`, {
+    method: "PATCH",
+    headers: {
+      ...authHeaders(token),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ youtubeUrl }),
+  });
+}
+
 export function removeAdminRosterPlayer(gameId, teamId, playerId, token) {
   return apiRequest(
     `/api/admin/games/${encodeURIComponent(
