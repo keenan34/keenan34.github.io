@@ -1,7 +1,7 @@
 // File: src/components/TopPerformers.jsx
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getWeekPlayerStats } from "../api/client";
+import { getSeasonGames, getWeekPlayerStats } from "../api/client";
 
 const EXCLUDED_PLAYERS = [
   "Josiah",
@@ -22,6 +22,31 @@ const safeNum = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 };
+
+const isFinishedGame = (g) =>
+  g?.status === "final" || g?.status === "finished";
+
+// Latest week number whose games are ALL completed (e.g. show Week 2 once
+// every Week 2 game is final). Returns null if no week is fully completed.
+function latestCompletedWeek(games) {
+  const byWeek = {};
+  (Array.isArray(games) ? games : []).forEach((g) => {
+    const m =
+      typeof g?.gameId === "string" ? g.gameId.match(/^week(\d+)-/i) : null;
+    if (!m) return;
+    const wk = Number(m[1]);
+    if (!byWeek[wk]) byWeek[wk] = { total: 0, done: 0 };
+    byWeek[wk].total += 1;
+    if (isFinishedGame(g)) byWeek[wk].done += 1;
+  });
+
+  const completed = Object.keys(byWeek)
+    .map(Number)
+    .filter((wk) => byWeek[wk].total > 0 && byWeek[wk].done === byWeek[wk].total)
+    .sort((a, b) => b - a);
+
+  return completed.length ? completed[0] : null;
+}
 
 // allow alt keys if you ever change format
 const STAT_KEYS = {
@@ -96,25 +121,63 @@ function ProfileImage({ name, season }) {
 }
 
 export default function TopPerformers({
-  week = "week6",
-  label, // ✅ NEW: what you want to show in the UI (ex: "Playoffs")
+  week, // optional explicit override, e.g. "week2". If omitted, auto-detect.
+  label, // optional UI label override (ex: "Playoffs")
   showIfMissing = true,
 }) {
   const { season } = useParams();
   const activeSeason = season || "szn5";
 
-  // ✅ NEW: UI label fallback
-  const displayWeek = label ?? week.replace("week", "Week ");
-
+  // null = not resolved yet; number = chosen week; "none" = no completed week
+  const [weekNum, setWeekNum] = useState(null);
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState("loading"); // loading | ok | missing
 
+  // UI label fallback
+  const displayWeek =
+    label ?? (typeof weekNum === "number" ? `Week ${weekNum}` : "this week");
+
+  // Resolve which week to display.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (week) {
+      // Explicit override.
+      setWeekNum(parseInt(String(week).replace("week", ""), 10));
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setWeekNum(null);
+    getSeasonGames(activeSeason)
+      .then((data) => {
+        const games = Array.isArray(data) ? data : data?.games || [];
+        if (!cancelled) setWeekNum(latestCompletedWeek(games));
+      })
+      .catch(() => {
+        if (!cancelled) setWeekNum(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSeason, week]);
+
+  // Fetch player stats for the resolved week.
   useEffect(() => {
     let cancelled = false;
     setRows([]);
-    setStatus("loading");
 
-    const weekNum = parseInt(week.replace("week", ""), 10);
+    if (weekNum == null) {
+      // No fully-completed week yet (or still resolving).
+      setStatus(week ? "loading" : "missing");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setStatus("loading");
 
     getWeekPlayerStats(activeSeason, weekNum)
       .then((json) => {
@@ -153,7 +216,7 @@ export default function TopPerformers({
     return () => {
       cancelled = true;
     };
-  }, [activeSeason, week]);
+  }, [activeSeason, weekNum, week]);
 
   if (!rows.length) {
     if (!showIfMissing) return null;

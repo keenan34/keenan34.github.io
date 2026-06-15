@@ -113,7 +113,7 @@ function AppShell() {
             path="/"
             element={
               <>
-                <TopPerformers week="week1" label="Season 5" />
+                <TopPerformers />
                 <div className="text-center px-4">
                   <GameSlider />
                 </div>
