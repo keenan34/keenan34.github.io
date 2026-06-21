@@ -46,6 +46,7 @@ const STAT_LABEL_BY_FIELD = STAT_FIELDS.reduce(
 
 const SOCKET_URL = resolveApiBaseUrl();
 const PLAYER_PICK_FEEDBACK_MS = 170;
+const TIMEOUTS_PER_GAME = 2;
 
 function formatEventTime(value) {
   if (!value) return "";
@@ -426,6 +427,9 @@ function AdminLiveGame() {
   const [youtubeDraft, setYoutubeDraft] = useState("");
   const [isSavingYoutubeUrl, setIsSavingYoutubeUrl] = useState(false);
   const [reassigningEvent, setReassigningEvent] = useState(null);
+  const [timeoutsUsed, setTimeoutsUsed] = useState({});
+  const [half, setHalf] = useState(1);
+  const [halfFoulBaseline, setHalfFoulBaseline] = useState({});
 
   const handleAdminError = useCallback(
     (error) => {
@@ -731,6 +735,53 @@ function AdminLiveGame() {
     });
   }
 
+  function teamTotalFouls(roster) {
+    return roster.players.reduce((sum, p) => sum + (p.stats.fouls || 0), 0);
+  }
+
+  function teamFoulsThisHalf(roster) {
+    // `halfFoulBaseline` holds each team's cumulative foul total captured the
+    // moment the 2nd half began, so the two halves stay separate entities.
+    const hasBaseline = roster.team.id in halfFoulBaseline;
+    const baseline = halfFoulBaseline[roster.team.id] || 0;
+    if (half === 1) {
+      // Once the 2nd half has started, the 1st-half count is locked to its
+      // snapshot; before that it tracks the running total.
+      return hasBaseline ? baseline : teamTotalFouls(roster);
+    }
+    return teamTotalFouls(roster) - baseline;
+  }
+
+  function switchHalf(nextHalf) {
+    if (nextHalf === half) return;
+    // Snapshot the 1st-half foul totals the first time we enter the 2nd half.
+    // Switching back and forth afterwards keeps each half's count intact.
+    if (nextHalf === 2 && Object.keys(halfFoulBaseline).length === 0) {
+      const baseline = {};
+      rosters.forEach((roster) => {
+        baseline[roster.team.id] = teamTotalFouls(roster);
+      });
+      setHalfFoulBaseline(baseline);
+    }
+    setHalf(nextHalf);
+  }
+
+  function takeTimeout(teamId) {
+    setTimeoutsUsed((current) => {
+      const used = current[teamId] || 0;
+      if (used >= TIMEOUTS_PER_GAME) return current;
+      return { ...current, [teamId]: used + 1 };
+    });
+  }
+
+  function undoTimeout(teamId) {
+    setTimeoutsUsed((current) => {
+      const used = current[teamId] || 0;
+      if (used <= 0) return current;
+      return { ...current, [teamId]: used - 1 };
+    });
+  }
+
   function closeShotFlowAfterFeedback() {
     window.setTimeout(() => {
       setShotFlow(null);
@@ -970,13 +1021,16 @@ function AdminLiveGame() {
 
   async function resetScore() {
     const confirmed = window.confirm(
-      "Reset the score, all player stats, and play-by-play events for this game?"
+      "Reset the score, all player stats, play-by-play events, timeouts, and fouls for this game?"
     );
 
     if (!confirmed) return;
 
     await saveScore({ awayScore: 0, homeScore: 0, resetPlayerStats: true });
     await loadEvents();
+    setTimeoutsUsed({});
+    setHalf(1);
+    setHalfFoulBaseline({});
   }
 
   function toEmbedUrl(url) {
@@ -1131,24 +1185,55 @@ function AdminLiveGame() {
   function renderTeamBadge(roster, index) {
     const isSelected = selectedTeamId === roster.team.id;
     const isFinalized = roster.team.status === "finalized";
+    const used = timeoutsUsed[roster.team.id] || 0;
+    const remaining = TIMEOUTS_PER_GAME - used;
 
     return (
-      <button
-        key={roster.team.id}
-        className={`admin-team-pill ${isSelected ? "admin-team-pill-active" : ""} ${
-          isFinalized ? "admin-team-pill-finalized" : ""
-        }`}
-        onClick={() => setSelectedTeamId(roster.team.id)}
-        type="button"
-      >
-        <span className={`admin-team-badge ${teamAccentClass(index)}`}>
-          {teamInitials(roster.team.name)}
-        </span>
-        <span className="admin-team-pill-text">
-          <strong>{roster.team.name}</strong>
-          <em>{teamStatusLabel(roster.team.status)}</em>
-        </span>
-      </button>
+      <div className="admin-team-cell" key={roster.team.id}>
+        <button
+          className={`admin-team-pill ${isSelected ? "admin-team-pill-active" : ""} ${
+            isFinalized ? "admin-team-pill-finalized" : ""
+          }`}
+          onClick={() => setSelectedTeamId(roster.team.id)}
+          type="button"
+        >
+          <span className={`admin-team-badge ${teamAccentClass(index)}`}>
+            {teamInitials(roster.team.name)}
+          </span>
+          <span className="admin-team-pill-text">
+            <strong>{roster.team.name}</strong>
+            <em>{teamStatusLabel(roster.team.status)}</em>
+          </span>
+        </button>
+        <div className="admin-team-timeout">
+          <span className="admin-team-timeout-dots" aria-hidden="true">
+            {Array.from({ length: TIMEOUTS_PER_GAME }).map((_, dotIndex) => (
+              <span
+                className={`admin-timeout-dot ${
+                  dotIndex < remaining ? "admin-timeout-dot-available" : ""
+                }`}
+                key={dotIndex}
+              />
+            ))}
+          </span>
+          <button
+            className="admin-team-timeout-button"
+            disabled={remaining <= 0 || isFinalized}
+            onClick={() => takeTimeout(roster.team.id)}
+            type="button"
+          >
+            Timeout
+          </button>
+          <button
+            className="admin-team-timeout-undo"
+            disabled={used <= 0}
+            onClick={() => undoTimeout(roster.team.id)}
+            type="button"
+          >
+            Undo
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -1632,7 +1717,24 @@ function AdminLiveGame() {
   function renderScoreHeader() {
     const homeTeam = game?.homeTeam;
     const awayTeam = game?.awayTeam;
-    const scoreControls = (
+    const isLive = game?.status === "live";
+    const BONUS = 7;
+    const homeRoster = rosters.find((r) => r.team.id === homeTeam?.id);
+    const awayRoster = rosters.find((r) => r.team.id === awayTeam?.id);
+    const homeFouls = homeRoster ? teamFoulsThisHalf(homeRoster) : 0;
+    const awayFouls = awayRoster ? teamFoulsThisHalf(awayRoster) : 0;
+
+    function foulChip(fouls) {
+      if (!isLive) return null;
+      const bonus = fouls >= BONUS;
+      return (
+        <span className={`admin-foul-chip ${bonus ? "admin-foul-chip-bonus" : ""}`}>
+          {bonus ? `Bonus · ${fouls}` : `${fouls} ${fouls === 1 ? "foul" : "fouls"}`}
+        </span>
+      );
+    }
+
+    const stateControls = (
       <div className="admin-score-center-actions">
         <label className="admin-game-status-select-wrap">
           <select
@@ -1646,6 +1748,25 @@ function AdminLiveGame() {
             <option value="final">Finished</option>
           </select>
         </label>
+        {isLive && (
+          <div className="admin-half-toggle" role="group" aria-label="Half">
+            {[1, 2].map((n) => (
+              <button
+                className={`admin-half-button ${half === n ? "admin-half-button-active" : ""}`}
+                key={n}
+                onClick={() => switchHalf(n)}
+                type="button"
+              >
+                {n === 1 ? "1st" : "2nd"}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    const editControls = (
+      <div className="admin-score-action-row">
         <button
           className="admin-score-edit-toggle"
           onClick={() => setScoreEditorOpen((current) => !current)}
@@ -1682,6 +1803,7 @@ function AdminLiveGame() {
               <div className="admin-score-team-text">
                 <span>Home</span>
                 <strong>{homeTeam?.name || "Home"}</strong>
+                {foulChip(homeFouls)}
               </div>
             </div>
           </div>
@@ -1689,7 +1811,7 @@ function AdminLiveGame() {
           <div className="admin-score-center">
             <span className="admin-score-center-label">Game Score</span>
             <strong>{score}</strong>
-            {scoreControls}
+            {stateControls}
           </div>
 
           <div className="admin-score-team admin-score-team-right">
@@ -1697,6 +1819,7 @@ function AdminLiveGame() {
               <div className="admin-score-team-text">
                 <span>Away</span>
                 <strong>{awayTeam?.name || "Away"}</strong>
+                {foulChip(awayFouls)}
               </div>
               <div className="admin-team-badge admin-team-badge-away">
                 {teamInitials(awayTeam?.name)}
@@ -1704,7 +1827,8 @@ function AdminLiveGame() {
             </div>
           </div>
         </div>
-        <div className="admin-score-mobile-controls">{scoreControls}</div>
+        <div className="admin-score-mobile-controls">{stateControls}</div>
+        {editControls}
 
         {scoreEditorOpen && (
           <div className="admin-score-edit-panel">

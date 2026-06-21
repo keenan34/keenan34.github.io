@@ -42,6 +42,23 @@ function groupGamesBySeason(games) {
     .sort(([leftSlug], [rightSlug]) => seasonNumber(rightSlug) - seasonNumber(leftSlug));
 }
 
+function groupGamesByWeek(seasonGames) {
+  const groups = new Map();
+
+  (seasonGames || []).forEach((game) => {
+    const week = game.weekNumber || 0;
+    if (!groups.has(week)) groups.set(week, []);
+    groups.get(week).push(game);
+  });
+
+  return [...groups.entries()]
+    .map(([week, weekGames]) => [
+      week,
+      weekGames.sort((a, b) => a.gameNumber - b.gameNumber),
+    ])
+    .sort(([leftWeek], [rightWeek]) => leftWeek - rightWeek);
+}
+
 function AdminGames() {
   const navigate = useNavigate();
   const token = getAdminToken();
@@ -122,29 +139,41 @@ function AdminGames() {
                   {seasonSlug === "szn5" ? "Current" : "Archive"}
                 </span>
               </summary>
-              <div className="admin-games-list">
-                {seasonGames.map((game) => (
-                  <Link
-                    className="admin-game-row"
-                    key={game.id}
-                    to={`/admin/games/${game.id}/live`}
-                  >
-                    <div className="admin-game-row-main">
-                      <div className="admin-game-title">
-                        {game.awayTeam.name} at {game.homeTeam.name}
-                      </div>
-                      <div className="admin-game-meta">
-                        {game.season.slug} · Week {game.weekNumber} · Game{" "}
-                        {game.gameNumber}
-                      </div>
-                    </div>
-                    <div className="admin-game-score">
-                      <span className={`admin-status admin-status-${game.status}`}>
-                        {game.status}
+              <div className="admin-week-groups">
+                {groupGamesByWeek(seasonGames).map(([week, weekGames]) => (
+                  <div className="admin-week-group" key={week}>
+                    <div className="admin-week-header">
+                      <strong>Week {week || "TBD"}</strong>
+                      <span>
+                        {weekGames.length} {weekGames.length === 1 ? "game" : "games"}
                       </span>
-                      <strong>{scoreLabel(game)}</strong>
                     </div>
-                  </Link>
+                    <div className="admin-games-list">
+                      {weekGames.map((game) => (
+                        <Link
+                          className="admin-game-row"
+                          key={game.id}
+                          to={`/admin/games/${game.id}/live`}
+                        >
+                          <div className="admin-game-row-main">
+                            <div className="admin-game-title">
+                              {game.awayTeam.name} at {game.homeTeam.name}
+                            </div>
+                            <div className="admin-game-meta">
+                              {game.season.slug} · Week {game.weekNumber} · Game{" "}
+                              {game.gameNumber}
+                            </div>
+                          </div>
+                          <div className="admin-game-score">
+                            <span className={`admin-status admin-status-${game.status}`}>
+                              {game.status}
+                            </span>
+                            <strong>{scoreLabel(game)}</strong>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
                 {!seasonGames.length && (
                   <div className="admin-muted-panel">No games available.</div>

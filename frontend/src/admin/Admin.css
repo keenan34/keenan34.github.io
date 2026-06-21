@@ -370,8 +370,47 @@
   text-transform: uppercase;
 }
 
-.admin-game-folder .admin-games-list {
+.admin-game-folder .admin-week-groups {
+  display: grid;
+  gap: 18px;
   padding: 14px;
+}
+
+.admin-week-group {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.admin-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #0f172a;
+}
+
+.admin-week-header strong {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.admin-week-header span {
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-game-folder .admin-week-group .admin-games-list {
+  padding: 12px;
 }
 
 .admin-game-row {
@@ -770,9 +809,17 @@
 
 .admin-live-page .admin-scoreboard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(150px, max-content) minmax(0, 1fr);
   gap: 10px;
   align-items: stretch;
+}
+
+.admin-live-page .admin-score-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .admin-live-page .admin-score-team {
@@ -1143,6 +1190,102 @@
   font-size: 12px;
   font-style: normal;
   font-weight: 700;
+}
+
+.admin-live-page .admin-half-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.admin-live-page .admin-half-button {
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.admin-live-page .admin-half-button-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.admin-live-page .admin-foul-chip {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.admin-live-page .admin-foul-chip.admin-foul-chip-bonus {
+  color: #dc2626;
+  font-weight: 900;
+}
+
+.admin-live-page .admin-team-cell {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-live-page .admin-team-timeout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 2px;
+}
+
+.admin-live-page .admin-team-timeout-dots {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.admin-live-page .admin-timeout-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.admin-live-page .admin-timeout-dot-available {
+  background: #2563eb;
+}
+
+.admin-live-page .admin-team-timeout-button {
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-live-page .admin-team-timeout-undo {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-live-page .admin-team-timeout-button:disabled,
+.admin-live-page .admin-team-timeout-undo:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .admin-live-page .admin-shot-layout {
