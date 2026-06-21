@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
+import PlayerShareCard from "./PlayerShareCard";
 
 
 const API_BASE_URL = resolveApiBaseUrl();
@@ -38,6 +39,14 @@ function normalizePlayerName(name) {
   const raw = String(name || "").trim();
   const alias = PLAYER_NAME_ALIASES[raw.toLowerCase()];
   return alias || raw;
+}
+
+// "Jalen Brunson" -> "J. Brunson" (matches the box-score reference style)
+function abbreviateName(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0];
+  return `${parts[0][0]}. ${parts[parts.length - 1]}`;
 }
 
 const playerImageUrl = (player) =>
@@ -150,7 +159,7 @@ function toLegacyBoxScore(apiData) {
   };
 }
 
-function ProfileImage({ src, fallbackSrc, name, onClick }) {
+function ProfileImage({ src, fallbackSrc, name, onClick, className = "w-16 h-16" }) {
   const [error, setError] = useState(false);
   const [triedFallback, setTriedFallback] = useState(false);
 
@@ -162,14 +171,13 @@ function ProfileImage({ src, fallbackSrc, name, onClick }) {
     .split(" ")
     .map((n) => n[0])
     .join("");
-  const baseClasses =
-    "w-16 h-16 rounded-full flex items-center justify-center mt-8 cursor-pointer";
+  const baseClasses = `${className} rounded-full flex items-center justify-center cursor-pointer`;
 
   if ((!src && !fallbackSrc) || error) {
     return (
       <div
         onClick={onClick}
-        className={`${baseClasses} bg-[#ffffff] text-xs font-black text-[#64748b]`}
+        className={`${baseClasses} bg-[#e2e8f0] text-sm font-black text-[#64748b]`}
       >
         {initials}
       </div>
@@ -204,8 +212,8 @@ export default function BoxScore() {
   const [errorMsg, setErrorMsg] = useState("");
   const [tab, setTab] = useState("home");
   const [zoomUrl, setZoomUrl] = useState(null);
+  const [detailPlayer, setDetailPlayer] = useState(null);
   const [youtubeUrl, setYoutubeUrl] = useState(null);
-  const scrollRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -293,6 +301,7 @@ export default function BoxScore() {
     { label: "PTS", get: (p) => p.Points ?? 0 },
     { label: "REB", get: (p) => p.REB ?? 0 },
     { label: "AST", get: (p) => p.AST ?? 0 },
+    { label: "STK", get: (p) => p["STLS/BLKS"] ?? 0 },
     { label: "FGM", get: (p) => p.FGM ?? 0 },
     { label: "FGA", get: (p) => p.FGA ?? 0 },
     { label: "FG%", get: (p) => p["FG %"] ?? "0%" },
@@ -305,119 +314,223 @@ export default function BoxScore() {
     { label: "FTM", get: (p) => p.FTM ?? 0 },
     { label: "FTA", get: (p) => p.FTA ?? 0 },
     { label: "FT%", get: (p) => p["FT %"] ?? "0%" },
-    { label: "TOs", get: (p) => p.TOs ?? 0 },
-    { label: "Fouls", get: (p) => p.Fouls ?? 0 },
-    { label: "STLS/BLKS", get: (p) => p["STLS/BLKS"] ?? 0 },
+    { label: "TO", get: (p) => p.TOs ?? 0 },
+    { label: "PF", get: (p) => p.Fouls ?? 0 },
   ];
 
-  // left‐hand column: images + names
-  const LeftColumn = ({ team }) => (
-    <div className="flex-none w-28">
-      {team.players.map((p, idx) => {
-        const overrideSlugMap = {
-          "Jerremiah Dujuan Wright": "dujuan_wright",
-        };
-        const slug = overrideSlugMap[p.Player] || slugify(p.Player);
+  // aggregate a team's per-stat totals (DNP players contribute 0)
+  const teamTotals = (team) => {
+    const sum = (key) =>
+      team.players.reduce((acc, p) => acc + (Number(p[key]) || 0), 0);
+    const FGM = sum("FGM");
+    const FGA = sum("FGA");
+    const TWOM = sum("2 PTM");
+    const TWOA = sum("2 PTA");
+    const THREEM = sum("3 PTM");
+    const THREEA = sum("3 PTA");
+    const FTM = sum("FTM");
+    const FTA = sum("FTA");
 
-        return (
-          <div
-            key={idx}
-            className="relative flex h-32 items-start justify-center border-b border-[#e2e8f0]"
-          >
-            <ProfileImage
-              src={season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl}
-              fallbackSrc={season ? null : p.imgUrl}
-              name={p.Player}
-              onClick={() =>
-                setZoomUrl(season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl)
-              }
-            />
-            <Link
-              to={
-                season
-                  ? `/season/${activeSeason}/player/${slug}`
-                  : `/player/${slug}`
-              }
-              state={{
-                from: season
-                  ? `/season/${activeSeason}/boxscore/${week}/${gameId}`
-                  : `/boxscore/${week}/${gameId}`,
-                label: "Box Score",
-              }}
-              className="absolute bottom-1 w-full whitespace-normal break-words px-.5 text-center text-xs font-black text-[#475569] hover:text-[#0284c7]"
-            >
-              {p.Player}
-            </Link>
-          </div>
-        );
-      })}
-    </div>
-  );
+    return {
+      isTotals: true,
+      Player: team.name,
+      Points: sum("Points"),
+      REB: sum("REB"),
+      AST: sum("AST"),
+      FGM,
+      FGA,
+      "FG %": percent(FGM, FGA),
+      "2 PTM": TWOM,
+      "2 PTA": TWOA,
+      "2 Pt %": percent(TWOM, TWOA),
+      "3 PTM": THREEM,
+      "3 PTA": THREEA,
+      "3 Pt %": percent(THREEM, THREEA),
+      FTM,
+      FTA,
+      "FT %": percent(FTM, FTA),
+      TOs: sum("TOs"),
+      Fouls: sum("Fouls"),
+      "STLS/BLKS": sum("STLS/BLKS"),
+    };
+  };
 
-  // stats table (horizontal scroll)
-  const StatsTable = ({ team }) => (
-    <div className="-mt-8 flex-1 overflow-x-auto" ref={scrollRef}>
-      <table className="min-w-full table-auto border-separate border-spacing-0 text-[#0f172a]">
-        <thead>
-          <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
-            {statFields.map(({ label }) => (
-              <th
-                key={label}
-                className="whitespace-nowrap px-4 py-2 text-center text-xs font-black text-[#64748b]"
-              >
-                {label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {team.players.map((p, idx) => {
-            const isDNP = p.Points == null;
-            return (
-              <tr
+  const overrideSlugMap = { "Jerremiah Dujuan Wright": "dujuan_wright" };
+
+  const ROW_H = "h-[68px]";
+  const TOTALS_H = "h-[82px]";
+
+  // Fixed photo column on the left; to its right each row stacks the player
+  // name on top of a horizontal number-over-label stat strip, exactly like
+  // the reference box score. No grid lines.
+  const renderBoard = (team) => {
+    // Players who logged stats first; DNPs pushed to the bottom (stable order).
+    const playedPlayers = team.players.filter((p) => p.Points != null);
+    const dnpPlayers = team.players.filter((p) => p.Points == null);
+    const totals = teamTotals(team);
+    const rows = [totals, ...playedPlayers, ...dnpPlayers];
+
+    const totalsCells = [
+      { value: `${totals.FGM}/${totals.FGA}`, label: "FG", pct: `${totals["FG %"]}%` },
+      { value: `${totals["3 PTM"]}/${totals["3 PTA"]}`, label: "3FG", pct: `${totals["3 Pt %"]}%` },
+      { value: `${totals.FTM}/${totals.FTA}`, label: "FT", pct: `${totals["FT %"]}%` },
+      { value: totals.TOs, label: "TO" },
+      { value: totals.REB, label: "REB" },
+      { value: totals.AST, label: "AST" },
+      { value: totals["STLS/BLKS"], label: "STK" },
+      { value: `${totals["2 PTM"]}/${totals["2 PTA"]}`, label: "2FG", pct: `${totals["2 Pt %"]}%` },
+      { value: totals.Fouls, label: "PF" },
+      { value: totals.Points, label: "PTS" },
+    ];
+
+    return (
+      <div className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+        <div className="flex">
+          {/* photo column (fixed) */}
+          <div className="flex-none">
+            {rows.map((p, idx) => (
+              <div
                 key={idx}
-                className={`border-b border-[#e2e8f0] even:bg-[#f8fafc] ${
-                  isDNP ? "opacity-55" : ""
+                className={`flex ${p.isTotals ? TOTALS_H : ROW_H} w-16 items-center justify-center ${
+                  p.isTotals ? "bg-[#f1f5f9]" : ""
                 }`}
               >
-                {statFields.map(({ get, label }, i) => (
-                  <td
-                    key={i}
-                    className="h-32 whitespace-nowrap px-4 py-1 text-center"
-                  >
-                    {isDNP ? (
-                      <span className="text-lg font-black leading-none text-[#64748b]">
-                        DNP
-                      </span>
-                    ) : (
-                      <div className="flex h-full flex-col items-center justify-center">
-                        <span className="text-lg font-black leading-none text-[#0f172a]">
-                          {get(p)}
-                        </span>
-                        <span className="mt-1 text-[12px] font-bold text-[#64748b]">
-                          {label}
+                {p.isTotals ? (
+                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-[#e2e8f0] text-lg font-black text-[#64748b]">
+                    {(team.name || "?").trim().charAt(0).toUpperCase()}
+                  </span>
+                ) : (
+                  <ProfileImage
+                    className="h-[52px] w-[52px] flex-none"
+                    src={season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl}
+                    fallbackSrc={season ? null : p.imgUrl}
+                    name={p.Player}
+                    onClick={() =>
+                      setDetailPlayer({
+                        player: p,
+                        team,
+                        imgUrl: season
+                          ? seasonPlayerImageUrl(activeSeason, p)
+                          : p.imgUrl,
+                      })
+                    }
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* name + stat strip (horizontal scroll) */}
+          <div className="min-w-0 flex-1 overflow-x-auto">
+            <div className="w-full min-w-[864px]">
+              {rows.map((p, idx) => {
+                const isDNP = !p.isTotals && p.Points == null;
+                const slug = overrideSlugMap[p.Player] || slugify(p.Player);
+
+                // Team totals row — bespoke layout matching the reference.
+                if (p.isTotals) {
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex ${TOTALS_H} flex-col justify-center bg-[#f1f5f9]`}
+                    >
+                      <div className="sticky left-0 z-10 w-fit max-w-[220px] bg-[#f1f5f9] px-2 pb-1 pr-4">
+                        <span className="block truncate text-[15px] font-black leading-tight text-[#0f172a]">
+                          {team.name}
                         </span>
                       </div>
-                    )}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+                      <div
+                        className="grid w-full px-2"
+                        style={{
+                          gridTemplateColumns: `repeat(${totalsCells.length}, minmax(64px, 1fr))`,
+                        }}
+                      >
+                        {totalsCells.map((cell, i) => (
+                          <div
+                            key={i}
+                            className="flex min-w-0 flex-col items-start"
+                          >
+                            <span className="text-[18px] font-black leading-none text-[#0f172a]">
+                              {cell.value}
+                            </span>
+                            <span className="mt-0.5 text-[10px] font-bold uppercase leading-none text-[#94a3b8]">
+                              {cell.label}
+                            </span>
+                            {cell.pct != null && (
+                              <span className="mt-0.5 text-[10px] font-bold leading-none text-[#94a3b8]">
+                                {cell.pct}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
 
-  // glue left + right
-  const renderBoard = (team) => (
-    <div className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
-      <div className="flex">
-        <LeftColumn team={team} />
-        <StatsTable team={team} />
+                return (
+                  <div
+                    key={idx}
+                    className={`flex ${ROW_H} flex-col justify-center ${
+                      isDNP ? "opacity-55" : ""
+                    }`}
+                  >
+                    {/* name line */}
+                    <div className="sticky left-0 z-10 w-fit max-w-[180px] bg-[#ffffff] px-2 pb-1 pr-4 pt-0.5">
+                      <Link
+                        to={
+                          season
+                            ? `/season/${activeSeason}/player/${slug}`
+                            : `/player/${slug}`
+                        }
+                        state={{
+                          from: season
+                            ? `/season/${activeSeason}/boxscore/${week}/${gameId}`
+                            : `/boxscore/${week}/${gameId}`,
+                          label: "Box Score",
+                        }}
+                        className="block truncate text-[15px] font-medium leading-tight text-[#0f172a] hover:text-[#0284c7]"
+                      >
+                        {abbreviateName(p.Player)}
+                      </Link>
+                    </div>
+
+                    {/* stat line */}
+                    {isDNP ? (
+                      <div className="px-2 text-[13px] font-black text-[#64748b]">
+                        DNP
+                      </div>
+                    ) : (
+                      <div
+                        className="grid w-full px-2"
+                        style={{
+                          gridTemplateColumns: `repeat(${statFields.length}, minmax(48px, 1fr))`,
+                        }}
+                      >
+                        {statFields.map(({ get, label }, i) => (
+                          <div
+                            key={i}
+                            className="flex min-w-0 flex-col items-start"
+                          >
+                            <span className="text-[18px] font-black leading-none text-[#0f172a]">
+                              {get(p)}
+                            </span>
+                            <span className="mt-0.5 text-[10px] font-bold uppercase leading-none text-[#94a3b8]">
+                              {label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // player-photo zoom modal
   const ZoomModal = () => (
@@ -446,13 +559,13 @@ export default function BoxScore() {
 
   return (
     <div
-      style={{ zoom: 0.9 }}
+      style={{ zoom: 0.97 }}
       className="mx-auto min-h-screen max-w-full bg-[#f8fafc] p-4 text-[#0f172a]"
     >
       <Header />
 
       {/* tabs */}
-      <div className="mb-12 flex border-b border-[#e2e8f0]">
+      <div className="mb-4 flex border-b border-[#e2e8f0]">
         {[
           { id: "home", label: teamA.name },
           { id: "away", label: teamB.name },
@@ -488,6 +601,26 @@ export default function BoxScore() {
       )}
 
       {zoomUrl && <ZoomModal />}
+
+      {detailPlayer && (() => {
+        const isTeamA = detailPlayer.team.name === teamA.name;
+        const teamScore = isTeamA ? totalA : totalB;
+        const opponentScore = isTeamA ? totalB : totalA;
+        const opponentName = isTeamA ? teamB.name : teamA.name;
+
+        return (
+          <PlayerShareCard
+            player={detailPlayer.player}
+            imgUrl={detailPlayer.imgUrl}
+            teamName={detailPlayer.team.name}
+            opponentName={opponentName}
+            teamScore={typeof teamScore === "number" ? teamScore : undefined}
+            opponentScore={typeof opponentScore === "number" ? opponentScore : undefined}
+            date={matchInfo?.date}
+            onClose={() => setDetailPlayer(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
