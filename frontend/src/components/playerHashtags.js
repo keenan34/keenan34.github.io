@@ -204,7 +204,7 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   const doubleFigures = [stats.points, stats.rebounds, stats.assists].filter(
     (value) => value >= 10
   ).length;
-  const veryColdShooting = stats.fga >= 13 && stats.fgPct <= 0.25;
+  const veryColdShooting = stats.fga >= 13 && stats.fgPct <= 0.35;
   const coldShooting = stats.fga >= 7 && stats.fgPct <= 0.35;
 
   // Archetype — triple/double-double pinned; all-around needs meaningful contribution in all 3
