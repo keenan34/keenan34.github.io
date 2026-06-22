@@ -218,14 +218,14 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     add("all-around", "archetype", 108, TAG_BANKS.allAround);
   }
 
-  // Scoring — impact tier raised to 16+ so single-digit/low-teen games get nothing
+  // Scoring — milestone tags pinned per tier
   if (stats.points >= 30 && !coldShooting) {
     add(
       "scoring-nuclear",
       "scoring",
       116 + stats.points / 10,
       TAG_BANKS.scoringNuclear,
-      [`#${stats.points}Points`, "#30Bomb", ...TAG_BANKS.scoringNuclear]
+      ["#30Points", "#30Bomb", ...TAG_BANKS.scoringNuclear]
     );
   } else if (stats.points >= 20 && !coldShooting) {
     add(
@@ -233,15 +233,15 @@ export function selectPlayerHashtagDetails(player, options = {}) {
       "scoring",
       96 + stats.points / 10,
       TAG_BANKS.scoringBig,
-      [`#${stats.points}Points`, ...TAG_BANKS.scoringBig]
+      ["#20Points", ...TAG_BANKS.scoringBig]
     );
-  } else if (stats.points >= 16) {
+  } else if (stats.points >= 10) {
     add(
       "scoring-impact",
       "scoring",
       64 + stats.points / 10,
       TAG_BANKS.scoringImpact,
-      [`#${stats.points}Points`, ...TAG_BANKS.scoringImpact]
+      ["#10Points", ...TAG_BANKS.scoringImpact]
     );
   }
 
