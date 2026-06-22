@@ -11,6 +11,35 @@ function normalizePlayerName(name) {
   return PLAYER_NAME_ALIASES[raw.toLowerCase()] || raw;
 }
 
+// Map a raw game_events row into a compact, public-safe event with stat deltas.
+function legacyEvent(row) {
+  const before = row.beforeStats || {};
+  const after = row.afterStats || {};
+  const delta = (key) => Number(after[key] || 0) - Number(before[key] || 0);
+
+  return {
+    id: row.id,
+    teamId: row.teamId,
+    playerId: row.playerId,
+    playerName: normalizePlayerName(row.playerName),
+    createdAt: row.createdAt,
+    points: delta("points"),
+    assists: delta("assists"),
+    rebounds: delta("rebounds"),
+    fgm: delta("fgm"),
+    fga: delta("fga"),
+    twoPm: delta("twoPm"),
+    twoPa: delta("twoPa"),
+    threePm: delta("threePm"),
+    threePa: delta("threePa"),
+    ftm: delta("ftm"),
+    fta: delta("fta"),
+    turnovers: delta("turnovers"),
+    fouls: delta("fouls"),
+    stealsBlocks: delta("stealsBlocks"),
+  };
+}
+
 function legacyGameRow(row) {
   const hasPublicScore = row.status === "live" || row.status === "final" || row.status === "finished";
 
@@ -127,7 +156,7 @@ router.get("/games/:publicGameId", async (req, res, next) => {
     }
 
     const game = legacyGameRow(rows[0]);
-    const [statsResult, rosterResult] = await Promise.all([
+    const [statsResult, rosterResult, eventsResult] = await Promise.all([
       pool.query(
       `
         SELECT
@@ -186,23 +215,56 @@ router.get("/games/:publicGameId", async (req, res, next) => {
             COALESCE(gps.assists, 0) AS assists,
             COALESCE(gps.turnovers, 0) AS turnovers,
             COALESCE(gps.fouls, 0) AS fouls,
-            COALESCE(gps.steals_blocks, 0) AS "stealsBlocks"
+            COALESCE(gps.steals_blocks, 0) AS "stealsBlocks",
+            (
+              COALESCE(gps.did_play, false)
+              AND ch.other_count > 0
+              AND COALESCE(gps.points, 0) > COALESCE(ch.other_max, 0)
+            ) AS "careerHigh"
           FROM games g
           JOIN team_players tp
             ON tp.season_id = g.season_id
             AND tp.team_id IN (g.home_team_id, g.away_team_id)
+            AND (tp.game_id IS NULL OR tp.game_id = g.id)
           JOIN teams t ON t.id = tp.team_id
           JOIN players p ON p.id = tp.player_id
           LEFT JOIN game_player_stats gps
             ON gps.game_id = g.id
             AND gps.team_id = tp.team_id
             AND gps.player_id = tp.player_id
+          LEFT JOIN LATERAL (
+            -- the player's best scoring game across their whole career, excluding
+            -- this one; used to flag a new career high in the share card
+            SELECT MAX(gps2.points) AS other_max, COUNT(*) AS other_count
+            FROM game_player_stats gps2
+            WHERE gps2.player_id = p.id
+              AND gps2.game_id <> g.id
+              AND gps2.did_play = true
+          ) ch ON true
           WHERE g.id = $1
             AND tp.roster_status <> 'removed'
           ORDER BY
             CASE WHEN t.id = g.home_team_id THEN 0 ELSE 1 END,
             NULLIF(regexp_replace(tp.jersey_number, '[^0-9]', '', 'g'), '')::int NULLS LAST,
             p.name
+        `,
+        [game.id]
+      ),
+      pool.query(
+        `
+          SELECT
+            ge.id,
+            ge.team_id AS "teamId",
+            ge.player_id AS "playerId",
+            p.name AS "playerName",
+            ge.before_stats AS "beforeStats",
+            ge.after_stats AS "afterStats",
+            ge.created_at AS "createdAt"
+          FROM game_events ge
+          LEFT JOIN players p ON p.id = ge.player_id
+          WHERE ge.game_id = $1
+            AND ge.event_type = 'player_stats_updated'
+          ORDER BY ge.created_at ASC
         `,
         [game.id]
       ),
@@ -225,6 +287,7 @@ router.get("/games/:publicGameId", async (req, res, next) => {
       game,
       rosters: Array.from(rosterByTeamId.values()),
       playerStats: statsResult.rows,
+      events: eventsResult.rows.map(legacyEvent),
     });
   } catch (err) {
     next(err);

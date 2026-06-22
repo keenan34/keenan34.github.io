@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import PlayerShareCard from "./PlayerShareCard";
+import TeamShareCard from "./TeamShareCard";
 
 
 const API_BASE_URL = resolveApiBaseUrl();
@@ -61,16 +62,64 @@ function seasonPlayerImageUrl(season, player) {
   return `${PUBLIC_URL}/seasons/${season}/images/players/${slug}.png`;
 }
 
+// match the logo filenames: lowercase, spaces -> underscores, leading "The" dropped
+const teamSlug = (name) =>
+  slugify(String(name || "").replace(/^the\s+/i, ""));
+
+function teamLogoUrl(season, teamName) {
+  return `${PUBLIC_URL}/seasons/${season}/images/teams/${teamSlug(teamName)}.png`;
+}
+
+// normalize a team name for record lookups (mirror of standings keys)
+const normTeam = (name) =>
+  String(name || "").toLowerCase().replace(/^the\s+/i, "").trim();
+
+// team logo with a neutral fallback for seasons/teams without an image
+function TeamLogo({ season, name, size = 46 }) {
+  const [error, setError] = useState(false);
+  const initials = String(name || "")
+    .replace(/^the\s+/i, "")
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  if (error) {
+    return (
+      <span
+        className="flex flex-none items-center justify-center rounded-full bg-[#e2e8f0] text-sm font-black text-[#64748b]"
+        style={{ width: size, height: size }}
+      >
+        {initials}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={teamLogoUrl(season, name)}
+      alt={name}
+      onError={() => setError(true)}
+      style={{ width: size, height: size }}
+      className="flex-none object-contain"
+    />
+  );
+}
+
 function toLegacyPlayer(player) {
   const didPlay = player.didPlay !== false;
   const playerName = normalizePlayerName(player.playerName || player.name || "");
   const playerSlug = player.playerSlug || player.slug || slugify(playerName);
   const image = playerImageUrl(player);
 
+  const playerId = player.playerId ?? player.id ?? null;
+
   if (!didPlay) {
     return {
       Player: playerName,
       Points: null,
+      id: playerId,
       slug: playerSlug,
       imgUrl: image,
     };
@@ -78,6 +127,7 @@ function toLegacyPlayer(player) {
 
   return {
     Player: playerName,
+    id: playerId,
     slug: playerSlug,
     Points: player.points ?? 0,
     FGM: player.fgm ?? 0,
@@ -97,6 +147,7 @@ function toLegacyPlayer(player) {
     TOs: player.turnovers ?? 0,
     Fouls: player.fouls ?? 0,
     "STLS/BLKS": player.stealsBlocks ?? 0,
+    careerHigh: player.careerHigh === true,
     imgUrl: playerImageUrl(player),
   };
 }
@@ -213,7 +264,10 @@ export default function BoxScore() {
   const [tab, setTab] = useState("home");
   const [zoomUrl, setZoomUrl] = useState(null);
   const [detailPlayer, setDetailPlayer] = useState(null);
+  const [detailTeam, setDetailTeam] = useState(null);
   const [youtubeUrl, setYoutubeUrl] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [records, setRecords] = useState({});
 
   useEffect(() => {
     const controller = new AbortController();
@@ -225,6 +279,9 @@ export default function BoxScore() {
     setMatchInfo(null);
     setScores({ a: null, b: null });
     setYoutubeUrl(null);
+    setEvents([]);
+    setDetailPlayer(null);
+    setDetailTeam(null);
 
     apiGet(
       `/api/games/${encodeURIComponent(publicGameId)}?season=${encodeURIComponent(
@@ -244,6 +301,7 @@ export default function BoxScore() {
 
         setData(boxScore);
         setMatchInfo(game);
+        setEvents(Array.isArray(apiData?.events) ? apiData.events : []);
         setYoutubeUrl(game.youtubeUrl ?? null);
         setScores({ a: game.scoreA ?? null, b: game.scoreB ?? null });
       })
@@ -259,39 +317,104 @@ export default function BoxScore() {
     return () => controller.abort();
   }, [activeSeason, week, gameId]);
 
+  // team records (W-L) for the header, keyed by normalized team name
+  useEffect(() => {
+    let cancelled = false;
+    apiGet(`/api/standings/${encodeURIComponent(activeSeason)}`)
+      .then((standingsData) => {
+        if (cancelled) return;
+        const map = {};
+        (standingsData?.standings || []).forEach((row) => {
+          const teamName = row?.team || row?.name;
+          if (teamName) {
+            map[normTeam(teamName)] = {
+              wins: row.wins || 0,
+              losses: row.losses || 0,
+            };
+          }
+        });
+        setRecords(map);
+      })
+      .catch(() => {
+        if (!cancelled) setRecords({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSeason]);
+
 
   if (loading) return <p className="text-center py-8">Loading…</p>;
   if (errorMsg) return <p className="text-center py-8">{errorMsg}</p>;
   if (!data) return <p className="text-center py-8">No box score found.</p>;
 
   const { teamA, teamB } = data;
-  const isScheduled = matchInfo?.status === "scheduled";
+  const gameStatus = matchInfo?.status;
+  const hasPublicScore =
+    typeof scores.a === "number" && typeof scores.b === "number";
+  const isLive = gameStatus === "live";
+  const isFinal = gameStatus === "final" || gameStatus === "finished";
+  const hasBoxScore = hasPublicScore && (isLive || isFinal);
+  const statusText = isLive ? "Live" : isFinal && hasPublicScore ? "Final" : "Scheduled";
   const totalA =
-    !isScheduled && (scores.a ?? teamA.players.reduce((s, p) => s + (p.Points || 0), 0));
+    hasBoxScore && (scores.a ?? teamA.players.reduce((s, p) => s + (p.Points || 0), 0));
   const totalB =
-    !isScheduled && (scores.b ?? teamB.players.reduce((s, p) => s + (p.Points || 0), 0));
+    hasBoxScore && (scores.b ?? teamB.players.reduce((s, p) => s + (p.Points || 0), 0));
 
   // --- always show teamA on left, teamB on right ---
+  const recordText = (teamName) => {
+    const r = records[normTeam(teamName)];
+    return r ? `${r.wins}-${r.losses}` : "";
+  };
+
   const Header = () => (
-    <div className="mb-4 grid grid-cols-3 justify-items-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-      <div className="flex flex-col items-center">
-        <span className="text-3xl font-black">{isScheduled ? "-" : totalA}</span>
-        <span className="mt-1 text-xs font-bold text-[#64748b]">{teamA.name}</span>
+    <div className="mb-4 grid grid-cols-3 items-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+      {/* left team: logo + record on the outer edge, score + name inner */}
+      <div className="flex items-center justify-start gap-3">
+        <div className="flex flex-col items-center">
+          <TeamLogo season={activeSeason} name={teamA.name} />
+          {recordText(teamA.name) && (
+            <span className="mt-1 text-[11px] font-bold text-[#94a3b8]">
+              ({recordText(teamA.name)})
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col items-start">
+          <span className="text-3xl font-black leading-none">
+            {hasBoxScore ? totalA : "-"}
+          </span>
+          <span className="mt-1 text-xs font-bold text-[#64748b]">{teamA.name}</span>
+        </div>
       </div>
+
       <div className="flex flex-col items-center">
         <span className="rounded-full bg-[rgba(56,189,248,0.12)] px-3 py-1 text-xs font-black uppercase text-[#0284c7]">
-          {isScheduled ? "Scheduled" : matchInfo?.status === "live" ? "Live" : "Final"}
+          {statusText}
         </span>
         {matchInfo?.date && (
-          <span className="mt-1 text-xs font-bold text-[#64748b]">
+          <span className="mt-1 text-center text-xs font-bold text-[#64748b]">
             {matchInfo.date}
             {matchInfo.time ? ` · ${matchInfo.time}` : ""}
           </span>
         )}
       </div>
-      <div className="flex flex-col items-center">
-        <span className="text-3xl font-black">{isScheduled ? "-" : totalB}</span>
-        <span className="mt-1 text-xs font-bold text-[#64748b]">{teamB.name}</span>
+
+      {/* right team: score + name inner, logo + record on the outer edge */}
+      <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-col items-end">
+          <span className="text-3xl font-black leading-none">
+            {hasBoxScore ? totalB : "-"}
+          </span>
+          <span className="mt-1 text-xs font-bold text-[#64748b]">{teamB.name}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <TeamLogo season={activeSeason} name={teamB.name} />
+          {recordText(teamB.name) && (
+            <span className="mt-1 text-[11px] font-bold text-[#94a3b8]">
+              ({recordText(teamB.name)})
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -355,15 +478,37 @@ export default function BoxScore() {
     };
   };
 
-  const overrideSlugMap = { "Jerremiah Dujuan Wright": "dujuan_wright" };
-
-  const ROW_H = "h-[68px]";
-  const TOTALS_H = "h-[82px]";
+  const ROW_H = "h-[70px]";
+  const TOTALS_H = "h-[84px]";
 
   // Fixed photo column on the left; to its right each row stacks the player
   // name on top of a horizontal number-over-label stat strip, exactly like
   // the reference box score. No grid lines.
   const renderBoard = (team) => {
+    const openPlayerDetail = (player) =>
+      {
+        setDetailTeam(null);
+        setDetailPlayer({
+          player,
+          team,
+          imgUrl: season ? seasonPlayerImageUrl(activeSeason, player) : player.imgUrl,
+        });
+      };
+
+    const openTeamDetail = () => {
+      const opponent = team === teamA ? teamB : teamA;
+      setDetailPlayer(null);
+      setDetailTeam({
+        team,
+        opponent,
+        totals: teamTotals(team),
+        opponentTotals: teamTotals(opponent),
+        teamScore: team === teamA ? totalA : totalB,
+        opponentScore: team === teamA ? totalB : totalA,
+        opponentName: opponent.name,
+      });
+    };
+
     // Players who logged stats first; DNPs pushed to the bottom (stable order).
     const playedPlayers = team.players.filter((p) => p.Points != null);
     const dnpPlayers = team.players.filter((p) => p.Points == null);
@@ -384,36 +529,33 @@ export default function BoxScore() {
     ];
 
     return (
-      <div className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+      <div className="box-score-board overflow-hidden bg-[#ffffff]">
         <div className="flex">
           {/* photo column (fixed) */}
           <div className="flex-none">
             {rows.map((p, idx) => (
               <div
                 key={idx}
-                className={`flex ${p.isTotals ? TOTALS_H : ROW_H} w-16 items-center justify-center ${
+                className={`flex ${p.isTotals ? TOTALS_H : ROW_H} w-[66px] items-center justify-center ${
                   p.isTotals ? "bg-[#f1f5f9]" : ""
                 }`}
               >
                 {p.isTotals ? (
-                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-full bg-[#e2e8f0] text-lg font-black text-[#64748b]">
-                    {(team.name || "?").trim().charAt(0).toUpperCase()}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={openTeamDetail}
+                    className="flex h-[54px] w-[54px] flex-none cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-80"
+                    aria-label={`Open ${team.name} export`}
+                  >
+                    <TeamLogo season={activeSeason} name={team.name} size={50} />
+                  </button>
                 ) : (
                   <ProfileImage
-                    className="h-[52px] w-[52px] flex-none"
+                    className="h-[54px] w-[54px] flex-none"
                     src={season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl}
                     fallbackSrc={season ? null : p.imgUrl}
                     name={p.Player}
-                    onClick={() =>
-                      setDetailPlayer({
-                        player: p,
-                        team,
-                        imgUrl: season
-                          ? seasonPlayerImageUrl(activeSeason, p)
-                          : p.imgUrl,
-                      })
-                    }
+                    onClick={() => openPlayerDetail(p)}
                   />
                 )}
               </div>
@@ -425,7 +567,6 @@ export default function BoxScore() {
             <div className="w-full min-w-[864px]">
               {rows.map((p, idx) => {
                 const isDNP = !p.isTotals && p.Points == null;
-                const slug = overrideSlugMap[p.Player] || slugify(p.Player);
 
                 // Team totals row — bespoke layout matching the reference.
                 if (p.isTotals) {
@@ -434,10 +575,14 @@ export default function BoxScore() {
                       key={idx}
                       className={`flex ${TOTALS_H} flex-col justify-center bg-[#f1f5f9]`}
                     >
-                      <div className="sticky left-0 z-10 w-fit max-w-[220px] bg-[#f1f5f9] px-2 pb-1 pr-4">
-                        <span className="block truncate text-[15px] font-black leading-tight text-[#0f172a]">
+                    <div className="sticky left-0 z-10 w-fit max-w-[220px] bg-inherit px-2 pb-1 pr-4">
+                        <button
+                          type="button"
+                          onClick={openTeamDetail}
+                          className="block truncate text-[15px] font-black leading-tight text-[#0f172a] hover:text-[#0284c7]"
+                        >
                           {team.name}
-                        </span>
+                        </button>
                       </div>
                       <div
                         className="grid w-full px-2"
@@ -450,14 +595,14 @@ export default function BoxScore() {
                             key={i}
                             className="flex min-w-0 flex-col items-start"
                           >
-                            <span className="text-[18px] font-black leading-none text-[#0f172a]">
+                            <span className="text-[18px] font-black leading-none text-white">
                               {cell.value}
                             </span>
-                            <span className="mt-0.5 text-[10px] font-bold uppercase leading-none text-[#94a3b8]">
+                            <span className="mt-0.5 text-[10px] font-normal uppercase leading-none text-[#8f939d]">
                               {cell.label}
                             </span>
                             {cell.pct != null && (
-                              <span className="mt-0.5 text-[10px] font-bold leading-none text-[#94a3b8]">
+                              <span className="mt-0.5 text-[10px] font-normal leading-none text-[#8f939d]">
                                 {cell.pct}
                               </span>
                             )}
@@ -476,23 +621,14 @@ export default function BoxScore() {
                     }`}
                   >
                     {/* name line */}
-                    <div className="sticky left-0 z-10 w-fit max-w-[180px] bg-[#ffffff] px-2 pb-1 pr-4 pt-0.5">
-                      <Link
-                        to={
-                          season
-                            ? `/season/${activeSeason}/player/${slug}`
-                            : `/player/${slug}`
-                        }
-                        state={{
-                          from: season
-                            ? `/season/${activeSeason}/boxscore/${week}/${gameId}`
-                            : `/boxscore/${week}/${gameId}`,
-                          label: "Box Score",
-                        }}
+                    <div className="sticky left-0 z-10 w-fit max-w-[180px] bg-inherit px-2 pb-1 pr-4 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => openPlayerDetail(p)}
                         className="block truncate text-[15px] font-medium leading-tight text-[#0f172a] hover:text-[#0284c7]"
                       >
                         {abbreviateName(p.Player)}
-                      </Link>
+                      </button>
                     </div>
 
                     {/* stat line */}
@@ -512,10 +648,10 @@ export default function BoxScore() {
                             key={i}
                             className="flex min-w-0 flex-col items-start"
                           >
-                            <span className="text-[18px] font-black leading-none text-[#0f172a]">
+                            <span className="text-[18px] font-black leading-none text-white">
                               {get(p)}
                             </span>
-                            <span className="mt-0.5 text-[10px] font-bold uppercase leading-none text-[#94a3b8]">
+                            <span className="mt-0.5 text-[10px] font-normal uppercase leading-none text-[#8f939d]">
                               {label}
                             </span>
                           </div>
@@ -531,6 +667,20 @@ export default function BoxScore() {
       </div>
     );
   };
+
+  const ScheduledMessage = () => (
+    <div className="rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-8 text-center shadow-sm">
+      <div className="text-base font-black text-[#0f172a]">
+        Box score available after game
+      </div>
+      {matchInfo?.date && (
+        <div className="mt-1 text-sm font-bold text-[#64748b]">
+          {matchInfo.date}
+          {matchInfo.time ? ` · ${matchInfo.time}` : ""}
+        </div>
+      )}
+    </div>
+  );
 
   // player-photo zoom modal
   const ZoomModal = () => (
@@ -560,7 +710,7 @@ export default function BoxScore() {
   return (
     <div
       style={{ zoom: 0.97 }}
-      className="mx-auto min-h-screen max-w-full bg-[#f8fafc] p-4 text-[#0f172a]"
+      className="mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]"
     >
       <Header />
 
@@ -587,17 +737,21 @@ export default function BoxScore() {
       </div>
 
       {/* content */}
-      {tab === "home" && renderBoard(teamA)}
-      {tab === "away" && renderBoard(teamB)}
+      {tab === "home" && (hasBoxScore ? renderBoard(teamA) : <ScheduledMessage />)}
+      {tab === "away" && (hasBoxScore ? renderBoard(teamB) : <ScheduledMessage />)}
       {tab === "game" && (
-        <div className="w-full h-[70vh]">
-          <iframe
-            src={youtubeUrl}
-            title="Game Replay"
-            allowFullScreen
-            className="w-full h-full rounded-lg"
-          />
-        </div>
+        youtubeUrl ? (
+          <div className="w-full h-[70vh]">
+            <iframe
+              src={youtubeUrl}
+              title="Game Replay"
+              allowFullScreen
+              className="w-full h-full rounded-lg"
+            />
+          </div>
+        ) : (
+          <ScheduledMessage />
+        )
       )}
 
       {zoomUrl && <ZoomModal />}
@@ -607,6 +761,12 @@ export default function BoxScore() {
         const teamScore = isTeamA ? totalA : totalB;
         const opponentScore = isTeamA ? totalB : totalA;
         const opponentName = isTeamA ? teamB.name : teamA.name;
+        const teamPlayers = detailPlayer.team.players
+          .filter((player) => player.Points != null)
+          .map((player) => ({
+            ...player,
+            imgUrl: season ? seasonPlayerImageUrl(activeSeason, player) : player.imgUrl,
+          }));
 
         return (
           <PlayerShareCard
@@ -617,10 +777,34 @@ export default function BoxScore() {
             teamScore={typeof teamScore === "number" ? teamScore : undefined}
             opponentScore={typeof opponentScore === "number" ? opponentScore : undefined}
             date={matchInfo?.date}
+            season={activeSeason}
+            teamPlayers={teamPlayers}
+            events={events}
+            onSelectPlayer={(player) =>
+              setDetailPlayer({
+                player,
+                team: detailPlayer.team,
+                imgUrl: player.imgUrl,
+              })
+            }
             onClose={() => setDetailPlayer(null)}
           />
         );
       })()}
+
+      {detailTeam && (
+        <TeamShareCard
+          team={detailTeam.team}
+          opponent={detailTeam.opponent}
+          teamScore={typeof detailTeam.teamScore === "number" ? detailTeam.teamScore : undefined}
+          opponentScore={typeof detailTeam.opponentScore === "number" ? detailTeam.opponentScore : undefined}
+          date={matchInfo?.date}
+          season={activeSeason}
+          teamTotals={detailTeam.totals}
+          opponentTotals={detailTeam.opponentTotals}
+          onClose={() => setDetailTeam(null)}
+        />
+      )}
     </div>
   );
 }

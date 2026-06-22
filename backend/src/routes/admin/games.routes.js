@@ -416,6 +416,7 @@ async function getLiveGameState(gameId) {
       JOIN team_players tp
         ON tp.season_id = g.season_id
         AND tp.team_id IN (g.home_team_id, g.away_team_id)
+        AND (tp.game_id IS NULL OR tp.game_id = g.id)
       JOIN teams t ON t.id = tp.team_id
       JOIN players p ON p.id = tp.player_id
       LEFT JOIN game_player_stats gps
@@ -1024,14 +1025,15 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
 
     await client.query(
       `
-        INSERT INTO team_players (season_id, team_id, player_id, jersey_number, roster_status)
-        VALUES ($1, $2, $3, $4, 'active')
+        INSERT INTO team_players (season_id, team_id, player_id, jersey_number, roster_status, game_id)
+        VALUES ($1, $2, $3, $4, 'active', $5)
         ON CONFLICT (season_id, team_id, player_id) DO UPDATE
         SET jersey_number = EXCLUDED.jersey_number,
             roster_status = 'active',
+            game_id = EXCLUDED.game_id,
             updated_at = now()
       `,
-      [game.seasonId, teamId, playerId, number]
+      [game.seasonId, teamId, playerId, number, gameId]
     );
 
     await upsertPlayerStats(client, gameId, teamId, playerId, {
@@ -1388,6 +1390,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
           ON tp.season_id = g.season_id
           AND tp.player_id = $2
           AND tp.team_id IN (g.home_team_id, g.away_team_id)
+          AND (tp.game_id IS NULL OR tp.game_id = g.id)
         WHERE g.id = $1
         LIMIT 1
       `,

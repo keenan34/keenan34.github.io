@@ -484,10 +484,11 @@ export default function PlayerPage() {
               games.map((g, i) => {
               const weekKey = g.week.toLowerCase().replace(/ /g, "");
               const entry = findScheduleEntry(weekKey, g.opponent);
+              const isPlayed = entry ? isPlayedGame(entry.status) : g.points != null;
 
               // compute W/L + show score
               let resultText = "-";
-              if (entry && isPlayedGame(entry.status)) {
+              if (entry && isPlayed) {
                 const a = Number(entry.scoreA);
                 const b = Number(entry.scoreB);
 
@@ -511,6 +512,7 @@ export default function PlayerPage() {
                     i % 2 === 0 ? "bg-[#ffffff]" : "bg-[#f8fafc]"
                   } cursor-pointer`}
                   onClick={() => {
+                    if (!isPlayed) return;
                     if (!entry?.gameId) return;
                     const [, gameKey] = entry.gameId.split("-");
                     if (!gameKey) return;
@@ -557,7 +559,7 @@ export default function PlayerPage() {
                         idx === 17 ? "rounded-r-lg" : ""
                       }`}
                     >
-                      {val == null ? "DNP" : val}
+                      {val == null ? (isPlayed ? "DNP" : "-") : val}
                     </td>
                   ))}
                 </tr>

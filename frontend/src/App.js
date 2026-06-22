@@ -93,11 +93,12 @@ function AppShell() {
 
   const themeClass = useMemo(() => {
     if (activeSeason === "szn3") return "theme-szn3";
+    if (activeSeason === "szn5") return "theme-szn5";
     return "theme-szn4";
   }, [activeSeason]);
 
   return (
-    <div className={`app-shell ${themeClass}`}>
+    <div className={`app-shell ${themeClass} ${isAdminRoute ? "is-admin" : "is-public"}`}>
       {!isAdminRoute && <HeaderNav />}
 
       <main className="app-main">
