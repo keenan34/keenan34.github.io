@@ -304,12 +304,6 @@ export default function BoxScore() {
         setEvents(Array.isArray(apiData?.events) ? apiData.events : []);
         setYoutubeUrl(game.youtubeUrl ?? null);
         setScores({ a: game.scoreA ?? null, b: game.scoreB ?? null });
-        // debug: log career-high flags — remove once confirmed working
-        const careerHighPlayers = (apiData?.rosters ?? [])
-          .flatMap((r) => r.players ?? [])
-          .filter((p) => p.careerHigh)
-          .map((p) => p.playerName);
-        console.log("[CareerHigh] players this game:", careerHighPlayers);
       })
       .catch((err) => {
         if (err.name === "AbortError") return;
