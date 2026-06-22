@@ -218,7 +218,7 @@ router.get("/games/:publicGameId", async (req, res, next) => {
             COALESCE(gps.steals_blocks, 0) AS "stealsBlocks",
             (
               COALESCE(gps.did_play, false)
-              AND ch.other_count > 0
+              AND COALESCE(gps.points, 0) > 0
               AND COALESCE(gps.points, 0) > COALESCE(ch.other_max, 0)
             ) AS "careerHigh"
           FROM games g
