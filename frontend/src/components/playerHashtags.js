@@ -4,24 +4,24 @@ const TAG_BANKS = {
     "#AllAround", "#Monster", "#Special", "#TripleThreat",
   ],
   doubleDouble: [
-    "#DoubleDouble", "#Productive", "#Work", "#Hooping", "#Complete",
-    "#Everywhere", "#BigGame", "#Numbers",
+    "#DoubleDouble", "#TwoWayNight", "#FilledSheet", "#BigGame", "#Numbers",
+    "#DoingItAll", "#BothCategories", "#CompleteGame",
   ],
   allAround: [
-    "#AllAround", "#Complete", "#Everywhere", "#Versatile", "#Hooper",
-    "#Impact", "#FilledSheet", "#DoItAll", "#TripleThreat",
+    "#AllAround", "#Complete", "#Everywhere", "#Versatile", "#FilledSheet",
+    "#DoItAll", "#TripleThreat", "#DoingEverything", "#BaggedOut",
   ],
   scoringNuclear: [
     "#Nuclear", "#Unstoppable", "#Buckets", "#Torching", "#Different",
     "#Special", "#Unreal", "#Masterclass", "#CantGuardHim", "#ThirtyPiece", "#30Bomb",
   ],
   scoringBig: [
-    "#Buckets", "#Cooking", "#Hooper", "#Problem", "#Certified", "#Tough",
+    "#Buckets", "#Cooking", "#Problem", "#Certified", "#Tough",
     "#BagWork", "#TooEasy", "#WalkingBucket", "#TwentyPiece", "#GOATMode",
   ],
   scoringImpact: [
-    "#Buckets", "#Hooper", "#Scorer", "#Aggressive", "#Attack", "#Bag",
-    "#Pressure", "#Production",
+    "#Buckets", "#Scorer", "#Bag", "#GettingBuckets", "#TheyKnow",
+    "#ThrowingBags", "#OnOne", "#Cooking",
   ],
   assistElite: [
     "#Dimer", "#PointGod", "#Playmaker", "#Vision", "#Maestro", "#Creator",
@@ -32,20 +32,20 @@ const TAG_BANKS = {
     "#GoodLooks", "#TeamFirst", "#DimeDropper",
   ],
   assistSupport: [
-    "#Unselfish", "#Playmaker", "#Vision", "#Dimes", "#GoodLooks",
-    "#TeamFirst", "#ExtraPass", "#Creator",
+    "#Unselfish", "#Playmaker", "#GoodLooks", "#TeamFirst", "#ExtraPass",
+    "#Creator", "#FindingPeople", "#Facilitator",
   ],
   reboundElite: [
     "#Boardman", "#Horse", "#Glasswork", "#Cleaning", "#BigBody", "#Monster",
     "#PaintBeast", "#EveryBoard", "#GlassEater", "#Chairman",
   ],
   reboundStrong: [
-    "#Boards", "#Glasswork", "#Strong", "#Horse", "#Cleaning", "#Rebounder",
-    "#BigBody", "#PaintWork",
+    "#Boards", "#Glasswork", "#Strong", "#Horse", "#Cleaning", "#BigBody",
+    "#PaintWork", "#OnTheGlass",
   ],
   reboundSupport: [
-    "#Boards", "#Hustle", "#Glasswork", "#Effort", "#Rebounder", "#Work",
-    "#Crash", "#Possessions",
+    "#Boards", "#Glasswork", "#Crash", "#Possessions", "#OnTheGlass",
+    "#EveryBoard", "#BoardWork", "#GrabbingGlass",
   ],
   defenseElite: [
     "#Clamps", "#Lockdown", "#Menace", "#Jail", "#Cookies", "#Eraser",
@@ -54,10 +54,6 @@ const TAG_BANKS = {
   defenseStrong: [
     "#Clamps", "#Defense", "#Menace", "#Cookies", "#Stocks", "#ActiveHands",
     "#RimProtection", "#LockedIn", "#StockParty", "#CookieMonster",
-  ],
-  defenseImpact: [
-    "#Defense", "#ActiveHands", "#Stocks", "#Hustle", "#LockedIn", "#Stopper",
-    "#Impact", "#Effort",
   ],
   perfectShooting: [
     "#Perfect", "#Automatic", "#Money", "#Pure", "#Cash", "#CantMiss",
@@ -88,8 +84,8 @@ const TAG_BANKS = {
     "#BuildingBricks", "#RimCheck", "#ShootersShoot", "#ShotChucker",
   ],
   cleanHandles: [
-    "#Clean", "#Steady", "#Control", "#Secure", "#NoTurnovers", "#FloorGeneral",
-    "#Poised", "#Solid",
+    "#NoTurnovers", "#FloorGeneral", "#BallSecurity", "#ZeroTurnovers",
+    "#TightHandles", "#PurePG", "#NoLeaks", "#Controlled",
   ],
   turnoverTrouble: [
     "#NextPlay", "#Reset", "#ShortMemory", "#StayAggressive", "#BounceBack",
@@ -100,16 +96,16 @@ const TAG_BANKS = {
     "#SetTheTone", "#HardFouls", "#Whistle",
   ],
   hustle: [
-    "#Hustle", "#Motor", "#Effort", "#Work", "#Energy", "#Grind",
-    "#DirtyWork", "#WinningPlays",
+    "#DirtyWork", "#WinningPlays", "#HardHat", "#GrindCity", "#EarnedIt",
+    "#GlassAndStocks", "#BothEnds", "#PuttingInWork",
   ],
   winningImpact: [
-    "#Winning", "#Dub", "#Impact", "#Winner", "#BigWin", "#TeamWin",
-    "#WinningPlays", "#GotTheDub", "#Contributor",
+    "#Dub", "#BigWin", "#TeamWin", "#GotTheDub", "#WinnersOnly",
+    "#ShowedOut", "#WinnersMentality", "#TookOne",
   ],
   steady: [
-    "#Hooper", "#Work", "#Compete", "#Grind", "#Gameday", "#LockedIn",
-    "#NextUp", "#Contributor", "#KeepHooping", "#TeamFirst",
+    "#Hooper", "#Gameday", "#LockedIn", "#KeepHooping", "#TeamFirst",
+    "#ShowedUp", "#StillHooping", "#OnTheCourt",
   ],
   merchant: [
     "#Merchant", "#FreeThrowMerchant", "#AtTheLine", "#FoulPressure",
@@ -200,7 +196,7 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   const add = (category, group, score, bank, tags) =>
     candidates.push(makeCandidate(category, group, score, bank, seed, tags));
 
-  // A new career-high scoring game (computed server-side) always gets the badge.
+  // Career-high (computed server-side) — always gets the badge when flagged.
   if (options.careerHigh) {
     add("career-high", "milestone", 150, TAG_BANKS.steady, ["#CareerHigh"]);
   }
@@ -211,16 +207,18 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   const veryColdShooting = stats.fga >= 13 && stats.fgPct <= 0.25;
   const coldShooting = stats.fga >= 7 && stats.fgPct <= 0.35;
 
+  // Archetype — triple/double-double pinned; all-around needs meaningful contribution in all 3
   if (doubleFigures === 3) {
     add("triple-double", "archetype", 160, TAG_BANKS.tripleDouble, ["#TripleDouble"]);
   } else if (doubleFigures === 2) {
     add("double-double", "archetype", 155, TAG_BANKS.doubleDouble, ["#DoubleDouble"]);
-  } else if (stats.points >= 10 && stats.rebounds >= 5 && stats.assists >= 5) {
+  } else if (stats.points >= 12 && stats.rebounds >= 6 && stats.assists >= 6) {
     add("all-around", "archetype", 112, TAG_BANKS.allAround);
-  } else if (stats.points >= 7 && stats.rebounds >= 7 && stats.assists >= 7) {
+  } else if (stats.points >= 8 && stats.rebounds >= 8 && stats.assists >= 8) {
     add("all-around", "archetype", 108, TAG_BANKS.allAround);
   }
 
+  // Scoring — impact tier raised to 16+ so single-digit/low-teen games get nothing
   if (stats.points >= 30 && !coldShooting) {
     add(
       "scoring-nuclear",
@@ -237,7 +235,7 @@ export function selectPlayerHashtagDetails(player, options = {}) {
       TAG_BANKS.scoringBig,
       [`#${stats.points}Points`, ...TAG_BANKS.scoringBig]
     );
-  } else if (stats.points >= 10) {
+  } else if (stats.points >= 16) {
     add(
       "scoring-impact",
       "scoring",
@@ -251,13 +249,14 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     add("cardio", "scoring", 120, TAG_BANKS.steady, ["#Cardio"]);
   }
 
+  // Playmaking — support tier raised to 5+ assists
   if (stats.assists >= 10) {
     add("assist-elite", "playmaking", 118 + stats.assists, TAG_BANKS.assistElite, ["#Dimer"]);
   } else if (stats.assists >= 8) {
     add("assist-strong", "playmaking", 98 + stats.assists, TAG_BANKS.assistStrong, ["#Dimer"]);
   } else if (stats.assists >= 6) {
     add("assist-strong", "playmaking", 98 + stats.assists, TAG_BANKS.assistStrong);
-  } else if (stats.assists >= 2) {
+  } else if (stats.assists >= 5) {
     add("assist-support", "playmaking", 48 + stats.assists * 2, TAG_BANKS.assistSupport);
   } else if (stats.assists === 0 && stats.fga >= 7) {
     add(
@@ -269,22 +268,23 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     );
   }
 
+  // Rebounding — support tier raised to 7+
   if (stats.rebounds >= 15) {
     add("rebound-elite", "rebounding", 116 + stats.rebounds, TAG_BANKS.reboundElite);
   } else if (stats.rebounds >= 9) {
     add("rebound-strong", "rebounding", 91 + stats.rebounds, TAG_BANKS.reboundStrong);
-  } else if (stats.rebounds >= 4) {
+  } else if (stats.rebounds >= 7) {
     add("rebound-support", "rebounding", 45 + stats.rebounds * 2, TAG_BANKS.reboundSupport);
   }
 
+  // Defense — removed 1-stock impact tier; only 3+ stocks earns a tag
   if (stats.stocks >= 6) {
     add("defense-elite", "defense", 120 + stats.stocks, TAG_BANKS.defenseElite);
   } else if (stats.stocks >= 3) {
     add("defense-strong", "defense", 94 + stats.stocks, TAG_BANKS.defenseStrong);
-  } else if (stats.stocks >= 1) {
-    add("defense-impact", "defense", 52 + stats.stocks * 3, TAG_BANKS.defenseImpact);
   }
 
+  // Shooting
   if (veryColdShooting) {
     add(
       "very-cold-shooting",
@@ -320,6 +320,7 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     add("ethical", "scoring-style", 88 + stats.points / 10, TAG_BANKS.ethical);
   }
 
+  // Ball control — 0 TOs needs 3+ assists to earn a tag
   if (stats.turnovers === 0 && stats.assists >= 3) {
     add("clean-handles", "ball-control", 94 + stats.assists, TAG_BANKS.cleanHandles);
   } else if (stats.turnovers >= 6) {
@@ -330,12 +331,14 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     add("foul-trouble", "discipline", 82 + stats.fouls, TAG_BANKS.foulTrouble);
   }
 
-  if (stats.rebounds + stats.stocks >= 10 && stats.points < 15) {
+  // Hustle — raised to 12+ combined boards+stocks, low scorer
+  if (stats.rebounds + stats.stocks >= 12 && stats.points < 12) {
     add("hustle", "hustle", 86 + stats.rebounds + stats.stocks, TAG_BANKS.hustle);
   }
 
+  // Winning — raised impact threshold to 25
   const impact = stats.points + stats.rebounds + stats.assists + stats.stocks;
-  if (won && impact >= 18) {
+  if (won && impact >= 25) {
     add("winning-impact", "outcome", 58 + impact / 5, TAG_BANKS.winningImpact);
   }
 
