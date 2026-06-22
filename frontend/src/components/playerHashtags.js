@@ -212,9 +212,9 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   const coldShooting = stats.fga >= 7 && stats.fgPct <= 0.35;
 
   if (doubleFigures === 3) {
-    add("triple-double", "archetype", 160, TAG_BANKS.tripleDouble);
+    add("triple-double", "archetype", 160, TAG_BANKS.tripleDouble, ["#TripleDouble"]);
   } else if (doubleFigures === 2) {
-    add("double-double", "archetype", 155, TAG_BANKS.doubleDouble);
+    add("double-double", "archetype", 155, TAG_BANKS.doubleDouble, ["#DoubleDouble"]);
   } else if (stats.points >= 10 && stats.rebounds >= 5 && stats.assists >= 5) {
     add("all-around", "archetype", 112, TAG_BANKS.allAround);
   } else if (stats.points >= 7 && stats.rebounds >= 7 && stats.assists >= 7) {
