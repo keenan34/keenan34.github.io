@@ -2,108 +2,56 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toBlob } from "html-to-image";
 import { getPlayerHashtags } from "./playerHashtags";
+import { useStableImage } from "./useStableImage";
+
+function photoInitials(name) {
+  return String(name || "").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+}
 
 function CardPhoto({ imgUrl, name }) {
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setError(false);
-  }, [imgUrl]);
-
-  const initials = String(name || "")
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  if (!imgUrl || error) {
-    return (
-      <span className="grid h-16 w-16 flex-none place-items-center rounded-full bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af]">
-        {initials}
-      </span>
-    );
-  }
-
+  const shown = useStableImage(imgUrl, { crossOrigin: "anonymous" });
   return (
-    <img
-      src={imgUrl}
-      alt={name}
-      crossOrigin="anonymous"
-      onError={() => setError(true)}
-      className="h-16 w-16 flex-none rounded-full object-cover"
-    />
+    <span className="relative grid h-16 w-16 flex-none place-items-center rounded-full bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af] overflow-hidden">
+      {shown ? (
+        <img src={shown} alt={name} crossOrigin="anonymous"
+          className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        photoInitials(name)
+      )}
+    </span>
   );
 }
 
 function StripPhoto({ imgUrl, name, selected, onClick }) {
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setError(false);
-  }, [imgUrl]);
-
-  const initials = String(name || "")
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
+  const shown = useStableImage(imgUrl, { crossOrigin: "anonymous" });
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <button type="button" onClick={onClick}
       className="relative flex h-[62px] w-[58px] flex-none flex-col items-center justify-end pb-1.5"
       aria-label={name}
     >
-      {!imgUrl || error ? (
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-[#1f1f22] text-xs font-black leading-none text-[#9ca3af]">
-          {initials}
-        </span>
-      ) : (
-        <img
-          src={imgUrl}
-          alt=""
-          crossOrigin="anonymous"
-          onError={() => setError(true)}
-          className="h-12 w-12 rounded-full object-cover"
-        />
-      )}
+      <span className="relative grid h-12 w-12 place-items-center rounded-full bg-[#1f1f22] text-xs font-black leading-none text-[#9ca3af] overflow-hidden">
+        {shown ? (
+          <img src={shown} alt="" crossOrigin="anonymous"
+            className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          photoInitials(name)
+        )}
+      </span>
       {selected && <span className="absolute bottom-0 h-1 w-full bg-[#0284c7]" />}
     </button>
   );
 }
 
 function MiniPhoto({ imgUrl, name }) {
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    setError(false);
-  }, [imgUrl]);
-
-  const initials = String(name || "")
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  if (!imgUrl || error) {
-    return (
-      <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-[#1f1f22] text-xs font-black leading-none text-[#9ca3af]">
-        {initials}
-      </span>
-    );
-  }
-
+  const shown = useStableImage(imgUrl);
   return (
-    <img
-      src={imgUrl}
-      alt={name}
-      onError={() => setError(true)}
-      className="h-9 w-9 flex-none rounded-full object-cover"
-    />
+    <span className="relative grid h-9 w-9 flex-none place-items-center rounded-full bg-[#1f1f22] text-xs font-black leading-none text-[#9ca3af] overflow-hidden">
+      {shown ? (
+        <img src={shown} alt={name} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        photoInitials(name)
+      )}
+    </span>
   );
 }
 
@@ -586,9 +534,16 @@ export default function PlayerShareCard({
     );
     if (nextIndex < 0 || nextIndex === currentIndex) return;
 
-    // Players to the right enter from the right, matching a left swipe;
-    // players to the left enter from the left, matching a right swipe.
-    slideToPlayer(teammate, nextIndex > currentIndex ? 1 : -1);
+    const len = teamPlayers.length;
+    const fwd = (nextIndex - currentIndex + len) % len;
+    const bwd = (currentIndex - nextIndex + len) % len;
+    const dist = Math.min(fwd, bwd);
+
+    if (dist === 1) {
+      slideToPlayer(teammate, fwd <= bwd ? 1 : -1);
+    } else {
+      onSelectPlayer?.(teammate);
+    }
   }
 
   function handleTouchStart(event) {
@@ -684,9 +639,6 @@ export default function PlayerShareCard({
 
       const options = {
         pixelRatio: 2,
-        // Fill the corner triangles with the card colour so they don't go
-        // white/transparent; the rounded gray border defines the card shape.
-        backgroundColor: "#050505",
         cacheBust: false,
       };
       // html-to-image inlines remote images lazily, so the first pass often
@@ -894,8 +846,8 @@ export default function PlayerShareCard({
           .is-capturing .ifn-capture-brand { display: inline; }
           .is-capturing.ifn-export-card {
             padding: 0 16px 16px;
-            border-radius: 12px;
-            border: 1px solid #262626;
+            border-radius: 14px;
+            border: 0.5px solid #34343a;
             overflow: hidden;
           }
           .is-capturing .ifn-export-profile {

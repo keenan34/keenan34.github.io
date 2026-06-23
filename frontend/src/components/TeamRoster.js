@@ -230,7 +230,12 @@ export default function TeamRoster() {
                   );
 
                   return link ? (
-                    <Link key={idx} to={link} className="block no-underline">
+                    <Link
+                      key={idx}
+                      to={link}
+                      className="block no-underline"
+                      onClick={() => window.scrollTo(0, 0)}
+                    >
                       {row}
                     </Link>
                   ) : (

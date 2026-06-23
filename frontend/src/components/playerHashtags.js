@@ -225,23 +225,23 @@ export function selectPlayerHashtagDetails(player, options = {}) {
       "scoring",
       116 + stats.points / 10,
       TAG_BANKS.scoringNuclear,
-      ["#30Points", "#30Bomb", ...TAG_BANKS.scoringNuclear]
+      ["#30Points"]
     );
   } else if (stats.points >= 20 && !coldShooting) {
     add(
       "scoring-big",
       "scoring",
-      96 + stats.points / 10,
+      112 + stats.points / 10,
       TAG_BANKS.scoringBig,
-      ["#20Points", ...TAG_BANKS.scoringBig]
+      ["#20Points"]
     );
   } else if (stats.points >= 10) {
     add(
       "scoring-impact",
       "scoring",
-      64 + stats.points / 10,
+      90 + stats.points / 10,
       TAG_BANKS.scoringImpact,
-      ["#10Points", ...TAG_BANKS.scoringImpact]
+      ["#10Points"]
     );
   }
 

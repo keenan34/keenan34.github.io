@@ -58,7 +58,7 @@ function TeamChip({ season, name, selected, onClick }) {
           src={teamLogoUrl(season, name)}
           alt={name}
           onError={() => setError(true)}
-          className="h-12 w-12 rounded-full object-contain"
+          className="h-12 w-12 object-contain"
         />
       )}
       {selected && <span className="absolute bottom-0 h-1 w-full bg-[#0284c7]" />}
@@ -68,15 +68,12 @@ function TeamChip({ season, name, selected, onClick }) {
 
 function TeamBadge({ season, name }) {
   const [error, setError] = useState(false);
-  useEffect(() => {
-    setError(false);
-  }, [name]);
   const letter = String(name || "?").trim().charAt(0).toUpperCase() || "?";
 
   if (error) {
     return (
       <span
-        className="grid h-16 w-16 flex-none place-items-center rounded-full bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af]"
+        className="grid h-16 w-16 flex-none place-items-center bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af]"
         aria-hidden="true"
       >
         {letter}
@@ -304,7 +301,6 @@ export default function TeamShareCard({
 
       const options = {
         pixelRatio: 2,
-        backgroundColor: "#050505",
         cacheBust: false,
       };
       // A throwaway warm-up pass populates html-to-image's resource cache so the
@@ -488,7 +484,12 @@ export default function TeamShareCard({
             from { opacity: 0; }
             to { opacity: 1; }
           }
-          .is-capturing.ifn-export-card { padding: 0 16px 16px; }
+          .is-capturing.ifn-export-card {
+            padding: 0 16px 16px;
+            border-radius: 14px;
+            border: 0.5px solid #34343a;
+            overflow: hidden;
+          }
           .is-capturing .ifn-export-profile {
             padding-top: 16px;
             padding-bottom: 16px;

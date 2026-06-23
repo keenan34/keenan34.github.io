@@ -13,10 +13,17 @@ body,
 #root {
   min-height: 100%;
   background: #050505;
+  scroll-behavior: auto;
+  overflow-anchor: none;
 }
 
 .app-main {
   flex: 1;
+  overflow-anchor: none;
+}
+
+.box-score-page {
+  overflow-anchor: none;
 }
 
 .theme-szn4 {

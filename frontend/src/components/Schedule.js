@@ -216,6 +216,7 @@ export default function Schedule() {
                           key={idx}
                           to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
                           className="block no-underline"
+                          onClick={() => window.scrollTo(0, 0)}
                         >
                           {content}
                         </Link>

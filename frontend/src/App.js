@@ -1,5 +1,5 @@
 // File: src/App.js
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -86,6 +86,34 @@ function HeaderNav() {
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // Stop the browser from restoring the previous page's scroll position.
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    const toTop = () => {
+      window.scrollTo(0, 0);
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    // Fire immediately, after paint, and after async content has had a beat to
+    // lay out — covers SPA navigation, scroll anchoring, and iOS restoration.
+    toTop();
+    const raf = requestAnimationFrame(toTop);
+    const t1 = setTimeout(toTop, 0);
+    const t2 = setTimeout(toTop, 120);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [pathname]);
+  return null;
+}
+
 function AppShell() {
   const activeSeason = useActiveSeason();
   const { pathname } = useLocation();
@@ -99,6 +127,7 @@ function AppShell() {
 
   return (
     <div className={`app-shell ${themeClass} ${isAdminRoute ? "is-admin" : "is-public"}`}>
+      <ScrollToTop />
       {!isAdminRoute && <HeaderNav />}
 
       <main className="app-main">

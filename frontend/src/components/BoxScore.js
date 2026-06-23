@@ -1,12 +1,58 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import PlayerShareCard from "./PlayerShareCard";
 import TeamShareCard from "./TeamShareCard";
+import { useStableImage } from "./useStableImage";
 
 
 const API_BASE_URL = resolveApiBaseUrl();
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
+function forceDocumentTop(target) {
+  const scrollRoots = [
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+  ].filter(Boolean);
+
+  if (target?.scrollIntoView) {
+    target.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+  }
+
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  scrollRoots.forEach((root) => {
+    root.scrollTop = 0;
+    root.scrollLeft = 0;
+  });
+}
+
+function scheduleDocumentTopReset(target) {
+  const timers = [];
+  const frames = [];
+  const run = () => forceDocumentTop(target);
+
+  run();
+  frames.push(requestAnimationFrame(run));
+  frames.push(requestAnimationFrame(() => requestAnimationFrame(run)));
+  [50, 120, 250, 500, 850].forEach((delay) => {
+    timers.push(window.setTimeout(run, delay));
+  });
+
+  const viewport = window.visualViewport;
+  if (viewport?.addEventListener) {
+    viewport.addEventListener("resize", run);
+    timers.push(
+      window.setTimeout(() => viewport.removeEventListener("resize", run), 900)
+    );
+  }
+
+  return () => {
+    frames.forEach((frame) => cancelAnimationFrame(frame));
+    timers.forEach((timer) => clearTimeout(timer));
+    if (viewport?.removeEventListener) viewport.removeEventListener("resize", run);
+  };
+}
 
 // simple slugify utility
 const slugify = (name) =>
@@ -211,50 +257,27 @@ function toLegacyBoxScore(apiData) {
 }
 
 function ProfileImage({ src, fallbackSrc, name, onClick, className = "w-16 h-16" }) {
-  const [error, setError] = useState(false);
-  const [triedFallback, setTriedFallback] = useState(false);
-
-  useEffect(() => {
-    setError(false);
-    setTriedFallback(false);
-  }, [src, fallbackSrc]);
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
-  const baseClasses = `${className} rounded-full flex items-center justify-center cursor-pointer`;
-
-  if ((!src && !fallbackSrc) || error) {
-    return (
-      <div
-        onClick={onClick}
-        className={`${baseClasses} bg-[#e2e8f0] text-sm font-black text-[#64748b]`}
-      >
-        {initials}
-      </div>
-    );
-  }
+  const shown = useStableImage([src, fallbackSrc]);
+  const initials = name.split(" ").map((n) => n[0]).join("");
 
   return (
-    <img
-      alt={name}
-      onError={() => {
-        if (!triedFallback && fallbackSrc) {
-          setTriedFallback(true);
-          return;
-        }
-        setError(true);
-      }}
+    <div
       onClick={onClick}
-      src={triedFallback ? fallbackSrc : src}
-      className={`${baseClasses} object-cover`}
-    />
+      className={`${className} relative rounded-full bg-[#e2e8f0] flex items-center justify-center cursor-pointer overflow-hidden flex-none`}
+    >
+      {shown ? (
+        <img alt={name} src={shown} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <span className="text-sm font-black text-[#64748b]">{initials}</span>
+      )}
+    </div>
   );
 }
 
 export default function BoxScore() {
   const { season, week, gameId } = useParams();
   const activeSeason = season || "szn5";
+  const pageRef = useRef(null);
 
   const [data, setData] = useState(null);
   const [scores, setScores] = useState({ a: null, b: null });
@@ -317,6 +340,15 @@ export default function BoxScore() {
     return () => controller.abort();
   }, [activeSeason, week, gameId]);
 
+  useLayoutEffect(() => {
+    return scheduleDocumentTopReset(pageRef.current);
+  }, [activeSeason, week, gameId]);
+
+  useLayoutEffect(() => {
+    if (!data || loading) return undefined;
+    return scheduleDocumentTopReset(pageRef.current);
+  }, [data, loading]);
+
   // team records (W-L) for the header, keyed by normalized team name
   useEffect(() => {
     let cancelled = false;
@@ -342,6 +374,16 @@ export default function BoxScore() {
       cancelled = true;
     };
   }, [activeSeason]);
+
+  // Preload both team logos as soon as the matchup is known so the <img> tags
+  // paint instantly from cache — no flicker when switching the home/away tab.
+  useEffect(() => {
+    [matchInfo?.teamA, matchInfo?.teamB].forEach((name) => {
+      if (!name) return;
+      const img = new Image();
+      img.src = teamLogoUrl(activeSeason, name);
+    });
+  }, [activeSeason, matchInfo?.teamA, matchInfo?.teamB]);
 
 
   if (loading) return <p className="text-center py-8">Loading…</p>;
@@ -392,10 +434,12 @@ export default function BoxScore() {
           {statusText}
         </span>
         {matchInfo?.date && (
-          <span className="mt-1 text-center text-xs font-bold text-[#64748b]">
-            {matchInfo.date}
-            {matchInfo.time ? ` · ${matchInfo.time}` : ""}
-          </span>
+          <div className="mt-1 flex flex-col items-center">
+            <span className="text-center text-xs font-bold text-[#64748b]">{matchInfo.date}</span>
+            {matchInfo.time && (
+              <span className="text-center text-xs text-[#94a3b8]">{matchInfo.time}</span>
+            )}
+          </div>
         )}
       </div>
 
@@ -674,9 +718,11 @@ export default function BoxScore() {
         Box score available after game
       </div>
       {matchInfo?.date && (
-        <div className="mt-1 text-sm font-bold text-[#64748b]">
-          {matchInfo.date}
-          {matchInfo.time ? ` · ${matchInfo.time}` : ""}
+        <div className="mt-1 flex flex-col items-center">
+          <span className="text-sm font-bold text-[#64748b]">{matchInfo.date}</span>
+          {matchInfo.time && (
+            <span className="text-sm text-[#94a3b8]">{matchInfo.time}</span>
+          )}
         </div>
       )}
     </div>
@@ -709,10 +755,11 @@ export default function BoxScore() {
 
   return (
     <div
+      ref={pageRef}
       style={{ zoom: 0.97 }}
-      className="mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]"
+      className="box-score-page mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]"
     >
-      <Header />
+      {Header()}
 
       {/* tabs */}
       <div className="mb-4 flex border-b border-[#e2e8f0]">
