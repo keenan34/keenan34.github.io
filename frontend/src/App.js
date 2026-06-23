@@ -1,5 +1,5 @@
 // File: src/App.js
-import React, { useEffect, useMemo } from "react";
+import React, { memo, useEffect, useMemo } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -33,9 +33,9 @@ function SeasonRootRedirect() {
   return <Navigate to={`/season/${season}/teams`} replace />;
 }
 
-function NavLink({ to, children, active }) {
+function NavLink({ to, children }) {
   return (
-    <Link to={to} className={"site-nav-link " + (active ? "is-active" : "")}>
+    <Link to={to} className="site-nav-link">
       {children}
     </Link>
   );
@@ -48,11 +48,7 @@ function useActiveSeason() {
   return match?.[1] || "szn5";
 }
 
-function HeaderNav() {
-  const { pathname } = useLocation();
-  const isActive = (path) =>
-    pathname === path || pathname.startsWith(path + "/");
-
+const HeaderNav = memo(function HeaderNav() {
   return (
     <nav className="site-nav">
       <div className="site-nav-inner">
@@ -64,19 +60,10 @@ function HeaderNav() {
         {/* Mobile friendly scroll */}
         <div className="site-nav-scroll">
           <div className="site-nav-links">
-            <NavLink to="/teams" active={isActive("/teams")}>
-              Teams
-            </NavLink>
-            <NavLink to="/schedule" active={isActive("/schedule")}>
-              Schedule
-            </NavLink>
-            <NavLink to="/leaders" active={isActive("/leaders")}>
-              Leaders
-            </NavLink>
-            <NavLink
-              to="/previous-seasons"
-              active={isActive("/previous-seasons")}
-            >
+            <NavLink to="/teams">Teams</NavLink>
+            <NavLink to="/schedule">Schedule</NavLink>
+            <NavLink to="/leaders">Leaders</NavLink>
+            <NavLink to="/previous-seasons">
               Previous Seasons
             </NavLink>
           </div>
@@ -84,33 +71,14 @@ function HeaderNav() {
       </div>
     </nav>
   );
-}
+});
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
   useEffect(() => {
-    // Stop the browser from restoring the previous page's scroll position.
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
-    const toTop = () => {
-      window.scrollTo(0, 0);
-      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    };
-    // Fire immediately, after paint, and after async content has had a beat to
-    // lay out — covers SPA navigation, scroll anchoring, and iOS restoration.
-    toTop();
-    const raf = requestAnimationFrame(toTop);
-    const t1 = setTimeout(toTop, 0);
-    const t2 = setTimeout(toTop, 120);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [pathname]);
+  }, []);
   return null;
 }
 

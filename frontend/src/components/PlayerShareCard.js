@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import { toBlob } from "html-to-image";
 import { getPlayerHashtags } from "./playerHashtags";
 import { useStableImage } from "./useStableImage";
+
+const slugify = (name) =>
+  String(name || "")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+
+const playerPagePath = (season, player) => {
+  const slug = player?.slug || slugify(player?.Player);
+  if (!slug) return null;
+  return season ? `/season/${season}/player/${slug}` : `/player/${slug}`;
+};
 
 function photoInitials(name) {
   return String(name || "").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -248,6 +261,7 @@ function CardBody({
   const hasScore =
     typeof teamScore === "number" && typeof opponentScore === "number";
   const seasonNumber = String(season || "").match(/\d+/)?.[0];
+  const playerLink = playerPagePath(season, player);
   const playerHashtags = getPlayerHashtags(player, {
     teamScore,
     opponentScore,
@@ -262,13 +276,32 @@ function CardBody({
         className="ifn-export-card bg-[#050505] px-4 pb-5 text-white"
       >
         <div className="ifn-export-profile relative border-b border-[#1f1f22] py-5 pl-[76px]">
-          <span className="ifn-export-photo absolute left-0 top-5">
-            <CardPhoto imgUrl={imgUrl} name={player.Player} />
-          </span>
+          {playerLink ? (
+            <Link
+              to={playerLink}
+              className="ifn-export-photo absolute left-0 top-5"
+              aria-label={`Open ${player.Player} player page`}
+            >
+              <CardPhoto imgUrl={imgUrl} name={player.Player} />
+            </Link>
+          ) : (
+            <span className="ifn-export-photo absolute left-0 top-5">
+              <CardPhoto imgUrl={imgUrl} name={player.Player} />
+            </span>
+          )}
           <div className="min-w-0 pr-12">
-            <div className="truncate text-[17px] font-medium leading-tight text-[#d6d8df]">
-              {player.Player}
-            </div>
+            {playerLink ? (
+              <Link
+                to={playerLink}
+                className="block truncate text-[17px] font-medium leading-tight text-[#d6d8df] hover:text-white"
+              >
+                {player.Player}
+              </Link>
+            ) : (
+              <div className="truncate text-[17px] font-medium leading-tight text-[#d6d8df]">
+                {player.Player}
+              </div>
+            )}
             {isDnp ? (
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black leading-none text-white">DNP</span>
@@ -813,7 +846,7 @@ export default function PlayerShareCard({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#050505] text-white"
+      className="fixed inset-0 z-[1100] flex flex-col overflow-hidden bg-[#050505] text-white"
       style={{
         animation: `${closing ? "ifnPlayerSlideOut" : "ifnPlayerSlideIn"} 180ms ease-out forwards`,
       }}
@@ -976,7 +1009,7 @@ export default function PlayerShareCard({
 
       {sheetOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60"
+          className="fixed inset-0 z-[1110] flex items-end justify-center bg-black/60"
           style={{ animation: "ifnSheetFade 180ms ease-out" }}
           onClick={(event) => {
             event.stopPropagation();

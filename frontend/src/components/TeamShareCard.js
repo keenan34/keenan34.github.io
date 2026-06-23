@@ -453,7 +453,7 @@ export default function TeamShareCard({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-[#050505] text-white"
+      className="fixed inset-0 z-[1100] flex flex-col overflow-y-auto bg-[#050505] text-white"
       style={{
         animation: `${closing ? "ifnPlayerSlideOut" : "ifnPlayerSlideIn"} 180ms ease-out forwards`,
       }}
@@ -639,7 +639,7 @@ export default function TeamShareCard({
 
       {sheetOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60"
+          className="fixed inset-0 z-[1110] flex items-end justify-center bg-black/60"
           style={{ animation: "ifnSheetFade 180ms ease-out" }}
           onClick={(event) => {
             event.stopPropagation();

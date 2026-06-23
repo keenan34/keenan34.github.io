@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getSeasonGames } from "../api/client";
 
 const teamColors = {
   UMMA: "bg-[#ffffff] text-[#0f172a]",
@@ -25,7 +26,22 @@ const slugify = (str) =>
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "");
 
-const isPlayedGame = (status) => status === "final" || status === "finished";
+const teamSlug = (name) =>
+  slugify(String(name || "").replace(/^the\s+/i, ""));
+
+const teamLogoUrl = (season, name) =>
+  `${PUBLIC_URL}/seasons/${season}/images/teams/${teamSlug(name)}.png`;
+
+const hasScoreValue = (value) =>
+  value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+
+const hasGameScore = (game) => hasScoreValue(game?.scoreA) && hasScoreValue(game?.scoreB);
+
+const isPlayedGame = (game) => {
+  if (game?.status === "final" || game?.status === "finished") return true;
+
+  return hasGameScore(game);
+};
 
 function ProfileImage({ name, season, imgUrl }) {
   const [error, setError] = useState(false);
@@ -68,6 +84,36 @@ function ProfileImage({ name, season, imgUrl }) {
   );
 }
 
+function TeamLogo({ season, name }) {
+  const [error, setError] = useState(false);
+  const initials = String(name || "")
+    .replace(/^the\s+/i, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  if (error) {
+    return (
+      <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-[#e2e8f0] bg-[#f8fafc] text-2xl font-black text-[#64748b]">
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={teamLogoUrl(season, name)}
+      alt={`${name} logo`}
+      className="mb-4 h-28 w-28 object-contain"
+      onError={() => setError(true)}
+      loading="eager"
+    />
+  );
+}
+
 export default function TeamRoster() {
   const { season, id } = useParams();
   const activeSeason = season || "szn5";
@@ -80,6 +126,24 @@ export default function TeamRoster() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    scrollToTop();
+    const frame = requestAnimationFrame(scrollToTop);
+    const timer = window.setTimeout(scrollToTop, 80);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [activeSeason, teamName]);
+
+  useEffect(() => {
     setLoading(true);
 
     const v = Date.now();
@@ -88,11 +152,9 @@ export default function TeamRoster() {
       fetch(`/seasons/${activeSeason}/players_with_images.json?v=${v}`).then((r) =>
         r.json()
       ),
-      fetch(`/seasons/${activeSeason}/full_schedule.json?v=${v}`).then(
-        (r) => r.json()
-      ),
+      getSeasonGames(activeSeason),
     ])
-      .then(([teamsData, imagesData, schedule]) => {
+      .then(([teamsData, imagesData, gamesData]) => {
         const plainRoster = teamsData?.[teamName] || [];
 
         const merged = plainRoster.map((p) => {
@@ -102,7 +164,10 @@ export default function TeamRoster() {
 
         setRoster(merged);
 
-        const teamGames = (schedule || [])
+        const schedule = Array.isArray(gamesData)
+          ? gamesData
+          : gamesData?.games || [];
+        const teamGames = schedule
           .filter((g) => g.teamA === teamName || g.teamB === teamName)
           .sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -116,20 +181,25 @@ export default function TeamRoster() {
     season ? `/season/${activeSeason}/player/${slug}` : `/player/${slug}`;
 
   const boxscoreLink = (game) => {
-    // expects game.gameId like "week1-game1" OR "week1-1"
-    if (!game?.gameId) return null;
-    const [weekPart, idPart] = game.gameId.split("-");
+    const gameId = typeof game?.gameId === "string" ? game.gameId : "";
+    const separatorIndex = gameId.indexOf("-");
+    if (separatorIndex <= 0 || separatorIndex >= gameId.length - 1) return null;
+
+    const weekPart = gameId.slice(0, separatorIndex);
+    const idPart = gameId.slice(separatorIndex + 1);
     if (!weekPart || !idPart) return null;
+
     return `/season/${activeSeason}/boxscore/${weekPart}/${idPart}`;
   };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8 text-[#0f172a] sm:px-6">
-      <h2
-        className={`mx-auto mb-8 max-w-3xl rounded-lg border border-[#e2e8f0] p-5 text-center text-3xl font-black shadow-sm ${colorClass}`}
+      <header
+        className={`mx-auto mb-8 flex max-w-3xl flex-col items-center rounded-lg border border-[#e2e8f0] p-6 text-center shadow-sm ${colorClass}`}
       >
-        {teamName} Team Page
-      </h2>
+        <TeamLogo season={activeSeason} name={teamName} />
+        <h2 className="text-3xl font-black">{teamName} Team Page</h2>
+      </header>
 
       {loading ? (
         <p className="text-center font-bold text-[#64748b]">Loading...</p>
@@ -182,21 +252,26 @@ export default function TeamRoster() {
               <div className="space-y-3">
                 {games.map((g, idx) => {
                   const isHome = g.teamA === teamName;
-                  const myScore = isHome ? g.scoreA : g.scoreB;
-                  const oppScore = isHome ? g.scoreB : g.scoreA;
+                  const scoreA = Number(g.scoreA);
+                  const scoreB = Number(g.scoreB);
+                  const hasScore = hasGameScore(g);
+                  const played = isPlayedGame(g) && hasScore;
+                  const myScore = isHome ? scoreA : scoreB;
+                  const oppScore = isHome ? scoreB : scoreA;
                   const opp = isHome ? g.teamB : g.teamA;
 
-                  const hasScore =
-                    isPlayedGame(g.status) &&
-                    typeof g.scoreA === "number" &&
-                    typeof g.scoreB === "number";
-                  const won = hasScore && myScore > oppScore;
-                  const lost = hasScore && myScore < oppScore;
+                  const won = played && myScore > oppScore;
+                  const lost = played && myScore < oppScore;
+                  const resultLabel = won ? "W" : lost ? "L" : "T";
 
-                  const link = hasScore ? boxscoreLink(g) : null;
+                  const link = played ? boxscoreLink(g) : null;
 
                   const row = (
-                    <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-3 shadow-sm">
+                    <div
+                      className={`flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-3 shadow-sm transition ${
+                        link ? "hover:border-[#0284c7] hover:shadow-md" : "opacity-80"
+                      }`}
+                    >
                       <div className="flex flex-col">
                         <span className="text-sm font-bold text-[#64748b]">
                           {g.date} {g.time ? `· ${g.time}` : ""}
@@ -205,13 +280,10 @@ export default function TeamRoster() {
                       </div>
 
                       <div className="text-right">
-                        {hasScore ? (
+                        {played ? (
                           <>
-                            <span className="font-black text-[#0f172a]">
-                              {myScore}-{oppScore}
-                            </span>
-                            <div
-                              className={`text-xs font-semibold ${
+                            <span
+                              className={`font-black ${
                                 won
                                   ? "text-[#34d399]"
                                   : lost
@@ -219,7 +291,10 @@ export default function TeamRoster() {
                                   : "text-[#64748b]"
                               }`}
                             >
-                              {won ? "W" : lost ? "L" : ""}
+                              {resultLabel}
+                            </span>
+                            <div className="text-xs font-black text-[#0f172a]">
+                              {myScore}-{oppScore}
                             </div>
                           </>
                         ) : (
@@ -234,7 +309,6 @@ export default function TeamRoster() {
                       key={idx}
                       to={link}
                       className="block no-underline"
-                      onClick={() => window.scrollTo(0, 0)}
                     >
                       {row}
                     </Link>

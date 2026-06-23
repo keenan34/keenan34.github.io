@@ -28,6 +28,24 @@ export default function TeamList() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    scrollToTop();
+    const frame = requestAnimationFrame(scrollToTop);
+    const timer = window.setTimeout(scrollToTop, 80);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [activeSeason]);
+
+  useEffect(() => {
     const controller = new AbortController();
 
     setLoading(true);
@@ -114,9 +132,9 @@ export default function TeamList() {
         </header>
 
       {/* STANDINGS TABLE */}
-      <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
-        <div className="border-b border-[#e2e8f0] px-6 py-4">
-          <h2 className="text-lg font-black text-[#0f172a]">Standings</h2>
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+        <div className="border-b border-[#e2e8f0] px-6 py-5">
+          <h2 className="text-2xl font-black text-[#0f172a]">Standings</h2>
         </div>
 
         {loading ? (
@@ -127,13 +145,13 @@ export default function TeamList() {
           <div className="p-6 text-center font-bold text-[#f87171]">{errorMsg}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full table-auto divide-y divide-[#e2e8f0] text-center">
+            <table className="w-full table-auto divide-y divide-[#e2e8f0] text-center text-base sm:text-lg">
               <thead className="bg-[#f8fafc] text-[#64748b]">
                 <tr>
                   {["#", "Team", "W", "L", "Win%"].map((col) => (
                     <th
                       key={col}
-                      className="px-4 py-3 text-xs font-black uppercase tracking-wide"
+                      className="px-4 py-4 text-sm font-black uppercase tracking-wide"
                     >
                       {col}
                     </th>
@@ -143,13 +161,24 @@ export default function TeamList() {
               <tbody className="divide-y divide-[#e2e8f0] bg-[#ffffff]">
                 {standingsArray.map((row, idx) => (
                   <tr key={row.team} className={idx % 2 ? "bg-[#f8fafc]" : ""}>
-                    <td className="px-4 py-3 font-bold text-[#64748b]">{idx + 1}</td>
-                    <td className="px-4 py-3 font-black text-[#0f172a]">
-                      {row.team}
+                    <td className="px-4 py-5 font-bold text-[#64748b]">{idx + 1}</td>
+                    <td className="px-4 py-5 text-left">
+                      <Link
+                        to={
+                          season
+                            ? `/season/${activeSeason}/teams/${encodeURIComponent(
+                                row.team
+                              )}/roster`
+                            : `/teams/${encodeURIComponent(row.team)}/roster`
+                        }
+                        className="inline-flex min-h-11 items-center rounded-md px-3 text-xl font-black text-[#0284c7] transition hover:bg-[#e0f2fe] hover:text-[#075985] hover:underline focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2"
+                      >
+                        {row.team}
+                      </Link>
                     </td>
-                    <td className="px-4 py-3 font-bold text-[#475569]">{row.wins}</td>
-                    <td className="px-4 py-3 font-bold text-[#475569]">{row.losses}</td>
-                    <td className="px-4 py-3 font-bold text-[#475569]">
+                    <td className="px-4 py-5 font-bold text-[#475569]">{row.wins}</td>
+                    <td className="px-4 py-5 font-bold text-[#475569]">{row.losses}</td>
+                    <td className="px-4 py-5 font-bold text-[#475569]">
                       {(row.winPct * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -158,25 +187,6 @@ export default function TeamList() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* TEAM CARDS */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {teams.map((team) => (
-          <Link
-            key={team}
-            to={
-              season
-                ? `/season/${activeSeason}/teams/${encodeURIComponent(
-                    team
-                  )}/roster`
-                : `/teams/${encodeURIComponent(team)}/roster`
-            }
-            className="flex min-h-[88px] items-center justify-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-5 text-center shadow-sm transition hover:border-[#0284c7] hover:shadow-md"
-          >
-            <span className="text-lg font-black text-[#0f172a]">{team}</span>
-          </Link>
-        ))}
       </div>
       </div>
     </div>

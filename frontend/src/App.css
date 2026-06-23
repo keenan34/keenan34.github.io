@@ -1,5 +1,6 @@
 /* ====== SEASON THEMES ====== */
 .app-shell {
+  --site-nav-height: 65px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -22,13 +23,17 @@ body,
   overflow-anchor: none;
 }
 
+.app-shell.is-public .app-main {
+  padding-top: var(--site-nav-height);
+}
+
 .box-score-page {
   overflow-anchor: none;
 }
 
 .theme-szn4 {
   --bg: #050505;
-  --nav: rgba(5, 5, 5, 0.94);
+  --nav: #050505;
   --panel: #0a0a0a;
   --panel-soft: #101820;
   --border: #1f1f22;
@@ -43,7 +48,7 @@ body,
 /* SZN5 Theme */
 .theme-szn5 {
   --bg: #050505;
-  --nav: rgba(5, 5, 5, 0.94);
+  --nav: #050505;
   --panel: #0a0a0a;
   --panel-soft: #101820;
   --border: #173b59;
@@ -59,7 +64,7 @@ body,
 /* SZN3 Theme */
 .theme-szn3 {
   --bg: #050505;
-  --nav: rgba(5, 5, 5, 0.94);
+  --nav: #050505;
   --panel: #0a0a0a;
   --panel-soft: #101820;
   --border: #1f1f22;
@@ -71,14 +76,20 @@ body,
 
 /* ====== NAV ====== */
 .site-nav {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 50;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
   background: var(--nav);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  contain: layout paint style;
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .site-nav-inner {
@@ -132,7 +143,7 @@ body,
   text-decoration: none;
   color: var(--muted);
   border: 1px solid transparent;
-  transition: color 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  -webkit-tap-highlight-color: transparent;
   font-size: 14px;
   font-weight: 850;
   font-style: italic;

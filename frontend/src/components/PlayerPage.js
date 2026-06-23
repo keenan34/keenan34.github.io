@@ -516,7 +516,6 @@ export default function PlayerPage() {
                     if (!entry?.gameId) return;
                     const [, gameKey] = entry.gameId.split("-");
                     if (!gameKey) return;
-                    window.scrollTo(0, 0);
                     navigate(
                       `/season/${activeSeason}/boxscore/${weekKey}/${gameKey}`
                     );

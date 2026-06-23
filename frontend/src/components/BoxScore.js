@@ -9,16 +9,12 @@ import { useStableImage } from "./useStableImage";
 const API_BASE_URL = resolveApiBaseUrl();
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
 
-function forceDocumentTop(target) {
+function forceDocumentTop() {
   const scrollRoots = [
     document.scrollingElement,
     document.documentElement,
     document.body,
   ].filter(Boolean);
-
-  if (target?.scrollIntoView) {
-    target.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
-  }
 
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   scrollRoots.forEach((root) => {
@@ -27,30 +23,20 @@ function forceDocumentTop(target) {
   });
 }
 
-function scheduleDocumentTopReset(target) {
+function scheduleDocumentTopReset() {
   const timers = [];
   const frames = [];
-  const run = () => forceDocumentTop(target);
+  const run = () => forceDocumentTop();
 
   run();
   frames.push(requestAnimationFrame(run));
-  frames.push(requestAnimationFrame(() => requestAnimationFrame(run)));
-  [50, 120, 250, 500, 850].forEach((delay) => {
+  [80, 180].forEach((delay) => {
     timers.push(window.setTimeout(run, delay));
   });
-
-  const viewport = window.visualViewport;
-  if (viewport?.addEventListener) {
-    viewport.addEventListener("resize", run);
-    timers.push(
-      window.setTimeout(() => viewport.removeEventListener("resize", run), 900)
-    );
-  }
 
   return () => {
     frames.forEach((frame) => cancelAnimationFrame(frame));
     timers.forEach((timer) => clearTimeout(timer));
-    if (viewport?.removeEventListener) viewport.removeEventListener("resize", run);
   };
 }
 
@@ -341,12 +327,12 @@ export default function BoxScore() {
   }, [activeSeason, week, gameId]);
 
   useLayoutEffect(() => {
-    return scheduleDocumentTopReset(pageRef.current);
+    return scheduleDocumentTopReset();
   }, [activeSeason, week, gameId]);
 
   useLayoutEffect(() => {
     if (!data || loading) return undefined;
-    return scheduleDocumentTopReset(pageRef.current);
+    return scheduleDocumentTopReset();
   }, [data, loading]);
 
   // team records (W-L) for the header, keyed by normalized team name
