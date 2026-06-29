@@ -4,96 +4,101 @@ const TAG_BANKS = {
     "#AllAround", "#Monster", "#Special", "#TripleThreat",
   ],
   doubleDouble: [
-    "#DoubleDouble", "#TwoWayNight", "#FilledSheet", "#BigGame", "#Numbers",
-    "#DoingItAll", "#BothCategories", "#CompleteGame",
+    "#DoubleDouble", "#TwoWayNight", "#BigGame", "#Numbers", "#DoingItAll",
+    "#BothCategories", "#CompleteGame",
   ],
   allAround: [
-    "#AllAround", "#Complete", "#Everywhere", "#Versatile", "#FilledSheet",
-    "#DoItAll", "#TripleThreat", "#DoingEverything", "#BaggedOut",
+    "#Versatile", "#DoItAll", "#DoingEverything", "#BaggedOut",
   ],
   scoringNuclear: [
-    "#Nuclear", "#Unstoppable", "#Buckets", "#Torching", "#Different",
-    "#Special", "#Unreal", "#Masterclass", "#CantGuardHim", "#ThirtyPiece", "#30Bomb",
+    "#Nuclear", "#Unstoppable", "#Buckets", "#Torching", "#Unreal",
+    "#Masterclass", "#CantGuardHim", "#ThirtyPiece", "#30Bomb",
   ],
   scoringBig: [
-    "#Buckets", "#Cooking", "#Problem", "#Certified", "#Tough",
-    "#BagWork", "#TooEasy", "#WalkingBucket", "#TwentyPiece", "#GOATMode",
+    "#Cooking", "#Problem", "#Certified", "#Tough", "#BagWork",
+    "#TooEasy", "#WalkingBucket", "#TwentyPiece", "#GOATMode",
   ],
   scoringImpact: [
-    "#Buckets", "#Scorer", "#Bag", "#GettingBuckets", "#TheyKnow",
-    "#ThrowingBags", "#OnOne", "#Cooking",
+    "#Scorer", "#Bag", "#GettingBuckets", "#TheyKnow", "#ThrowingBags",
+    "#OnOne",
   ],
   assistElite: [
-    "#Dimer", "#PointGod", "#Playmaker", "#Vision", "#Maestro", "#Creator",
-    "#FloorGeneral", "#EverybodyEats", "#TenDimes", "#Dot",
+    "#Dimer", "#PointGod", "#Playmaker", "#Vision", "#Maestro",
+    "#Creator", "#FloorGeneral", "#EverybodyEats", "#TenDimes", "#Dot",
   ],
   assistStrong: [
-    "#Dimer", "#Playmaker", "#Vision", "#Creator", "#Dot", "#Disher",
-    "#GoodLooks", "#TeamFirst", "#DimeDropper",
+    "#Disher", "#GoodLooks", "#TeamFirst", "#DimeDropper",
   ],
   assistSupport: [
-    "#Unselfish", "#Playmaker", "#GoodLooks", "#TeamFirst", "#ExtraPass",
-    "#Creator", "#FindingPeople", "#Facilitator",
+    "#Unselfish", "#ExtraPass", "#FindingPeople", "#Facilitator",
   ],
   reboundElite: [
-    "#Boardman", "#Horse", "#Glasswork", "#Cleaning", "#BigBody", "#Monster",
+    "#Boardman", "#Horse", "#Glasswork", "#Cleaning", "#BigBody",
     "#PaintBeast", "#EveryBoard", "#GlassEater", "#Chairman",
   ],
   reboundStrong: [
-    "#Boards", "#Glasswork", "#Strong", "#Horse", "#Cleaning", "#BigBody",
-    "#PaintWork", "#OnTheGlass",
+    "#Boards", "#Strong", "#PaintWork", "#OnTheGlass",
   ],
   reboundSupport: [
-    "#Boards", "#Glasswork", "#Crash", "#Possessions", "#OnTheGlass",
-    "#EveryBoard", "#BoardWork", "#GrabbingGlass",
+    "#Crash", "#Possessions", "#BoardWork", "#GrabbingGlass",
   ],
   defenseElite: [
-    "#Clamps", "#Lockdown", "#Menace", "#Jail", "#Cookies", "#Eraser",
-    "#NoFlyZone", "#Stocks", "#BlockParty", "#DPOY", "#StockParty", "#CookieMonster",
+    "#Clamps", "#Lockdown", "#Menace", "#Jail", "#Cookies",
+    "#Eraser", "#NoFlyZone", "#Stocks", "#BlockParty", "#DPOY",
+    "#StockParty", "#CookieMonster",
   ],
   defenseStrong: [
-    "#Clamps", "#Defense", "#Menace", "#Cookies", "#Stocks", "#ActiveHands",
-    "#RimProtection", "#LockedIn", "#StockParty", "#CookieMonster",
+    "#Defense", "#ActiveHands", "#RimProtection", "#LockedIn",
   ],
   perfectShooting: [
-    "#Perfect", "#Automatic", "#Money", "#Pure", "#Cash", "#CantMiss",
-    "#Green", "#Flawless", "#NetOnly",
+    "#Perfect", "#Automatic", "#Money", "#Pure", "#Cash",
+    "#CantMiss", "#Green", "#Flawless", "#NetOnly",
   ],
   efficientShooting: [
-    "#Efficient", "#Pure", "#Money", "#Smooth", "#Cooking", "#EasyWork",
-    "#LockedIn", "#Clean", "#GOATTalk",
+    "#Efficient", "#Smooth", "#EasyWork", "#Clean", "#GOATTalk",
   ],
   threePointHeat: [
-    "#Splash", "#Sniper", "#Strapped", "#Range", "#Shooter", "#Wet",
-    "#Bang", "#FromDeep", "#Rain", "#ThreeBall",
+    "#Splash", "#Sniper", "#Strapped", "#Range", "#Shooter",
+    "#Wet", "#Bang", "#FromDeep", "#Rain", "#ThreeBall",
   ],
   paintPressure: [
-    "#Downhill", "#Strong", "#BullyBall", "#Attack", "#RimPressure",
-    "#PaintWork", "#Inside", "#AtTheRim",
+    "#Downhill", "#BullyBall", "#Attack", "#RimPressure", "#Inside",
+    "#AtTheRim",
   ],
   freeThrow: [
-    "#FreeMoney", "#Automatic", "#Cash", "#Routine", "#Money", "#AtTheLine",
-    "#NoPressure", "#Knockdown",
+    "#FreeMoney", "#Routine", "#AtTheLine", "#NoPressure", "#Knockdown",
   ],
   coldShooting: [
     "#ShootersShoot", "#KeepShooting", "#NextOne", "#ShortMemory", "#StayAggressive",
     "#BounceBack", "#StillHooping", "#NextGame",
   ],
   veryColdShooting: [
-    "#ConcertDate", "#TourDates", "#RoughNight", "#ColdNight",
-    "#BuildingBricks", "#RimCheck", "#ShootersShoot", "#ShotChucker",
+    "#RoughNight", "#ColdNight", "#BuildingBricks", "#RimCheck", "#ShotChucker",
+  ],
+  threeBarrage: [
+    "#GreenLight", "#FromWayDeep", "#CurryRange", "#CountIt", "#RainMaker",
+  ],
+  perfectThree: [
+    "#FlawlessFromDeep", "#PerfectFromThree", "#AllNet", "#NoRim", "#WetWork",
+  ],
+  fiveByFive: [
+    "#FiveByFive", "#StatSheet", "#DoesItAll", "#EveryColumn", "#FullBox",
+    "#Unicorn",
+  ],
+  efficientBig: [
+    "#EfficientNight", "#NoWastedPossessions", "#Surgical", "#Calculated", "#QuietEfficiency",
+    "#Methodical",
   ],
   cleanHandles: [
-    "#NoTurnovers", "#FloorGeneral", "#BallSecurity", "#ZeroTurnovers",
-    "#TightHandles", "#PurePG", "#NoLeaks", "#Controlled",
+    "#NoTurnovers", "#BallSecurity", "#ZeroTurnovers", "#TightHandles", "#PurePG",
+    "#NoLeaks", "#Controlled",
   ],
   turnoverTrouble: [
-    "#NextPlay", "#Reset", "#ShortMemory", "#StayAggressive", "#BounceBack",
-    "#CleanItUp", "#NextGame", "#KeepHooping",
+    "#NextPlay", "#Reset", "#CleanItUp", "#KeepHooping",
   ],
   foulTrouble: [
-    "#Physical", "#Aggressive", "#Enforcer", "#NoEasyOnes", "#Tough",
-    "#SetTheTone", "#HardFouls", "#Whistle",
+    "#Physical", "#Aggressive", "#Enforcer", "#NoEasyOnes", "#SetTheTone",
+    "#HardFouls", "#Whistle",
   ],
   hustle: [
     "#DirtyWork", "#WinningPlays", "#HardHat", "#GrindCity", "#EarnedIt",
@@ -104,16 +109,14 @@ const TAG_BANKS = {
     "#ShowedOut", "#WinnersMentality", "#TookOne",
   ],
   steady: [
-    "#Hooper", "#Gameday", "#LockedIn", "#KeepHooping", "#TeamFirst",
-    "#ShowedUp", "#StillHooping", "#OnTheCourt",
+    "#Hooper", "#Gameday", "#ShowedUp", "#OnTheCourt",
   ],
   merchant: [
-    "#Merchant", "#FreeThrowMerchant", "#AtTheLine", "#FoulPressure",
-    "#FreeMoney", "#StripeWork", "#Whistle", "#Crafty",
+    "#Merchant", "#FreeThrowMerchant", "#FoulPressure", "#StripeWork", "#Crafty",
   ],
   ethical: [
-    "#Ethical", "#Pure", "#RealBuckets", "#NoWhistle", "#Hooper",
-    "#BucketGetter", "#CleanWork", "#ToughBuckets",
+    "#Ethical", "#RealBuckets", "#NoWhistle", "#BucketGetter", "#CleanWork",
+    "#ToughBuckets",
   ],
 };
 
@@ -204,6 +207,9 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   const doubleFigures = [stats.points, stats.rebounds, stats.assists].filter(
     (value) => value >= 10
   ).length;
+  // #ConcertDate is reserved for a truly brutal night — a lot rarer than the
+  // ordinary cold-shooting tiers below it.
+  const concertDate = stats.fga >= 16 && stats.fgPct <= 0.275;
   const veryColdShooting = stats.fga >= 13 && stats.fgPct <= 0.35;
   const coldShooting = stats.fga >= 7 && stats.fgPct <= 0.35;
 
@@ -219,7 +225,23 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   }
 
   // Scoring — milestone tags pinned per tier
-  if (stats.points >= 30 && !coldShooting) {
+  if (stats.points >= 50 && !coldShooting) {
+    add(
+      "scoring-50",
+      "scoring",
+      130 + stats.points / 10,
+      TAG_BANKS.scoringNuclear,
+      ["#50Points"]
+    );
+  } else if (stats.points >= 40 && !coldShooting) {
+    add(
+      "scoring-40",
+      "scoring",
+      124 + stats.points / 10,
+      TAG_BANKS.scoringNuclear,
+      ["#40Points"]
+    );
+  } else if (stats.points >= 30 && !coldShooting) {
     add(
       "scoring-nuclear",
       "scoring",
@@ -245,7 +267,8 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     );
   }
 
-  if (stats.points === 0) {
+  // #Cardio — showed up, filled none of the core columns
+  if (stats.points === 0 && stats.rebounds === 0 && stats.assists === 0) {
     add("cardio", "scoring", 120, TAG_BANKS.steady, ["#Cardio"]);
   }
 
@@ -285,13 +308,20 @@ export function selectPlayerHashtagDetails(player, options = {}) {
   }
 
   // Shooting
-  if (veryColdShooting) {
+  if (concertDate) {
+    add(
+      "concert-date",
+      "shooting",
+      124 + stats.fga / 10,
+      TAG_BANKS.veryColdShooting,
+      ["#ConcertDate"]
+    );
+  } else if (veryColdShooting) {
     add(
       "very-cold-shooting",
       "shooting",
       114 + stats.fga / 10,
-      TAG_BANKS.veryColdShooting,
-      ["#ConcertDate"]
+      TAG_BANKS.veryColdShooting
     );
   } else if (coldShooting) {
     add("cold-shooting", "shooting", 102 + stats.fga / 10, TAG_BANKS.coldShooting);
@@ -303,6 +333,30 @@ export function selectPlayerHashtagDetails(player, options = {}) {
     add("efficient-shooting", "shooting", 108 + stats.fgm, TAG_BANKS.efficientShooting);
   } else if (stats.twoPm >= 5 && stats.twoPct >= 0.55) {
     add("paint-pressure", "shooting", 82 + stats.twoPm, TAG_BANKS.paintPressure);
+  }
+
+  // Rare statlines — unusual nights that override the generic tiers above.
+  // A barrage from deep pins its own tag; perfect volume from three is rarer
+  // still. Both sit in the "shooting" group so they win that slot by score.
+  if (stats.threePm >= 7) {
+    add("three-barrage", "shooting", 142 + stats.threePm, TAG_BANKS.threeBarrage, ["#GreenLight"]);
+  } else if (stats.threePm >= 5 && stats.threePm === stats.threePa) {
+    add("perfect-three", "shooting", 134 + stats.threePm, TAG_BANKS.perfectThree);
+  }
+
+  // 5x5 — at least 5 in points, rebounds, assists and stocks. Extremely rare.
+  if (
+    stats.points >= 5 &&
+    stats.rebounds >= 5 &&
+    stats.assists >= 5 &&
+    stats.stocks >= 5
+  ) {
+    add("five-by-five", "rare-line", 175, TAG_BANKS.fiveByFive, ["#FiveByFive"]);
+  }
+
+  // High-volume efficiency — a heavy scoring load kept ruthlessly efficient.
+  if (stats.points >= 25 && stats.fga >= 12 && stats.fgPct >= 0.65) {
+    add("efficient-big", "rare-line", 150 + stats.points / 10, TAG_BANKS.efficientBig);
   }
 
   if (stats.fta >= 4 && stats.ftPct >= 0.8) {

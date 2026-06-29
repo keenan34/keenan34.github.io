@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getSeasonGames } from "../api/client";
+import { getSeasonGames, getSeasonTeams } from "../api/client";
+import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 const teamColors = {
   UMMA: "bg-[#ffffff] text-[#0f172a]",
@@ -146,21 +147,22 @@ export default function TeamRoster() {
   useEffect(() => {
     setLoading(true);
 
-    const v = Date.now();
-    Promise.all([
-      fetch(`/seasons/${activeSeason}/team_rosters.json?v=${v}`).then((r) => r.json()),
-      fetch(`/seasons/${activeSeason}/players_with_images.json?v=${v}`).then((r) =>
-        r.json()
-      ),
-      getSeasonGames(activeSeason),
-    ])
-      .then(([teamsData, imagesData, gamesData]) => {
-        const plainRoster = teamsData?.[teamName] || [];
+    // Read the roster from the backend (same DB-backed source as the admin
+    // roster page) so the team page always matches what admins manage.
+    Promise.all([getSeasonTeams(activeSeason), getSeasonGames(activeSeason)])
+      .then(([teamsData, gamesData]) => {
+        const teams = teamsData?.teams || [];
+        const team = teams.find(
+          (t) => t.name === teamName || t.slug === teamSlug(teamName)
+        );
 
-        const merged = plainRoster.map((p) => {
-          const info = imagesData?.[teamName]?.find((pi) => pi.name === p.name);
-          return info ? { ...p, imgUrl: info.imgUrl } : p;
-        });
+        const merged = (team?.roster || []).map((p) => ({
+          name: p.name,
+          number: p.number,
+          slug: p.slug,
+          imgUrl: p.imgUrl,
+          status: p.status,
+        }));
 
         setRoster(merged);
 
@@ -202,9 +204,42 @@ export default function TeamRoster() {
       </header>
 
       {loading ? (
-        <p className="text-center font-bold text-[#64748b]">Loading...</p>
+        <SkeletonBlock className="mx-auto max-w-3xl space-y-8">
+          <div>
+            <SkeletonBar className="mb-3 h-6 w-28" />
+            <div className="space-y-3">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm"
+                >
+                  <SkeletonCircle className="mr-3 h-11 w-11 flex-shrink-0" />
+                  <SkeletonBar className="h-4 flex-1" />
+                  <SkeletonBar className="ml-2 h-4 w-8 flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <SkeletonBar className="mb-3 h-6 w-40" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-3 shadow-sm"
+                >
+                  <div className="flex flex-col gap-1.5">
+                    <SkeletonBar className="h-3 w-24" />
+                    <SkeletonBar className="h-4 w-32" />
+                  </div>
+                  <SkeletonBar className="h-6 w-10" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </SkeletonBlock>
       ) : (
-        <div className="mx-auto max-w-3xl space-y-8">
+        <div className="ifn-fade-in mx-auto max-w-3xl space-y-8">
           {/* ROSTER */}
           <div>
             <h3 className="mb-3 text-xl font-black text-[#0f172a]">Roster</h3>
@@ -213,7 +248,8 @@ export default function TeamRoster() {
                 const overrideSlugMap = {
                   "Jerremiah Dujuan Wright": "dujuan_wright",
                 };
-                const slug = overrideSlugMap[player.name] || slugify(player.name);
+                const slug =
+                  player.slug || overrideSlugMap[player.name] || slugify(player.name);
 
                 return (
                   <Link

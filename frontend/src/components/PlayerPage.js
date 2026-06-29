@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import { getSeasonGames } from "../api/client";
+import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 function ordinal(n) {
   const rem100 = n % 100;
@@ -269,7 +270,7 @@ export default function PlayerPage() {
     { label: "FTA", key: "fta" },
     { label: "FT%", key: "ftPct" },
     { label: "TO", key: "tos" },
-    { label: "STL/BLK", key: "steals" },
+    { label: "STK", key: "steals" },
   ];
 
   // chunkA = 9 stats, chunkB = 8 stats
@@ -277,7 +278,30 @@ export default function PlayerPage() {
   const chunkB = statOrder.slice(9);
 
   if (loading) {
-    return <p className="py-8 text-center font-bold text-[#64748b]">Loading player…</p>;
+    return (
+      <div className="min-h-screen bg-[#f8fafc] px-3 py-4 sm:px-6 sm:py-6">
+        <SkeletonBlock className="mx-auto w-full max-w-4xl">
+          {/* profile header */}
+          <div className="mb-6 flex flex-col items-center gap-3 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-6 shadow-sm">
+            <SkeletonCircle className="h-28 w-28" />
+            <SkeletonBar className="h-7 w-48" />
+            <SkeletonBar className="h-4 w-32" />
+          </div>
+          {/* stat grid */}
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+            {Array.from({ length: 10 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm"
+              >
+                <SkeletonBar className="h-6 w-12" />
+                <SkeletonBar className="h-3 w-10" />
+              </div>
+            ))}
+          </div>
+        </SkeletonBlock>
+      </div>
+    );
   }
 
   if (errorMsg) {
@@ -436,6 +460,9 @@ export default function PlayerPage() {
                 "Opp",
                 "Result",
                 "PTS",
+                "REB",
+                "AST",
+                "STK",
                 "FGM",
                 "FGA",
                 "FG%",
@@ -448,11 +475,8 @@ export default function PlayerPage() {
                 "FTM",
                 "FTA",
                 "FT%",
-                "REB",
-                "AST",
                 "TO",
                 "FLS",
-                "STL/BLKS",
               ].map((col, idx) => (
                 <th
                   key={col}
@@ -535,6 +559,9 @@ export default function PlayerPage() {
 
                   {[
                     g.points,
+                    g.rebounds,
+                    g.assists,
+                    g.steals,
                     g.fgm,
                     g.fga,
                     g.fgPct,
@@ -547,11 +574,8 @@ export default function PlayerPage() {
                     g.ftm,
                     g.fta,
                     g.ftPct,
-                    g.rebounds,
-                    g.assists,
                     g.tos,
                     g.fouls,
-                    g.steals,
                   ].map((val, idx) => (
                     <td
                       key={idx}

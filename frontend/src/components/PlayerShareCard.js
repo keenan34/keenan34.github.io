@@ -5,11 +5,20 @@ import { toBlob } from "html-to-image";
 import { getPlayerHashtags } from "./playerHashtags";
 import { useStableImage } from "./useStableImage";
 
+const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
 const slugify = (name) =>
   String(name || "")
     .toLowerCase()
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "");
+
+// Mirror BoxScore's team logo path (lowercase, leading "The" dropped).
+const teamLogoUrl = (season, teamName) => {
+  const slug = slugify(String(teamName || "").replace(/^the\s+/i, ""));
+  if (!season || !slug) return null;
+  return `${PUBLIC_URL}/seasons/${season}/images/teams/${slug}.png`;
+};
 
 const playerPagePath = (season, player) => {
   const slug = player?.slug || slugify(player?.Player);
@@ -17,19 +26,38 @@ const playerPagePath = (season, player) => {
   return season ? `/season/${season}/player/${slug}` : `/player/${slug}`;
 };
 
+// True Shooting %: points / (2 * (FGA + 0.44 * FTA)). Can exceed 100% on
+// elite FT/3PT efficiency — that's expected, not a bug.
+function trueShootingPct(points, fga, fta) {
+  const tsa = Number(fga || 0) + 0.44 * Number(fta || 0);
+  if (!tsa) return 0;
+  return Number(((Number(points || 0) / (2 * tsa)) * 100).toFixed(1));
+}
+
 function photoInitials(name) {
   return String(name || "").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
-function CardPhoto({ imgUrl, name }) {
+function CardPhoto({ imgUrl, name, logoUrl }) {
   const shown = useStableImage(imgUrl, { crossOrigin: "anonymous" });
+  const logo = useStableImage(logoUrl, {
+    crossOrigin: "anonymous",
+    keepPrevious: true,
+  });
   return (
-    <span className="relative grid h-16 w-16 flex-none place-items-center rounded-full bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af] overflow-hidden">
-      {shown ? (
-        <img src={shown} alt={name} crossOrigin="anonymous"
-          className="absolute inset-0 h-full w-full object-cover" />
-      ) : (
-        photoInitials(name)
+    <span className="relative block h-16 w-16 flex-none">
+      <span className="relative grid h-full w-full place-items-center rounded-full bg-[#1f1f22] text-center text-xl font-black leading-none tracking-wide text-[#9ca3af] overflow-hidden">
+        {shown ? (
+          <img src={shown} alt={name} crossOrigin="anonymous"
+            className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          photoInitials(name)
+        )}
+      </span>
+      {logo && (
+        <img src={logo} alt="" crossOrigin="anonymous"
+          className="absolute bottom-0.5 -right-1 h-6 w-6 object-contain"
+          style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.85))" }} />
       )}
     </span>
   );
@@ -56,11 +84,18 @@ function StripPhoto({ imgUrl, name, selected, onClick }) {
 }
 
 function MiniPhoto({ imgUrl, name }) {
-  const shown = useStableImage(imgUrl);
+  // Match the strip/profile crossOrigin so this shares their warmed image cache
+  // (CORS and non-CORS requests cache separately) — otherwise it re-fetches the
+  // same photo uncached and flashes the initials on every swipe.
+  const shown = useStableImage(imgUrl, {
+    crossOrigin: "anonymous",
+    keepPrevious: true,
+  });
   return (
     <span className="relative grid h-9 w-9 flex-none place-items-center rounded-full bg-[#1f1f22] text-xs font-black leading-none text-[#9ca3af] overflow-hidden">
       {shown ? (
-        <img src={shown} alt={name} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={shown} alt={name} crossOrigin="anonymous"
+          className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         photoInitials(name)
       )}
@@ -68,10 +103,24 @@ function MiniPhoto({ imgUrl, name }) {
   );
 }
 
+// Small team logo shown beside the score line. Renders nothing if the logo
+// file is missing, so a brand-less team just shows the score with no gap.
+function ScoreLogo({ url }) {
+  const shown = useStableImage(url, {
+    crossOrigin: "anonymous",
+    keepPrevious: true,
+  });
+  if (!shown) return null;
+  return (
+    <img src={shown} alt="" crossOrigin="anonymous"
+      className="h-6 w-6 flex-none object-contain" />
+  );
+}
+
 function BigStat({ value, label }) {
   return (
     <div className="flex items-baseline gap-1">
-      <span className="text-3xl font-black leading-none text-white">{value}</span>
+      <span className="ifn-sf-num text-[34px] font-extrabold leading-none text-white">{value}</span>
       <span className="text-lg font-medium lowercase text-[#8f939d]">{label}</span>
     </div>
   );
@@ -213,11 +262,14 @@ function CardBody({
   date,
   opponentName,
   season,
+  teamName,
   teamScore,
   opponentScore,
   cardRef,
   onShare,
 }) {
+  const logoUrl = teamLogoUrl(season, teamName);
+  const opponentLogoUrl = teamLogoUrl(season, opponentName);
   const [showAllPlays, setShowAllPlays] = useState(false);
   useEffect(() => {
     setShowAllPlays(false);
@@ -256,6 +308,7 @@ function CardBody({
     { label: "3FG%", value: player["3 Pt %"] ?? 0 },
     { label: "FT", value: `${player.FTM ?? 0}/${player.FTA ?? 0}` },
     { label: "FT%", value: player["FT %"] ?? 0 },
+    { label: "TS%", value: trueShootingPct(player.Points, player.FGA, player.FTA) },
   ];
 
   const hasScore =
@@ -282,23 +335,23 @@ function CardBody({
               className="ifn-export-photo absolute left-0 top-5"
               aria-label={`Open ${player.Player} player page`}
             >
-              <CardPhoto imgUrl={imgUrl} name={player.Player} />
+              <CardPhoto imgUrl={imgUrl} name={player.Player} logoUrl={logoUrl} />
             </Link>
           ) : (
             <span className="ifn-export-photo absolute left-0 top-5">
-              <CardPhoto imgUrl={imgUrl} name={player.Player} />
+              <CardPhoto imgUrl={imgUrl} name={player.Player} logoUrl={logoUrl} />
             </span>
           )}
           <div className="min-w-0 pr-12">
             {playerLink ? (
               <Link
                 to={playerLink}
-                className="block truncate text-[17px] font-medium leading-tight text-[#d6d8df] hover:text-white"
+                className="block truncate text-[19px] font-medium leading-tight text-[#d6d8df] hover:text-white"
               >
                 {player.Player}
               </Link>
             ) : (
-              <div className="truncate text-[17px] font-medium leading-tight text-[#d6d8df]">
+              <div className="truncate text-[19px] font-medium leading-tight text-[#d6d8df]">
                 {player.Player}
               </div>
             )}
@@ -308,7 +361,7 @@ function CardBody({
                 <span className="text-sm font-medium italic text-[#8f939d]">did not play</span>
               </div>
             ) : (
-              <div className="mt-2 flex items-end gap-4">
+              <div className="mt-0.5 flex items-end gap-4">
                 <BigStat value={player.Points ?? 0} label="pts" />
                 <BigStat value={player.REB ?? 0} label="reb" />
                 <BigStat value={player.AST ?? 0} label="ast" />
@@ -357,7 +410,7 @@ function CardBody({
         </div>
 
         {playerHashtags.length > 0 && (
-          <div className="ifn-export-tags mt-6 flex flex-wrap gap-x-6 gap-y-2 text-lg font-black text-[#0284c7]">
+          <div className="ifn-export-tags mt-3 flex flex-wrap gap-x-6 gap-y-1 text-lg font-black text-[#0284c7]">
             {playerHashtags.map((hashtag) => (
               <span key={hashtag}>{hashtag}</span>
             ))}
@@ -365,33 +418,42 @@ function CardBody({
         )}
 
         <div className="ifn-export-score mt-3 flex items-center justify-between">
-          <div className="flex items-baseline gap-2 text-lg font-black text-[#8f939d]">
+          <div className="flex items-center gap-1.5 text-lg font-black text-[#8f939d]">
             <span>IFNBL</span>
             {seasonNumber && (
-              <span className="text-xs font-medium italic text-[#777b86]">
-                Season {seasonNumber}
-              </span>
+              <>
+                <span className="text-sm font-black text-[#777b86]">·</span>
+                <span className="text-xs font-medium italic text-[#777b86]">
+                  Season {seasonNumber}
+                </span>
+              </>
             )}
           </div>
           {hasScore && (
-            <div className="text-lg font-black text-[#0284c7]">
-              {teamScore}-{opponentScore}
+            <div className="flex items-center gap-1">
+              <ScoreLogo url={logoUrl} />
+              <span className="ifn-sf-num text-lg text-[#0284c7]">
+                <span className={teamScore > opponentScore ? "font-black" : "font-normal"}>
+                  {teamScore}
+                </span>
+                -
+                <span className={opponentScore > teamScore ? "font-black" : "font-normal"}>
+                  {opponentScore}
+                </span>
+              </span>
+              <ScoreLogo url={opponentLogoUrl} />
             </div>
           )}
         </div>
 
         {!isDnp && (
-          <div className="ifn-export-stats mt-3 grid grid-cols-6 gap-x-2 gap-y-3">
+          <div className="ifn-export-stats mt-3 flex flex-wrap gap-x-5 gap-y-4">
             {grid.map((cell) => (
-              <div className="flex min-w-0 flex-col items-start" key={cell.label}>
-                <span
-                  className={`font-black leading-none text-white ${
-                    cell.strong ? "text-[22px]" : "text-[19px]"
-                  }`}
-                >
+              <div className="flex flex-col items-start" key={cell.label}>
+                <span className="ifn-sf-num text-[20px] font-bold leading-none text-white">
                   {cell.value}
                 </span>
-                <span className="mt-1 text-[11px] font-black uppercase leading-none text-[#777b86]">
+                <span className="mt-1 text-[11px] font-extrabold uppercase leading-none text-[#777b86]">
                   {cell.label}
                 </span>
               </div>
@@ -880,7 +942,6 @@ export default function PlayerShareCard({
           .is-capturing.ifn-export-card {
             padding: 0 16px 16px;
             border-radius: 14px;
-            border: 0.5px solid #34343a;
             overflow: hidden;
           }
           .is-capturing .ifn-export-profile {
@@ -895,9 +956,9 @@ export default function PlayerShareCard({
             margin-top: 6px;
           }
           .is-capturing .ifn-export-tags {
-            margin-top: 10px;
+            margin-top: 6px;
             column-gap: 14px;
-            row-gap: 4px;
+            row-gap: 2px;
             font-size: 15px;
           }
           .is-capturing .ifn-export-score {
@@ -905,8 +966,8 @@ export default function PlayerShareCard({
           }
           .is-capturing .ifn-export-stats {
             margin-top: 8px;
-            column-gap: 6px;
-            row-gap: 8px;
+            column-gap: 20px;
+            row-gap: 12px;
           }
         `}
       </style>
@@ -955,6 +1016,7 @@ export default function PlayerShareCard({
             <div className="mx-auto w-full max-w-md pb-8 pt-4">
               {prevPlayer && (
                 <CardBody
+                  key={prevPlayer.Player}
                   player={prevPlayer}
                   imgUrl={prevPlayer.imgUrl}
                   events={events}
@@ -962,6 +1024,7 @@ export default function PlayerShareCard({
                   date={date}
                   opponentName={opponentName}
                   season={season}
+                  teamName={teamName}
                   teamScore={teamScore}
                   opponentScore={opponentScore}
                 />
@@ -972,6 +1035,7 @@ export default function PlayerShareCard({
           <div className="w-full flex-none">
             <div className="mx-auto w-full max-w-md pb-8 pt-4">
               <CardBody
+                key={player.Player}
                 player={player}
                 imgUrl={imgUrl}
                 events={events}
@@ -979,6 +1043,7 @@ export default function PlayerShareCard({
                 date={date}
                 opponentName={opponentName}
                 season={season}
+                teamName={teamName}
                 teamScore={teamScore}
                 opponentScore={opponentScore}
                 cardRef={cardRef}
@@ -991,6 +1056,7 @@ export default function PlayerShareCard({
             <div className="mx-auto w-full max-w-md pb-8 pt-4">
               {nextPlayer && (
                 <CardBody
+                  key={nextPlayer.Player}
                   player={nextPlayer}
                   imgUrl={nextPlayer.imgUrl}
                   events={events}
@@ -998,6 +1064,7 @@ export default function PlayerShareCard({
                   date={date}
                   opponentName={opponentName}
                   season={season}
+                  teamName={teamName}
                   teamScore={teamScore}
                   opponentScore={opponentScore}
                 />

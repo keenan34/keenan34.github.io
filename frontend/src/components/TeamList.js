@@ -1,9 +1,56 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
+import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 const isPlaceholderTeam = (name = "") =>
   /^Seed\s+\d+/i.test(name) || /\bWinner\b/i.test(name);
+
+const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
+// same slug rule used elsewhere: lowercase, spaces -> underscores, leading "the" dropped
+const teamSlug = (name) =>
+  String(name || "")
+    .replace(/^the\s+/i, "")
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+
+const teamLogoUrl = (season, name) =>
+  `${PUBLIC_URL}/seasons/${season}/images/teams/${teamSlug(name)}.png`;
+
+// small standings logo with an initials fallback for teams without an image
+function TeamLogo({ season, name }) {
+  const [error, setError] = useState(false);
+  const initials = String(name || "")
+    .replace(/^the\s+/i, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  if (error) {
+    return (
+      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-[#e2e8f0] bg-[#f8fafc] text-xs font-black text-[#64748b]">
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={teamLogoUrl(season, name)}
+      alt={`${name} logo`}
+      width="36"
+      height="36"
+      className="h-9 w-9 flex-none object-contain"
+      onError={() => setError(true)}
+      loading="lazy"
+    />
+  );
+}
 
 const API_BASE_URL = resolveApiBaseUrl();
 
@@ -138,13 +185,22 @@ export default function TeamList() {
         </div>
 
         {loading ? (
-          <div className="p-6 text-center font-bold text-[#64748b]">
-            Loading standings…
-          </div>
+          <SkeletonBlock className="divide-y divide-[#e2e8f0]">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-4 px-6 py-5">
+                <SkeletonBar className="h-4 w-4 flex-none" />
+                <SkeletonCircle className="h-9 w-9 flex-none" />
+                <SkeletonBar className="h-5 flex-1" />
+                <SkeletonBar className="h-4 w-8 flex-none" />
+                <SkeletonBar className="h-4 w-8 flex-none" />
+                <SkeletonBar className="h-4 w-12 flex-none" />
+              </div>
+            ))}
+          </SkeletonBlock>
         ) : errorMsg ? (
           <div className="p-6 text-center font-bold text-[#f87171]">{errorMsg}</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="ifn-fade-in overflow-x-auto">
             <table className="w-full table-auto divide-y divide-[#e2e8f0] text-center text-base sm:text-lg">
               <thead className="bg-[#f8fafc] text-[#64748b]">
                 <tr>
@@ -171,8 +227,9 @@ export default function TeamList() {
                               )}/roster`
                             : `/teams/${encodeURIComponent(row.team)}/roster`
                         }
-                        className="inline-flex min-h-11 items-center rounded-md px-3 text-xl font-black text-[#0284c7] transition hover:bg-[#e0f2fe] hover:text-[#075985] hover:underline focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2"
+                        className="inline-flex min-h-11 items-center gap-3 rounded-md px-3 text-xl font-black text-[#0284c7] transition hover:bg-[#e0f2fe] hover:text-[#075985] hover:underline focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2"
                       >
+                        <TeamLogo season={activeSeason} name={row.team} />
                         {row.team}
                       </Link>
                     </td>

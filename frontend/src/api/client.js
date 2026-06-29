@@ -34,6 +34,13 @@ export function getSeasonGames(seasonSlug, options) {
   );
 }
 
+export function getSeasonTeams(seasonSlug, options) {
+  return apiGet(
+    `/api/seasons/${encodeURIComponent(seasonSlug)}/teams`,
+    options
+  );
+}
+
 export function getSeasonStandings(seasonSlug, options) {
   return apiGet(`/api/standings/${encodeURIComponent(seasonSlug)}`, options);
 }

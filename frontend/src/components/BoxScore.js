@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import PlayerShareCard from "./PlayerShareCard";
 import TeamShareCard from "./TeamShareCard";
 import { useStableImage } from "./useStableImage";
+import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 
 const API_BASE_URL = resolveApiBaseUrl();
@@ -62,6 +63,13 @@ const percent = (made, attempted) => {
   const attempts = Number(attempted);
   if (!attempts) return 0;
   return Number(((Number(made || 0) / attempts) * 100).toFixed(1));
+};
+
+// True Shooting %: points / (2 * (FGA + 0.44 * FTA)). Accounts for FGs, 3s, FTs.
+const trueShootingPct = (points, fga, fta) => {
+  const tsa = Number(fga || 0) + 0.44 * Number(fta || 0);
+  if (!tsa) return 0;
+  return Number(((Number(points || 0) / (2 * tsa)) * 100).toFixed(1));
 };
 
 const PLAYER_NAME_ALIASES = {
@@ -252,7 +260,7 @@ function ProfileImage({ src, fallbackSrc, name, onClick, className = "w-16 h-16"
       className={`${className} relative rounded-full bg-[#e2e8f0] flex items-center justify-center cursor-pointer overflow-hidden flex-none`}
     >
       {shown ? (
-        <img alt={name} src={shown} className="absolute inset-0 h-full w-full object-cover" />
+        <img key={shown} alt={name} src={shown} className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         <span className="text-sm font-black text-[#64748b]">{initials}</span>
       )}
@@ -262,6 +270,8 @@ function ProfileImage({ src, fallbackSrc, name, onClick, className = "w-16 h-16"
 
 export default function BoxScore() {
   const { season, week, gameId } = useParams();
+  const [searchParams] = useSearchParams();
+  const teamParam = searchParams.get("team");
   const activeSeason = season || "szn5";
   const pageRef = useRef(null);
 
@@ -371,8 +381,68 @@ export default function BoxScore() {
     });
   }, [activeSeason, matchInfo?.teamA, matchInfo?.teamB]);
 
+  // Land on the team passed via ?team=<name> (e.g. from Top Performers) so the
+  // box score opens on that player's team instead of always the home tab.
+  useEffect(() => {
+    if (!data || !teamParam) return;
+    const wanted = decodeURIComponent(teamParam);
+    if (data.teamB?.name === wanted) setTab("away");
+    else if (data.teamA?.name === wanted) setTab("home");
+  }, [data, teamParam]);
 
-  if (loading) return <p className="text-center py-8">Loading…</p>;
+  // Preload every player photo for BOTH teams up front so the first switch to
+  // the other team's tab paints from cache instead of flashing initials. No
+  // crossOrigin here, to match ProfileImage's cache key.
+  useEffect(() => {
+    if (!data) return;
+    [data.teamA, data.teamB].forEach((team) => {
+      team?.players?.forEach((p) => {
+        const src = season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl;
+        if (!src) return;
+        const img = new Image();
+        img.src = src;
+      });
+    });
+  }, [data, season, activeSeason]);
+
+
+  if (loading)
+    return (
+      <div className="box-score-page mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]">
+        <SkeletonBlock>
+          {/* header */}
+          <div className="mb-4 grid grid-cols-3 items-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <SkeletonCircle className="h-12 w-12 flex-none" />
+              <SkeletonBar className="h-6 w-20" />
+            </div>
+            <SkeletonBar className="mx-auto h-8 w-16" />
+            <div className="flex items-center justify-end gap-3">
+              <SkeletonBar className="h-6 w-20" />
+              <SkeletonCircle className="h-12 w-12 flex-none" />
+            </div>
+          </div>
+          {/* tabs */}
+          <div className="mb-4 flex gap-2 border-b border-[#e2e8f0] pb-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonBar key={i} className="h-6 flex-1" />
+            ))}
+          </div>
+          {/* board rows */}
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg bg-[#ffffff] p-3"
+              >
+                <SkeletonCircle className="h-[54px] w-[54px] flex-none" />
+                <SkeletonBar className="h-4 flex-1" />
+              </div>
+            ))}
+          </div>
+        </SkeletonBlock>
+      </div>
+    );
   if (errorMsg) return <p className="text-center py-8">{errorMsg}</p>;
   if (!data) return <p className="text-center py-8">No box score found.</p>;
 
@@ -467,6 +537,7 @@ export default function BoxScore() {
     { label: "FTM", get: (p) => p.FTM ?? 0 },
     { label: "FTA", get: (p) => p.FTA ?? 0 },
     { label: "FT%", get: (p) => p["FT %"] ?? "0%" },
+    { label: "TS%", get: (p) => trueShootingPct(p.Points, p.FGA, p.FTA) },
     { label: "TO", get: (p) => p.TOs ?? 0 },
     { label: "PF", get: (p) => p.Fouls ?? 0 },
   ];
@@ -668,9 +739,17 @@ export default function BoxScore() {
                       </div>
                     ) : (
                       <div
-                        className="grid w-full px-2"
+                        className="grid w-full gap-x-1 px-2"
                         style={{
-                          gridTemplateColumns: `repeat(${statFields.length}, minmax(48px, 1fr))`,
+                          // Percentage columns (decimals like 113.6) keep a wide
+                          // track; count columns (1–2 digits) get a narrower one.
+                          gridTemplateColumns: statFields
+                            .map(({ label }) =>
+                              label.endsWith("%")
+                                ? "minmax(50px, 1fr)"
+                                : "minmax(32px, 1fr)"
+                            )
+                            .join(" "),
                         }}
                       >
                         {statFields.map(({ get, label }, i) => (
@@ -678,7 +757,7 @@ export default function BoxScore() {
                             key={i}
                             className="flex min-w-0 flex-col items-start"
                           >
-                            <span className="text-[18px] font-black leading-none text-white">
+                            <span className="text-[20px] font-bold leading-none text-white">
                               {get(p)}
                             </span>
                             <span className="mt-0.5 text-[10px] font-normal uppercase leading-none text-[#8f939d]">
@@ -743,7 +822,7 @@ export default function BoxScore() {
     <div
       ref={pageRef}
       style={{ zoom: 0.97 }}
-      className="box-score-page mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]"
+      className="ifn-fade-in box-score-page mx-auto min-h-screen max-w-full bg-[#f8fafc] px-2 py-3 text-[#0f172a]"
     >
       {Header()}
 

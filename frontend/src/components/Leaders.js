@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
+import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 const slugify = (str) =>
   str
@@ -265,11 +266,36 @@ export default function Leaders() {
       {error ? (
         <p className="py-4 text-center font-bold text-[#f87171]">{error}</p>
       ) : loading ? (
-        <p className="py-4 text-center font-bold text-[#64748b]">Loading leaders…</p>
+        <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
+          <div className="mx-auto mb-6 h-9 w-64 animate-pulse rounded bg-[#e2e8f0]" />
+          <div className="flex flex-col items-center gap-6">
+            {Array.from({ length: 3 }).map((_, cardIdx) => (
+              <SkeletonBlock
+                key={cardIdx}
+                className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm md:max-w-md"
+              >
+                <div className="flex justify-center border-b border-[#e2e8f0] bg-[#f8fafc] py-3">
+                  <SkeletonBar className="h-4 w-24" />
+                </div>
+                <div className="flex flex-col gap-3 p-3">
+                  {Array.from({ length: 5 }).map((__, rowIdx) => (
+                    <div key={rowIdx} className="flex items-center gap-2">
+                      <SkeletonCircle className="h-10 w-10 flex-none" />
+                      <SkeletonBar className="h-4 flex-1" />
+                      <SkeletonBar className="h-4 w-8 flex-none" />
+                      <SkeletonBar className="h-4 w-8 flex-none" />
+                      <SkeletonBar className="h-4 w-8 flex-none" />
+                    </div>
+                  ))}
+                </div>
+              </SkeletonBlock>
+            ))}
+          </div>
+        </div>
       ) : players.length === 0 ? (
         <p className="py-4 text-center font-bold text-[#64748b]">No leaders found.</p>
       ) : (
-        <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
+        <div className="ifn-fade-in min-h-screen bg-[#f8fafc] px-4 py-8">
           <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-[#0f172a]">
             League Leaders
           </h1>

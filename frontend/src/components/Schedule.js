@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getSeasonGames, getSeasonStandings } from "../api/client";
+import { SkeletonBlock, SkeletonBar } from "./Skeleton";
 
 function seasonTitle(slug) {
   const match = String(slug || "").match(/(\d+)/);
@@ -99,15 +100,52 @@ export default function Schedule() {
         </header>
 
         {loading ? (
-          <div className="rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-8 text-center font-bold text-[#64748b] shadow-sm">
-            Loading schedule...
+          <div className="grid gap-6">
+            {Array.from({ length: 2 }).map((_, dayIdx) => (
+              <SkeletonBlock
+                key={dayIdx}
+                className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-[#e2e8f0] px-4 py-3 sm:px-5">
+                  <div className="flex flex-col gap-1.5">
+                    <SkeletonBar className="h-3 w-16" />
+                    <SkeletonBar className="h-5 w-40" />
+                  </div>
+                  <SkeletonBar className="h-6 w-16 rounded-full" />
+                </div>
+                <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+                  {Array.from({ length: 3 }).map((__, cardIdx) => (
+                    <div
+                      key={cardIdx}
+                      className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4 shadow-sm"
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        <SkeletonBar className="h-5 w-16 rounded-full" />
+                        <SkeletonBar className="h-4 w-10" />
+                      </div>
+                      <div className="grid gap-3">
+                        <div className="flex items-center justify-between">
+                          <SkeletonBar className="h-4 w-24" />
+                          <SkeletonBar className="h-6 w-6" />
+                        </div>
+                        <div className="h-px bg-[#e2e8f0]" />
+                        <div className="flex items-center justify-between">
+                          <SkeletonBar className="h-4 w-24" />
+                          <SkeletonBar className="h-6 w-6" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SkeletonBlock>
+            ))}
           </div>
         ) : error ? (
           <div className="rounded-lg border border-[#f87171] bg-[rgba(248,113,113,0.1)] p-8 text-center font-bold text-[#f87171]">
             {error}
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="ifn-fade-in grid gap-6">
             {dateEntries.map(([date, dayGames]) => {
               return (
                 <section

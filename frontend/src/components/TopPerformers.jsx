@@ -18,6 +18,15 @@ const EXCLUDED_PLAYERS = [
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
 
 const normalizeName = (s = "") => String(s).trim();
+
+const playerSlug = (name) =>
+  name === "Jerremiah Dujuan Wright"
+    ? "dujuan_wright"
+    : String(name || "")
+        .toLowerCase()
+        .split(" ")
+        .map((w) => w.replace(/[^\w]/g, ""))
+        .join("_");
 const safeNum = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -120,6 +129,35 @@ function ProfileImage({ name, season }) {
   );
 }
 
+// Skeleton that mirrors the real card layout so loading fades in smoothly
+// instead of popping from a bare text line into a full card.
+function TopPerformersSkeleton({ label }) {
+  return (
+    <div className="mx-auto mb-4 max-w-5xl animate-pulse rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+      <div className="mb-4 h-6 w-56 rounded bg-[#e2e8f0]" />
+      <div className="flex flex-col gap-2">
+        {[0, 1, 2, 3].map((row) => (
+          <div
+            key={row}
+            className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4"
+          >
+            <div className="mb-3 h-4 w-32 rounded bg-[#e2e8f0]" />
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 flex-none rounded-full bg-[#e2e8f0]" />
+              <div className="flex flex-col gap-1.5">
+                <div className="h-3.5 w-28 rounded bg-[#e2e8f0]" />
+                <div className="h-3 w-20 rounded bg-[#e2e8f0]" />
+                <div className="h-3 w-16 rounded bg-[#e2e8f0]" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <span className="sr-only">Loading Top Performers ({label})…</span>
+    </div>
+  );
+}
+
 export default function TopPerformers({
   week, // optional explicit override, e.g. "week2". If omitted, auto-detect.
   label, // optional UI label override (ex: "Playoffs")
@@ -131,32 +169,33 @@ export default function TopPerformers({
   // null = not resolved yet; number = chosen week; "none" = no completed week
   const [weekNum, setWeekNum] = useState(null);
   const [rows, setRows] = useState([]);
+  const [games, setGames] = useState([]); // season schedule, for box-score links
   const [status, setStatus] = useState("loading"); // loading | ok | missing
 
   // UI label fallback
   const displayWeek =
     label ?? (typeof weekNum === "number" ? `Week ${weekNum}` : "this week");
 
-  // Resolve which week to display.
+  // Resolve which week to display, and keep the schedule for box-score links.
   useEffect(() => {
     let cancelled = false;
 
-    if (week) {
-      // Explicit override.
-      setWeekNum(parseInt(String(week).replace("week", ""), 10));
-      return () => {
-        cancelled = true;
-      };
-    }
+    setWeekNum(week ? parseInt(String(week).replace("week", ""), 10) : null);
 
-    setWeekNum(null);
     getSeasonGames(activeSeason)
       .then((data) => {
-        const games = Array.isArray(data) ? data : data?.games || [];
-        if (!cancelled) setWeekNum(latestCompletedWeek(games));
+        const list = Array.isArray(data) ? data : data?.games || [];
+        if (cancelled) return;
+        setGames(list);
+        if (!week) {
+          // "none" (not null) means resolved-but-empty, so the stats effect can
+          // tell it apart from "still resolving" and not flash "not available".
+          const wk = latestCompletedWeek(list);
+          setWeekNum(wk == null ? "none" : wk);
+        }
       })
       .catch(() => {
-        if (!cancelled) setWeekNum(null);
+        if (!cancelled && !week) setWeekNum("none");
       });
 
     return () => {
@@ -170,8 +209,16 @@ export default function TopPerformers({
     setRows([]);
 
     if (weekNum == null) {
-      // No fully-completed week yet (or still resolving).
-      setStatus(week ? "loading" : "missing");
+      // Week still being resolved — keep the skeleton, don't flash "missing".
+      setStatus("loading");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (weekNum === "none") {
+      // Resolved: no fully-completed week to show.
+      setStatus("missing");
       return () => {
         cancelled = true;
       };
@@ -186,14 +233,19 @@ export default function TopPerformers({
           const teamA = game?.teamA?.name || "";
           const teamB = game?.teamB?.name || "";
 
+          // teamA is the home side, teamB the away side (see player-stats API).
           (Array.isArray(game?.teamA?.players)
             ? game.teamA.players
             : []
-          ).forEach((p) => all.push({ ...p, opponent: teamB }));
+          ).forEach((p) =>
+            all.push({ ...p, opponent: teamB, team: teamA, homeName: teamA, awayName: teamB })
+          );
           (Array.isArray(game?.teamB?.players)
             ? game.teamB.players
             : []
-          ).forEach((p) => all.push({ ...p, opponent: teamA }));
+          ).forEach((p) =>
+            all.push({ ...p, opponent: teamA, team: teamB, homeName: teamA, awayName: teamB })
+          );
         });
 
         const filtered = all.filter((p) => {
@@ -222,11 +274,7 @@ export default function TopPerformers({
     if (!showIfMissing) return null;
 
     if (status === "loading") {
-      return (
-        <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-          <div className="text-sm font-bold text-[#64748b]">Loading Top Performers…</div>
-        </div>
-      );
+      return <TopPerformersSkeleton label={displayWeek} />;
     }
 
     if (status === "missing") {
@@ -268,8 +316,29 @@ export default function TopPerformers({
     "STLS/BLKS": "Steals/Blocks",
   };
 
+  // Box-score link for a player's week game: match the schedule by week +
+  // home/away names, then land on that player's team tab. Falls back to the
+  // player page if we can't resolve the game.
+  const playerLink = (player) => {
+    const playerPage = `/season/${activeSeason}/player/${playerSlug(player.Player)}`;
+    const game = games.find((g) => {
+      const m = typeof g.gameId === "string" ? g.gameId.match(/^week(\d+)-/i) : null;
+      if (!m || Number(m[1]) !== weekNum) return false;
+      return g.teamA === player.homeName && g.teamB === player.awayName;
+    });
+    if (!game?.gameId) return playerPage;
+
+    const gameId = String(game.gameId);
+    const sep = gameId.indexOf("-");
+    if (sep <= 0 || sep >= gameId.length - 1) return playerPage;
+    const weekPart = gameId.slice(0, sep);
+    const idPart = gameId.slice(sep + 1);
+    const teamQuery = player.team ? `?team=${encodeURIComponent(player.team)}` : "";
+    return `/season/${activeSeason}/boxscore/${weekPart}/${idPart}${teamQuery}`;
+  };
+
   return (
-    <div className="mx-auto mb-4 max-w-5xl rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
+    <div className="ifn-fade-in mx-auto mb-4 max-w-5xl rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
       <h2 className="mb-4 text-xl font-black text-[#0f172a]">
         Top Performers ({displayWeek})
       </h2>
@@ -289,18 +358,10 @@ export default function TopPerformers({
 
             <div className="flex flex-wrap gap-4">
               {list.map((player) => {
-                const slug =
-                  player.Player === "Jerremiah Dujuan Wright"
-                    ? "dujuan_wright"
-                    : player.Player.toLowerCase()
-                        .split(" ")
-                        .map((w) => w.replace(/[^\w]/g, ""))
-                        .join("_");
-
                 return (
                   <Link
                     key={`${stat}-${player.Player}`}
-                    to={`/season/${activeSeason}/player/${slug}`}
+                    to={playerLink(player)}
                     className="flex items-center rounded-md p-1 transition hover:bg-[#ffffff]"
                   >
                     <ProfileImage name={player.Player} season={activeSeason} />
