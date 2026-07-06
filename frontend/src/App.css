@@ -221,6 +221,28 @@ body,
   box-shadow: none;
 }
 
+/* ====== LEADERS PAGE ====== */
+/* Anton carries only the stat digits and rank numerals — the "jersey number"
+   voice. Everything else stays in the site's Inter. */
+.ifn-display {
+  font-family: Anton, "Arial Narrow", Inter, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* Gap-fill bars grow from the left on load. */
+@media (prefers-reduced-motion: no-preference) {
+  .ifn-bar {
+    transform-origin: left;
+    animation: ifnBarGrow 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes ifnBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 /* ====== LOADING TRANSITIONS ====== */
 /* Loaded content eases in; skeletons ease out so swaps never pop. */
 @keyframes ifnFadeIn {

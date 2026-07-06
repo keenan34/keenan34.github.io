@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import { SkeletonBlock, SkeletonBar, SkeletonCircle } from "./Skeleton";
@@ -12,6 +11,101 @@ const slugify = (str) =>
 
 const API_BASE_URL = resolveApiBaseUrl();
 const PUBLIC_URL = process.env.PUBLIC_URL || "";
+
+const EXCLUDED_PLAYERS = new Set([
+  "Josiah",
+  "Danial Asim",
+  "Salman",
+  "Ibrahim",
+  "Imran",
+  "Anthony",
+  "Raedh Talha",
+  "Devon",
+  "Suhail",
+  "Sufyan",
+  "Saif Rehman",
+  "Amaar Zafar",
+  "Luqman Ali",
+  "Ryan",
+  "Imam Azfar Uddin",
+]);
+
+// Display order. `negative` = fewer is better (rendered in foul-red).
+const CATEGORIES = [
+  {
+    id: "points",
+    label: "Points",
+    chip: "PTS",
+    avgKey: "avgPts",
+    totalKey: "totalPts",
+    avgUnit: "PPG",
+    totalUnit: "PTS",
+    marquee: true,
+  },
+  {
+    id: "assists",
+    label: "Assists",
+    chip: "AST",
+    avgKey: "avgAst",
+    totalKey: "totalAst",
+    avgUnit: "APG",
+    totalUnit: "AST",
+  },
+  {
+    id: "threes",
+    label: "3PT Made",
+    chip: "3PT",
+    avgKey: "avg3",
+    totalKey: "total3",
+    avgUnit: "3PM/G",
+    totalUnit: "3PM",
+  },
+  {
+    id: "rebounds",
+    label: "Rebounds",
+    chip: "REB",
+    avgKey: "avgReb",
+    totalKey: "totalReb",
+    avgUnit: "RPG",
+    totalUnit: "REB",
+  },
+  {
+    id: "stocks",
+    label: "Steals + Blocks",
+    chip: "STL+BLK",
+    avgKey: "avgStlBlk",
+    totalKey: "totalStlBlk",
+    avgUnit: "S+B/G",
+    totalUnit: "S+B",
+  },
+  {
+    id: "turnovers",
+    label: "Turnovers",
+    chip: "TO",
+    avgKey: "avgTO",
+    totalKey: "totalTO",
+    avgUnit: "TO/G",
+    totalUnit: "TO",
+    negative: true,
+  },
+  {
+    id: "fouls",
+    label: "Fouls",
+    chip: "PF",
+    avgKey: "avgFouls",
+    totalKey: "totalFouls",
+    avgUnit: "PF/G",
+    totalUnit: "PF",
+    negative: true,
+  },
+];
+
+const SKY = "#38bdf8";
+const RED = "#f87171";
+const barTint = (negative) =>
+  negative
+    ? "linear-gradient(90deg, rgba(248,113,113,0.16), rgba(248,113,113,0.03))"
+    : "linear-gradient(90deg, rgba(56,189,248,0.16), rgba(56,189,248,0.03))";
 
 async function apiGet(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, options);
@@ -29,13 +123,21 @@ const playerImageUrl = (player) =>
 
 function seasonPlayerImageUrl(season, name) {
   const fileName =
-    name === "Jerremiah Dujuan Wright"
-      ? "dujuan_wright"
-      : slugify(name);
+    name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
   return `${PUBLIC_URL}/seasons/${season}/images/players/${fileName}.png`;
 }
 
-function ProfileImage({ name, src, onClick }) {
+const playerSlug = (name) =>
+  name === "Jerremiah Dujuan Wright" ? "dujuan_wright" : slugify(name);
+
+const fmtAvg = (v) => Number(v ?? 0).toFixed(1);
+
+const seasonLabel = (slug) => {
+  const m = /^szn(\d+)$/i.exec(slug || "");
+  return m ? `Season ${m[1]}` : (slug || "").toUpperCase();
+};
+
+function ProfileImage({ name, src, sizeClass, ringClass = "" }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -49,27 +151,275 @@ function ProfileImage({ name, src, onClick }) {
     .join("")
     .slice(0, 3);
 
+  const shared = `${sizeClass} flex-shrink-0 rounded-full ${ringClass}`;
+
   if (!src || error) {
     return (
-      <div
-        onClick={onClick}
-        className="mr-2 flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#ffffff] text-base font-black text-[#64748b]"
+      <span
+        className={`${shared} flex items-center justify-center bg-[#101820] text-xs font-black text-[color:var(--muted)]`}
       >
         {initials}
-      </div>
+      </span>
     );
   }
 
   return (
     <img
-      onClick={onClick}
       src={src}
       alt={name}
-      width="40"
-      height="40"
-      className="h-10 w-10 flex-shrink-0 rounded-full object-cover mr-2 cursor-pointer"
+      className={`${shared} object-cover`}
       onError={() => setError(true)}
+      loading="lazy"
     />
+  );
+}
+
+// One rank-2+ row. The background fill is the row's stat as a share of the
+// category leader's — the visible gap behind #1.
+function RankRow({ rank, player, category, mode, team, link, imgSrc }) {
+  const key = mode === "avg" ? category.avgKey : category.totalKey;
+  const leaderShare = player.__leaderValue
+    ? Math.max(0, Math.min(100, (player[key] / player.__leaderValue) * 100))
+    : 0;
+
+  const primary = mode === "avg" ? fmtAvg(player[key]) : player[key];
+  const secondary =
+    mode === "avg"
+      ? `${player[category.totalKey]} tot · ${player.games} gp`
+      : `${fmtAvg(player[category.avgKey])} /g · ${player.games} gp`;
+
+  return (
+    <Link
+      to={link.to}
+      state={link.state}
+      className="relative flex items-center gap-2.5 overflow-hidden rounded-lg px-2 py-1.5 transition hover:bg-[#101820]"
+    >
+      <span
+        aria-hidden="true"
+        className="ifn-bar absolute inset-y-0 left-0"
+        style={{ width: `${leaderShare}%`, background: barTint(category.negative) }}
+      />
+      <span className="ifn-display relative w-5 text-right text-sm text-[#5c6b7d]">
+        {rank}
+      </span>
+      <ProfileImage
+        name={player.name}
+        src={imgSrc}
+        sizeClass="relative h-9 w-9"
+      />
+      <span className="relative min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold text-white">
+          {player.name}
+        </span>
+        {team && (
+          <span className="block truncate text-[10px] font-semibold text-[color:var(--muted)]">
+            {team}
+          </span>
+        )}
+      </span>
+      <span className="relative text-right">
+        <span className="ifn-display block text-base leading-tight text-white tabular-nums">
+          {primary}
+        </span>
+        <span className="block text-[10px] font-semibold text-[#8f9aa8] tabular-nums">
+          {secondary}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function CategoryCard({ category, rows, mode, teamOf, resolveImg, linkFor }) {
+  if (!rows.length) return null;
+
+  const [leader, ...rest] = rows;
+  const key = mode === "avg" ? category.avgKey : category.totalKey;
+  const unit = mode === "avg" ? category.avgUnit : category.totalUnit;
+  const heroValue = mode === "avg" ? fmtAvg(leader[key]) : leader[key];
+  const heroColor = category.negative ? RED : SKY;
+  const leaderTeam = teamOf(leader);
+  const leaderImg = resolveImg(leader);
+  const leaderLink = linkFor(leader);
+
+  const restRows = rest.map((p, i) => ({ ...p, __leaderValue: leader[key] }));
+
+  return (
+    <section
+      id={`cat-${category.id}`}
+      className={`scroll-mt-[130px] rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-4 sm:p-5 ${
+        category.marquee ? "md:col-span-2" : ""
+      }`}
+    >
+      {/* Header: category name + unit tag (or the fewer-is-better warning) */}
+      <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-[color:var(--border)] pb-3">
+        <h2 className="text-sm font-black uppercase italic tracking-[0.18em] text-white">
+          {category.label}
+        </h2>
+        {category.negative ? (
+          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f87171]">
+            fewer is better
+          </span>
+        ) : (
+          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--muted)]">
+            {unit}
+          </span>
+        )}
+      </div>
+
+      <div className={category.marquee ? "md:flex md:items-center md:gap-8" : ""}>
+        {/* Leader hero */}
+        {category.marquee ? (
+          <div className="flex flex-col items-center pb-4 text-center md:w-60 md:flex-none md:pb-0">
+            <Link
+              to={leaderLink.to}
+              state={leaderLink.state}
+              className="rounded-full transition hover:opacity-90"
+            >
+              <ProfileImage
+                name={leader.name}
+                src={leaderImg}
+                sizeClass="h-24 w-24 md:h-28 md:w-28"
+                ringClass="ring-2 ring-[color:var(--border)]"
+              />
+            </Link>
+            <Link
+              to={leaderLink.to}
+              state={leaderLink.state}
+              className="mt-3 text-lg font-black italic leading-tight text-white hover:text-[#38bdf8]"
+            >
+              {leader.name}
+            </Link>
+            <p className="mt-0.5 text-xs font-semibold text-[color:var(--muted)]">
+              {leaderTeam ? `${leaderTeam} · ` : ""}
+              {leader.games} games
+            </p>
+            <div
+              className="ifn-display mt-2 text-6xl leading-none tabular-nums"
+              style={{ color: heroColor }}
+            >
+              {heroValue}
+            </div>
+            <div className="mt-1 text-[10px] font-black uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              {unit}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-3 flex items-center gap-3 rounded-lg bg-[#101820] p-3">
+            <Link
+              to={leaderLink.to}
+              state={leaderLink.state}
+              className="rounded-full transition hover:opacity-90"
+            >
+              <ProfileImage
+                name={leader.name}
+                src={leaderImg}
+                sizeClass="h-14 w-14"
+                ringClass="ring-2 ring-[color:var(--border)]"
+              />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <Link
+                to={leaderLink.to}
+                state={leaderLink.state}
+                className="block truncate text-base font-black italic text-white hover:text-[#38bdf8]"
+              >
+                {leader.name}
+              </Link>
+              <p className="truncate text-[11px] font-semibold text-[color:var(--muted)]">
+                {leaderTeam ? `${leaderTeam} · ` : ""}
+                {leader.games} games
+              </p>
+            </div>
+            <div className="text-right">
+              <div
+                className="ifn-display text-4xl leading-none tabular-nums"
+                style={{ color: heroColor }}
+              >
+                {heroValue}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ranks 2–10 */}
+        <div
+          className={
+            category.marquee
+              ? "grid gap-y-1 border-t border-[color:var(--border)] pt-3 md:flex-1 md:grid-flow-col md:grid-rows-5 md:gap-x-8 md:border-t-0 md:pt-0"
+              : "grid gap-y-1"
+          }
+        >
+          {restRows.map((p, i) => (
+            <RankRow
+              key={p.playerId || p.name}
+              rank={i + 2}
+              player={p}
+              category={category}
+              mode={mode}
+              team={teamOf(p)}
+              link={linkFor(p)}
+              imgSrc={resolveImg(p)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-[color:var(--bg)] px-4 py-8">
+      <div className="mx-auto max-w-5xl">
+        <SkeletonBlock className="mb-8">
+          <SkeletonBar className="mb-3 h-3 w-32" />
+          <SkeletonBar className="h-9 w-64" />
+        </SkeletonBlock>
+
+        <SkeletonBlock className="mb-5 rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-5">
+          <SkeletonBar className="mb-5 h-4 w-24" />
+          <div className="md:flex md:items-center md:gap-8">
+            <div className="flex flex-col items-center pb-4 md:w-60 md:flex-none md:pb-0">
+              <SkeletonCircle className="h-28 w-28" />
+              <SkeletonBar className="mt-3 h-5 w-36" />
+              <SkeletonBar className="mt-2 h-10 w-24" />
+            </div>
+            <div className="grid gap-2 md:flex-1 md:grid-flow-col md:grid-rows-5 md:gap-x-8">
+              {Array.from({ length: 9 }).map((_, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 px-2 py-1.5">
+                  <SkeletonCircle className="h-9 w-9 flex-none" />
+                  <SkeletonBar className="h-4 flex-1" />
+                  <SkeletonBar className="h-4 w-10 flex-none" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </SkeletonBlock>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, cardIdx) => (
+            <SkeletonBlock
+              key={cardIdx}
+              className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-5"
+            >
+              <SkeletonBar className="mb-5 h-4 w-24" />
+              <div className="mb-3 flex items-center gap-3 rounded-lg p-3">
+                <SkeletonCircle className="h-14 w-14 flex-none" />
+                <SkeletonBar className="h-5 flex-1" />
+                <SkeletonBar className="h-9 w-16 flex-none" />
+              </div>
+              {Array.from({ length: 5 }).map((__, rowIdx) => (
+                <div key={rowIdx} className="flex items-center gap-2.5 px-2 py-1.5">
+                  <SkeletonCircle className="h-9 w-9 flex-none" />
+                  <SkeletonBar className="h-4 flex-1" />
+                  <SkeletonBar className="h-4 w-10 flex-none" />
+                </div>
+              ))}
+            </SkeletonBlock>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -78,9 +428,10 @@ export default function Leaders() {
   const activeSeason = season || "szn5";
 
   const [players, setPlayers] = useState([]);
-  const [modalImage, setModalImage] = useState(null);
+  const [teamsByPlayer, setTeamsByPlayer] = useState(() => new Map());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState("avg"); // "avg" | "total"
 
   useEffect(() => {
     const controller = new AbortController();
@@ -91,33 +442,29 @@ export default function Leaders() {
       setPlayers([]);
 
       try {
-        const data = await apiGet(
-          `/api/leaders/${encodeURIComponent(activeSeason)}`,
-          {
+        const [leadersData, teamsData] = await Promise.all([
+          apiGet(`/api/leaders/${encodeURIComponent(activeSeason)}`, {
             signal: controller.signal,
-          }
+          }),
+          apiGet(`/api/seasons/${encodeURIComponent(activeSeason)}/teams`, {
+            signal: controller.signal,
+          }).catch(() => null),
+        ]);
+
+        const filtered = (leadersData?.leaders || []).filter(
+          (p) => !EXCLUDED_PLAYERS.has(p.name)
         );
 
-        const filtered = (data?.leaders || []).filter(
-          (p) =>
-            p.name !== "Josiah" &&
-            p.name !== "Danial Asim" &&
-            p.name !== "Salman" &&
-            p.name !== "Ibrahim" &&
-            p.name !== "Imran" &&
-            p.name !== "Anthony" &&
-            p.name !== "Raedh Talha" &&
-            p.name !== "Devon" &&
-            p.name !== "Suhail" &&
-            p.name !== "Sufyan" &&
-            p.name !== "Saif Rehman" &&
-            p.name !== "Amaar Zafar" &&
-            p.name !== "Luqman Ali" &&
-            p.name !== "Ryan" &&
-            p.name !== "Imam Azfar Uddin"
-        );
+        const teamMap = new Map();
+        (teamsData?.teams || []).forEach((team) => {
+          (team.roster || []).forEach((p) => {
+            if (p.playerId) teamMap.set(p.playerId, team.name);
+            if (p.slug) teamMap.set(p.slug, team.name);
+          });
+        });
 
         setPlayers(filtered);
+        setTeamsByPlayer(teamMap);
       } catch (e) {
         if (e.name === "AbortError") return;
         console.error("Error loading leader data:", e);
@@ -135,227 +482,125 @@ export default function Leaders() {
     };
   }, [activeSeason]);
 
-  const getTopByAverage = (avgKey) =>
-    [...players].sort((a, b) => b[avgKey] - a[avgKey]).slice(0, 10);
+  const teamOf = useMemo(
+    () => (p) =>
+      teamsByPlayer.get(p.playerId) || teamsByPlayer.get(p.slug) || null,
+    [teamsByPlayer]
+  );
 
-  const renderCategory = ({
-    label,
-    avgKey,
-    totalKey,
-    avgLabel,
-    totalLabel,
-  }) => {
-    const top10 = getTopByAverage(avgKey);
+  const resolveImg = (p) =>
+    season ? seasonPlayerImageUrl(activeSeason, p.name) : playerImageUrl(p);
 
-    return (
-      <div className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm md:max-w-md">
-        <div className="border-b border-[#e2e8f0] bg-[#f8fafc] py-3">
-          <h2 className="text-center text-base font-black text-[#0f172a]">
-            {label}
-          </h2>
-        </div>
-        <div className="overflow-x-auto bg-[#ffffff] p-2">
-          <table className="w-full table-fixed border-collapse text-sm">
-            <thead className="bg-[#f8fafc]">
-              <tr>
-                <th className="w-1/2 p-1 text-left font-black text-[#64748b]">Player</th>
-                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
-                  GP
-                </th>
-                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
-                  {avgLabel}
-                </th>
-                <th className="w-1/6 border-l border-[#e2e8f0] px-1 py-2 text-right font-black text-[#64748b]">
-                  {totalLabel}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {top10.map((p, idx) => {
-                const slug =
-                  p.name === "Jerremiah Dujuan Wright"
-                    ? "dujuan_wright"
-                    : slugify(p.name);
-
-                const apiImgSrc = playerImageUrl(p);
-                const imgSrc = season
-                  ? seasonPlayerImageUrl(activeSeason, p.name)
-                  : apiImgSrc;
-
-                return (
-                  <tr
-                    key={p.name}
-                    className={idx % 2 === 1 ? "bg-[#f8fafc]" : "bg-[#ffffff]"}
-                  >
-                    <td className="flex items-center whitespace-nowrap p-1 text-[#0f172a]">
-                      <ProfileImage
-                        name={p.name}
-                        src={imgSrc}
-                        onClick={() => imgSrc && setModalImage(imgSrc)}
-                      />
-                      <span className="mr-1 text-xs font-black">
-                        {idx === 0
-                          ? "🥇"
-                          : idx === 1
-                          ? "🥈"
-                          : idx === 2
-                          ? "🥉"
-                          : `#${idx + 1}`}
-                      </span>
-
-                      <Link
-                        to={
-                          season
-                            ? `/season/${activeSeason}/player/${slug}`
-                            : `/player/${slug}`
-                        }
-                        state={{
-                          from: season
-                            ? `/season/${activeSeason}/leaders`
-                            : "/leaders",
-                          label: "Leaders",
-                        }}
-                        className="text-xs font-black text-[#0f172a] hover:text-[#0284c7] hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                    </td>
-
-                    <td className="px-1 py-2 text-right font-black text-[#475569]">
-                      {p.games}
-                    </td>
-                    <td className="px-1 py-2 text-right font-black text-[#475569]">
-                      {p[avgKey]}
-                    </td>
-                    <td className="px-1 py-2 text-right font-black text-[#475569]">
-                      {p[totalKey]}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
+  const linkFor = (p) => {
+    const slug = p.slug || playerSlug(p.name);
+    return {
+      to: season ? `/season/${activeSeason}/player/${slug}` : `/player/${slug}`,
+      state: {
+        from: season ? `/season/${activeSeason}/leaders` : "/leaders",
+        label: "Leaders",
+      },
+    };
   };
 
+  const topTen = (category) => {
+    const key = mode === "avg" ? category.avgKey : category.totalKey;
+    const tieKey = mode === "avg" ? category.totalKey : category.avgKey;
+    return [...players]
+      .sort((a, b) => b[key] - a[key] || b[tieKey] - a[tieKey])
+      .slice(0, 10);
+  };
+
+  const jumpTo = (id) => {
+    document
+      .getElementById(`cat-${id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  if (error) {
+    return <p className="py-4 text-center font-bold text-[#f87171]">{error}</p>;
+  }
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (players.length === 0) {
+    return (
+      <p className="py-4 text-center font-bold text-[color:var(--muted)]">
+        No leaders found.
+      </p>
+    );
+  }
+
   return (
-    <>
-      {modalImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-          onClick={() => setModalImage(null)}
-        >
-          <div onClick={(e) => e.stopPropagation()} className="relative">
-            <button
-              className="absolute top-2 right-2 text-white text-2xl"
-              onClick={() => setModalImage(null)}
+    <div className="ifn-fade-in min-h-screen bg-[color:var(--bg)] pb-12">
+        {/* Page header */}
+        <div className="mx-auto max-w-5xl px-4 pt-8">
+          <p className="text-[11px] font-black uppercase italic tracking-[0.3em] text-[#38bdf8]">
+            IFNBL · {seasonLabel(activeSeason)}
+          </p>
+          <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
+            <h1 className="text-4xl font-black italic tracking-tight text-white">
+              League Leaders
+            </h1>
+
+            {/* Ranking mode: re-sorts every board */}
+            <div
+              className="flex rounded-full border border-[color:var(--border)] bg-[color:var(--panel)] p-1"
+              role="group"
+              aria-label="Ranking mode"
             >
-              &times;
-            </button>
-            <img
-              src={modalImage}
-              alt="Player"
-              className="h-64 w-64 object-cover rounded-full shadow-lg"
-            />
+              {[
+                { id: "avg", label: "Per game" },
+                { id: "total", label: "Totals" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setMode(opt.id)}
+                  aria-pressed={mode === opt.id}
+                  className={`rounded-full px-4 py-1.5 text-xs font-black uppercase italic tracking-wide transition ${
+                    mode === opt.id
+                      ? "bg-[rgba(2,132,199,0.18)] text-[#38bdf8]"
+                      : "text-[color:var(--muted)] hover:text-white"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      )}
 
-      {error ? (
-        <p className="py-4 text-center font-bold text-[#f87171]">{error}</p>
-      ) : loading ? (
-        <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
-          <div className="mx-auto mb-6 h-9 w-64 animate-pulse rounded bg-[#e2e8f0]" />
-          <div className="flex flex-col items-center gap-6">
-            {Array.from({ length: 3 }).map((_, cardIdx) => (
-              <SkeletonBlock
-                key={cardIdx}
-                className="mx-auto w-full max-w-full overflow-hidden rounded-lg border border-[#e2e8f0] bg-[#ffffff] shadow-sm md:max-w-md"
+        {/* Category rail */}
+        <div
+          className="sticky z-30 mt-6 border-y border-[color:var(--border)] bg-[rgba(5,5,5,0.85)] backdrop-blur"
+          style={{ top: "var(--site-nav-height)" }}
+        >
+          <div className="mx-auto flex max-w-5xl gap-1.5 overflow-x-auto px-4 py-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => jumpTo(cat.id)}
+                className="flex-none rounded-full border border-transparent px-3.5 py-1.5 text-xs font-black uppercase italic tracking-wide text-[color:var(--muted)] transition hover:border-[color:var(--border)] hover:bg-[color:var(--panel)] hover:text-white"
               >
-                <div className="flex justify-center border-b border-[#e2e8f0] bg-[#f8fafc] py-3">
-                  <SkeletonBar className="h-4 w-24" />
-                </div>
-                <div className="flex flex-col gap-3 p-3">
-                  {Array.from({ length: 5 }).map((__, rowIdx) => (
-                    <div key={rowIdx} className="flex items-center gap-2">
-                      <SkeletonCircle className="h-10 w-10 flex-none" />
-                      <SkeletonBar className="h-4 flex-1" />
-                      <SkeletonBar className="h-4 w-8 flex-none" />
-                      <SkeletonBar className="h-4 w-8 flex-none" />
-                      <SkeletonBar className="h-4 w-8 flex-none" />
-                    </div>
-                  ))}
-                </div>
-              </SkeletonBlock>
+                {cat.chip}
+              </button>
             ))}
           </div>
         </div>
-      ) : players.length === 0 ? (
-        <p className="py-4 text-center font-bold text-[#64748b]">No leaders found.</p>
-      ) : (
-        <div className="ifn-fade-in min-h-screen bg-[#f8fafc] px-4 py-8">
-          <h1 className="mb-6 text-center text-3xl font-black tracking-tight text-[#0f172a]">
-            League Leaders
-          </h1>
 
-          <div className="flex flex-col gap-6 items-center">
-            {renderCategory({
-              label: "Points",
-              avgKey: "avgPts",
-              totalKey: "totalPts",
-              avgLabel: "PTS/G",
-              totalLabel: "PTS",
-            })}
-
-            {/* ✅ Assists */}
-            {renderCategory({
-              label: "Assists",
-              avgKey: "avgAst",
-              totalKey: "totalAst",
-              avgLabel: "AST/G",
-              totalLabel: "AST",
-            })}
-
-            {renderCategory({
-              label: "3PT Made",
-              avgKey: "avg3",
-              totalKey: "total3",
-              avgLabel: "3PT/G",
-              totalLabel: "3PT",
-            })}
-            {renderCategory({
-              label: "Rebounds",
-              avgKey: "avgReb",
-              totalKey: "totalReb",
-              avgLabel: "REB/G",
-              totalLabel: "REB",
-            })}
-            {renderCategory({
-              label: "STLS/BLKS",
-              avgKey: "avgStlBlk",
-              totalKey: "totalStlBlk",
-              avgLabel: "STL/BLK/G",
-              totalLabel: "STL/BLK",
-            })}
-            {renderCategory({
-              label: "Turnovers",
-              avgKey: "avgTO",
-              totalKey: "totalTO",
-              avgLabel: "TO/G",
-              totalLabel: "TO",
-            })}
-            {renderCategory({
-              label: "Fouls",
-              avgKey: "avgFouls",
-              totalKey: "totalFouls",
-              avgLabel: "FLS/G",
-              totalLabel: "FLS",
-            })}
-          </div>
+        {/* Boards */}
+        <div className="mx-auto mt-6 grid max-w-5xl gap-5 px-4 md:grid-cols-2">
+          {CATEGORIES.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              category={cat}
+              rows={topTen(cat)}
+              mode={mode}
+              teamOf={teamOf}
+              resolveImg={resolveImg}
+              linkFor={linkFor}
+            />
+          ))}
         </div>
-      )}
-    </>
+      </div>
   );
 }

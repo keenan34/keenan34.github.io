@@ -113,7 +113,7 @@ function ProfileImage({ name, season }) {
 
   if (error) {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f8fafc] text-xs font-black text-[#64748b]">
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#101820] text-xs font-black text-[color:var(--muted)] ring-2 ring-[color:var(--border)]">
         {initials}
       </div>
     );
@@ -124,7 +124,8 @@ function ProfileImage({ name, season }) {
       src={src}
       alt={name}
       onError={() => setError(true)}
-      className="h-10 w-10 rounded-full object-cover"
+      className="h-12 w-12 flex-shrink-0 rounded-full object-cover ring-2 ring-[color:var(--border)]"
+      loading="lazy"
     />
   );
 }
@@ -133,21 +134,24 @@ function ProfileImage({ name, season }) {
 // instead of popping from a bare text line into a full card.
 function TopPerformersSkeleton({ label }) {
   return (
-    <div className="mx-auto mb-4 max-w-5xl animate-pulse rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-      <div className="mb-4 h-6 w-56 rounded bg-[#e2e8f0]" />
-      <div className="flex flex-col gap-2">
-        {[0, 1, 2, 3].map((row) => (
+    <div className="mx-auto mb-4 w-full max-w-5xl animate-pulse px-4 pt-8">
+      <div className="mb-2 h-3 w-40 rounded bg-[#101820]" />
+      <div className="mb-5 h-8 w-64 rounded bg-[#101820]" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {[0, 1, 2, 3].map((card) => (
           <div
-            key={row}
-            className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4"
+            key={card}
+            className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-4"
           >
-            <div className="mb-3 h-4 w-32 rounded bg-[#e2e8f0]" />
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 flex-none rounded-full bg-[#e2e8f0]" />
+            <div className="mb-3 flex items-center justify-between border-b border-[color:var(--border)] pb-3">
+              <div className="h-4 w-24 rounded bg-[#101820]" />
+              <div className="h-9 w-14 rounded bg-[#101820]" />
+            </div>
+            <div className="flex items-center gap-3 p-2">
+              <div className="h-12 w-12 flex-none rounded-full bg-[#101820]" />
               <div className="flex flex-col gap-1.5">
-                <div className="h-3.5 w-28 rounded bg-[#e2e8f0]" />
-                <div className="h-3 w-20 rounded bg-[#e2e8f0]" />
-                <div className="h-3 w-16 rounded bg-[#e2e8f0]" />
+                <div className="h-4 w-32 rounded bg-[#101820]" />
+                <div className="h-3 w-24 rounded bg-[#101820]" />
               </div>
             </div>
           </div>
@@ -277,22 +281,14 @@ export default function TopPerformers({
       return <TopPerformersSkeleton label={displayWeek} />;
     }
 
-    if (status === "missing") {
-      return (
-        <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-          <div className="text-sm font-bold text-[#64748b]">
-            Top Performers not available for{" "}
-            <span className="font-black text-[#0f172a]">{displayWeek}</span> yet.
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="mb-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-        <div className="text-sm font-bold text-[#64748b]">
-          Top Performers not available for{" "}
-          <span className="font-black text-[#0f172a]">{displayWeek}</span> yet.
+      <div className="mx-auto mb-4 w-full max-w-5xl px-4 pt-8">
+        <div className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-5">
+          <div className="text-sm font-bold text-[color:var(--muted)]">
+            Top performers for{" "}
+            <span className="font-black text-white">{displayWeek}</span> will
+            appear once every game is final.
+          </div>
         </div>
       </div>
     );
@@ -309,12 +305,12 @@ export default function TopPerformers({
   const top3PT = getTopPlayers("3 PTM");
   const topStlBlks = getTopPlayers("STLS/BLKS");
 
-  const statLabels = {
-    Points: "Points",
-    REB: "Rebounds",
-    "3 PTM": "Threes Made",
-    "STLS/BLKS": "Steals/Blocks",
-  };
+  const seasonTag = (() => {
+    const m = /^szn(\d+)$/i.exec(activeSeason || "");
+    return m ? `Season ${m[1]}` : (activeSeason || "").toUpperCase();
+  })();
+
+  const leadersLink = season ? `/season/${activeSeason}/leaders` : "/leaders";
 
   // Box-score link for a player's week game: match the schedule by week +
   // home/away names, then land on that player's team tab. Falls back to the
@@ -338,51 +334,70 @@ export default function TopPerformers({
   };
 
   return (
-    <div className="ifn-fade-in mx-auto mb-4 max-w-5xl rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm">
-      <h2 className="mb-4 text-xl font-black text-[#0f172a]">
-        Top Performers ({displayWeek})
-      </h2>
-
-      <div className="flex flex-col gap-2">
-        {[
-          { label: "Scoring Week Leader", stat: "Points", list: topScorers },
-          { label: "Rebound Week Leader", stat: "REB", list: topRebounders },
-          { label: "3PTM Week Leader", stat: "3 PTM", list: top3PT },
-          { label: "STL/BLK Week Leader", stat: "STLS/BLKS", list: topStlBlks },
-        ].map(({ label, stat, list }) => (
-          <div
-            key={stat}
-            className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4 transition-colors hover:border-[#0284c7]"
-          >
-            <div className="mb-2 text-sm font-black text-[#64748b]">{label}</div>
-
-            <div className="flex flex-wrap gap-4">
-              {list.map((player) => {
-                return (
-                  <Link
-                    key={`${stat}-${player.Player}`}
-                    to={playerLink(player)}
-                    className="flex items-center rounded-md p-1 transition hover:bg-[#ffffff]"
-                  >
-                    <ProfileImage name={player.Player} season={activeSeason} />
-                      <div className="ml-2">
-                      <div className="text-sm font-black text-[#0f172a]">
-                        {player.Player}
-                      </div>
-                      <div className="text-xs font-bold italic text-[#64748b]">
-                        vs {player.opponent}
-                      </div>
-                      <div className="text-xs font-bold text-[#0284c7]">
-                        {safeNum(getStat(player, stat))} {statLabels[stat]}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+    <section className="ifn-fade-in mx-auto mb-4 w-full max-w-5xl px-4 pt-8 text-left">
+      {/* Header */}
+      <p className="text-[11px] font-black uppercase italic tracking-[0.3em] text-[#38bdf8]">
+        {displayWeek} · {seasonTag}
+      </p>
+      <div className="mt-1 mb-5 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-3xl font-black italic tracking-tight text-white">
+          Top Performers
+        </h2>
+        <Link
+          to={leadersLink}
+          className="rounded-full border border-transparent px-3 py-1.5 text-xs font-black uppercase italic tracking-wide text-[color:var(--muted)] transition hover:border-[color:var(--border)] hover:bg-[color:var(--panel)] hover:text-white"
+        >
+          Season leaders →
+        </Link>
       </div>
-    </div>
+
+      {/* Honors board */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {[
+          { label: "Points", stat: "Points", list: topScorers },
+          { label: "Rebounds", stat: "REB", list: topRebounders },
+          { label: "3PT Made", stat: "3 PTM", list: top3PT },
+          { label: "Steals + Blocks", stat: "STLS/BLKS", list: topStlBlks },
+        ].map(({ label, stat, list }) => {
+          if (!list.length) return null;
+          const value = safeNum(getStat(list[0], stat));
+
+          return (
+            <div
+              key={stat}
+              className="rounded-xl border border-[color:var(--border)] bg-[color:var(--panel)] p-4"
+            >
+              {/* Category + the week-best number (shared across ties) */}
+              <div className="mb-2 flex items-center justify-between gap-3 border-b border-[color:var(--border)] pb-2">
+                <h3 className="text-sm font-black uppercase italic tracking-[0.18em] text-white">
+                  {label}
+                </h3>
+                <span className="ifn-display text-4xl leading-none text-[#38bdf8] tabular-nums">
+                  {value}
+                </span>
+              </div>
+
+              {list.map((player) => (
+                <Link
+                  key={`${stat}-${player.Player}`}
+                  to={playerLink(player)}
+                  className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-[#101820]"
+                >
+                  <ProfileImage name={player.Player} season={activeSeason} />
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-black italic text-white">
+                      {player.Player}
+                    </div>
+                    <div className="truncate text-xs font-semibold text-[color:var(--muted)]">
+                      {player.team ? `${player.team} · ` : ""}vs {player.opponent}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
