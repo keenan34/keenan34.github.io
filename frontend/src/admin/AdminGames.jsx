@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { getAdminGames } from "../api/client";
-import { clearAdminToken, getAdminToken, isAdminAuthError } from "./auth";
+import {
+  clearAdminToken,
+  getAdminToken,
+  isAdminAuthError,
+  useAdminTokenRefresh,
+} from "./auth";
 
 function seasonNumber(slug) {
   const match = String(slug || "").match(/(\d+)/);
@@ -62,6 +67,8 @@ function groupGamesByWeek(seasonGames) {
 function AdminGames() {
   const navigate = useNavigate();
   const token = getAdminToken();
+
+  useAdminTokenRefresh();
   const [games, setGames] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);

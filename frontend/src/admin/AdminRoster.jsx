@@ -6,13 +6,20 @@ import {
   updateAdminRosterPlayerNumber,
   deleteAdminRosterPlayer,
 } from "../api/client";
-import { clearAdminToken, getAdminToken, isAdminAuthError } from "./auth";
+import {
+  clearAdminToken,
+  getAdminToken,
+  isAdminAuthError,
+  useAdminTokenRefresh,
+} from "./auth";
 
 const CURRENT_SEASON = "szn5";
 
 export default function AdminRoster() {
   const navigate = useNavigate();
   const token = getAdminToken();
+
+  useAdminTokenRefresh();
 
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);

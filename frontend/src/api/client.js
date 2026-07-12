@@ -62,6 +62,13 @@ export function adminLogin(username, password) {
   });
 }
 
+export function refreshAdminToken(token) {
+  return apiRequest("/api/admin/refresh", {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+}
+
 export function getAdminGames(token) {
   return apiGet("/api/admin/games", {
     headers: authHeaders(token),
@@ -162,6 +169,17 @@ export function updateAdminGameScore(gameId, score, token) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(score),
+  });
+}
+
+export function updateAdminGameTimeouts(gameId, timeouts, token) {
+  return apiRequest(`/api/admin/games/${encodeURIComponent(gameId)}/timeouts`, {
+    method: "PATCH",
+    headers: {
+      ...authHeaders(token),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(timeouts),
   });
 }
 

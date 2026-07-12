@@ -1,6 +1,19 @@
 const jwt = require("jsonwebtoken");
 const { env } = require("../../config/env");
 
+function issueToken(username) {
+  return jwt.sign(
+    {
+      sub: username,
+      role: "admin",
+    },
+    env.JWT_SECRET,
+    {
+      expiresIn: env.JWT_EXPIRES_IN,
+    }
+  );
+}
+
 function login(req, res) {
   const { username, password } = req.body || {};
 
@@ -9,19 +22,18 @@ function login(req, res) {
     return;
   }
 
-  const token = jwt.sign(
-    {
-      sub: env.ADMIN_USERNAME,
-      role: "admin",
-    },
-    env.JWT_SECRET,
-    {
-      expiresIn: env.JWT_EXPIRES_IN,
-    }
-  );
-
   res.json({
-    token,
+    token: issueToken(env.ADMIN_USERNAME),
+    tokenType: "Bearer",
+    expiresIn: env.JWT_EXPIRES_IN,
+  });
+}
+
+// Trades a still-valid token for a fresh one so an active admin session keeps
+// sliding forward instead of hard-expiring mid-game.
+function refresh(req, res) {
+  res.json({
+    token: issueToken(req.admin.sub),
     tokenType: "Bearer",
     expiresIn: env.JWT_EXPIRES_IN,
   });
@@ -31,4 +43,4 @@ function logout(_req, res) {
   res.json({ ok: true });
 }
 
-module.exports = { login, logout };
+module.exports = { login, logout, refresh };

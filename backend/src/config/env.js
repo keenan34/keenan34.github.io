@@ -84,7 +84,7 @@ const env = {
   ADMIN_USERNAME: process.env.ADMIN_USERNAME,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   JWT_SECRET: process.env.JWT_SECRET,
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "2h",
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "12h",
 };
 
 if (!Number.isInteger(env.PORT) || env.PORT <= 0) {

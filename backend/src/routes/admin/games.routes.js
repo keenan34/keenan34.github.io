@@ -6,6 +6,7 @@ const { pool } = require("../../db/pool");
 const ALLOWED_GAME_STATUSES = ["scheduled", "live", "final", "cancelled"];
 const ALLOWED_CLOCK_STATUSES = ["stopped", "running", "halftime", "final"];
 const HALF_SECONDS = 20 * 60;
+const TIMEOUTS_PER_GAME = 2;
 const STAT_FIELDS = [
   "points",
   "fgm",
@@ -271,12 +272,14 @@ function mapAdminGame(row) {
       name: row.homeTeamName,
       slug: row.homeTeamSlug,
       score: row.homeScore,
+      timeoutsUsed: row.homeTimeoutsUsed,
     },
     awayTeam: {
       id: row.awayTeamId,
       name: row.awayTeamName,
       slug: row.awayTeamSlug,
       score: row.awayScore,
+      timeoutsUsed: row.awayTimeoutsUsed,
     },
   };
 }
@@ -362,10 +365,12 @@ async function getGame(gameId) {
         home.name AS "homeTeamName",
         home.slug AS "homeTeamSlug",
         g.home_score AS "homeScore",
+        g.home_timeouts_used AS "homeTimeoutsUsed",
         away.id AS "awayTeamId",
         away.name AS "awayTeamName",
         away.slug AS "awayTeamSlug",
-        g.away_score AS "awayScore"
+        g.away_score AS "awayScore",
+        g.away_timeouts_used AS "awayTimeoutsUsed"
       FROM games g
       JOIN seasons s ON s.id = g.season_id
       JOIN teams home ON home.id = g.home_team_id
@@ -675,6 +680,8 @@ async function swapGameHomeAway(gameId) {
           away_team_id = home_team_id,
           home_score = away_score,
           away_score = home_score,
+          home_timeouts_used = away_timeouts_used,
+          away_timeouts_used = home_timeouts_used,
           updated_at = now()
       WHERE id = $1
       RETURNING id
@@ -806,10 +813,12 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
         home.name AS "homeTeamName",
         home.slug AS "homeTeamSlug",
         g.home_score AS "homeScore",
+        g.home_timeouts_used AS "homeTimeoutsUsed",
         away.id AS "awayTeamId",
         away.name AS "awayTeamName",
         away.slug AS "awayTeamSlug",
-        g.away_score AS "awayScore"
+        g.away_score AS "awayScore",
+        g.away_timeouts_used AS "awayTimeoutsUsed"
       FROM games g
       JOIN seasons s ON s.id = g.season_id
       JOIN teams home ON home.id = g.home_team_id
@@ -1340,6 +1349,17 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
       );
 
       await client.query("DELETE FROM game_events WHERE game_id = $1", [gameId]);
+
+      await client.query(
+        `
+          UPDATE games
+          SET home_timeouts_used = 0,
+              away_timeouts_used = 0,
+              updated_at = now()
+          WHERE id = $1
+        `,
+        [gameId]
+      );
     }
 
     await client.query("COMMIT");
@@ -1359,6 +1379,86 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
     client.release();
   }
 });
+
+  router.patch("/:gameId/timeouts", async (req, res, next) => {
+    const { gameId } = req.params;
+
+    if (!isUuid(gameId)) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    const body = req.body || {};
+    const homeTimeoutsUsed = body.homeTimeoutsUsed ?? body.home_timeouts_used;
+    const awayTimeoutsUsed = body.awayTimeoutsUsed ?? body.away_timeouts_used;
+    const updates = [];
+    const values = [gameId];
+    const errors = [];
+
+    if (homeTimeoutsUsed === undefined && awayTimeoutsUsed === undefined) {
+      errors.push("At least one timeouts field is required");
+    }
+
+    if (homeTimeoutsUsed !== undefined) {
+      if (
+        !Number.isInteger(homeTimeoutsUsed) ||
+        homeTimeoutsUsed < 0 ||
+        homeTimeoutsUsed > TIMEOUTS_PER_GAME
+      ) {
+        errors.push(
+          `homeTimeoutsUsed must be an integer from 0 to ${TIMEOUTS_PER_GAME}`
+        );
+      } else {
+        values.push(homeTimeoutsUsed);
+        updates.push(`home_timeouts_used = $${values.length}`);
+      }
+    }
+
+    if (awayTimeoutsUsed !== undefined) {
+      if (
+        !Number.isInteger(awayTimeoutsUsed) ||
+        awayTimeoutsUsed < 0 ||
+        awayTimeoutsUsed > TIMEOUTS_PER_GAME
+      ) {
+        errors.push(
+          `awayTimeoutsUsed must be an integer from 0 to ${TIMEOUTS_PER_GAME}`
+        );
+      } else {
+        values.push(awayTimeoutsUsed);
+        updates.push(`away_timeouts_used = $${values.length}`);
+      }
+    }
+
+    if (errors.length) {
+      res.status(400).json({ error: "Invalid timeouts", details: errors });
+      return;
+    }
+
+    try {
+      const { rows } = await pool.query(
+        `
+          UPDATE games
+          SET ${updates.join(", ")},
+              updated_at = now()
+          WHERE id = $1
+          RETURNING id
+        `,
+        values
+      );
+
+      if (!rows.length) {
+        res.status(404).json({ error: "Game not found" });
+        return;
+      }
+
+      const liveGameState = await getLiveGameState(gameId);
+
+      res.json(liveGameState);
+      await notifyLiveGameState(gameId, "timeouts-updated");
+    } catch (err) {
+      next(err);
+    }
+  });
 
   router.patch("/:gameId/player-stats/:playerId", async (req, res, next) => {
   const { gameId, playerId } = req.params;

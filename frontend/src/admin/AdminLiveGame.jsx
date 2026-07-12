@@ -13,11 +13,17 @@ import {
   undoAdminGameEvent,
   updateAdminGameStatus,
   updateAdminGameScore,
+  updateAdminGameTimeouts,
   updateAdminGameYoutubeUrl,
   updateAdminPlayerStats,
 } from "../api/client";
 import { resolveApiBaseUrl } from "../api/baseUrl";
-import { clearAdminToken, getAdminToken, isAdminAuthError } from "./auth";
+import {
+  clearAdminToken,
+  getAdminToken,
+  isAdminAuthError,
+  useAdminTokenRefresh,
+} from "./auth";
 
 const STAT_FIELDS = [
   ["points", "PTS"],
@@ -396,6 +402,8 @@ function AdminLiveGame() {
   const navigate = useNavigate();
   const token = getAdminToken();
 
+  useAdminTokenRefresh();
+
   const [game, setGame] = useState(null);
   const [rosters, setRosters] = useState([]);
   const [events, setEvents] = useState([]);
@@ -427,7 +435,7 @@ function AdminLiveGame() {
   const [youtubeDraft, setYoutubeDraft] = useState("");
   const [isSavingYoutubeUrl, setIsSavingYoutubeUrl] = useState(false);
   const [reassigningEvent, setReassigningEvent] = useState(null);
-  const [timeoutsUsed, setTimeoutsUsed] = useState({});
+  const [isSavingTimeouts, setIsSavingTimeouts] = useState(false);
   const [half, setHalf] = useState(1);
   const [halfFoulBaseline, setHalfFoulBaseline] = useState({});
 
@@ -441,6 +449,14 @@ function AdminLiveGame() {
     },
     [navigate]
   );
+
+  const timeoutsUsed = useMemo(() => {
+    if (!game) return {};
+    return {
+      [game.homeTeam.id]: game.homeTeam.timeoutsUsed ?? 0,
+      [game.awayTeam.id]: game.awayTeam.timeoutsUsed ?? 0,
+    };
+  }, [game]);
 
   const score = useMemo(() => {
     if (!game) return "-";
@@ -577,6 +593,8 @@ function AdminLiveGame() {
         loadEvents();
       } else if (data.reason === "score-updated") {
         setNotice("Score updated");
+      } else if (data.reason === "timeouts-updated") {
+        setNotice("Timeouts updated");
       } else if (data.reason === "status-updated") {
         setNotice("Game status updated");
       } else if (data.reason === "home-away-updated") {
@@ -766,20 +784,38 @@ function AdminLiveGame() {
     setHalf(nextHalf);
   }
 
+  async function saveTimeouts(teamId, nextUsed) {
+    if (!game) return;
+
+    const timeouts =
+      teamId === game.homeTeam.id
+        ? { homeTimeoutsUsed: nextUsed }
+        : { awayTimeoutsUsed: nextUsed };
+
+    setIsSavingTimeouts(true);
+    setError("");
+
+    try {
+      const data = await updateAdminGameTimeouts(gameId, timeouts, token);
+      applyLiveGameState(data);
+    } catch (err) {
+      if (handleAdminError(err)) return;
+      setError(err.message);
+    } finally {
+      setIsSavingTimeouts(false);
+    }
+  }
+
   function takeTimeout(teamId) {
-    setTimeoutsUsed((current) => {
-      const used = current[teamId] || 0;
-      if (used >= TIMEOUTS_PER_GAME) return current;
-      return { ...current, [teamId]: used + 1 };
-    });
+    const used = timeoutsUsed[teamId] || 0;
+    if (used >= TIMEOUTS_PER_GAME) return;
+    saveTimeouts(teamId, used + 1);
   }
 
   function undoTimeout(teamId) {
-    setTimeoutsUsed((current) => {
-      const used = current[teamId] || 0;
-      if (used <= 0) return current;
-      return { ...current, [teamId]: used - 1 };
-    });
+    const used = timeoutsUsed[teamId] || 0;
+    if (used <= 0) return;
+    saveTimeouts(teamId, used - 1);
   }
 
   function closeShotFlowAfterFeedback() {
@@ -1028,7 +1064,6 @@ function AdminLiveGame() {
 
     await saveScore({ awayScore: 0, homeScore: 0, resetPlayerStats: true });
     await loadEvents();
-    setTimeoutsUsed({});
     setHalf(1);
     setHalfFoulBaseline({});
   }
@@ -1218,7 +1253,7 @@ function AdminLiveGame() {
           </span>
           <button
             className="admin-team-timeout-button"
-            disabled={remaining <= 0 || isFinalized}
+            disabled={remaining <= 0 || isFinalized || isSavingTimeouts}
             onClick={() => takeTimeout(roster.team.id)}
             type="button"
           >
@@ -1226,7 +1261,7 @@ function AdminLiveGame() {
           </button>
           <button
             className="admin-team-timeout-undo"
-            disabled={used <= 0}
+            disabled={used <= 0 || isSavingTimeouts}
             onClick={() => undoTimeout(roster.team.id)}
             type="button"
           >
