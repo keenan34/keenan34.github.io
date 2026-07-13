@@ -118,6 +118,7 @@ export default function TeamList() {
               acc[teamName] = {
                 wins: row.wins || 0,
                 losses: row.losses || 0,
+                pointDiff: row.pointDiff || 0,
               };
             }
             return acc;
@@ -130,7 +131,9 @@ export default function TeamList() {
         }
 
         realTeams.forEach((team) => {
-          if (!recordMap[team]) recordMap[team] = { wins: 0, losses: 0 };
+          if (!recordMap[team]) {
+            recordMap[team] = { wins: 0, losses: 0, pointDiff: 0 };
+          }
         });
 
         setTeams(realTeams);
@@ -155,14 +158,15 @@ export default function TeamList() {
   const standingsArray = useMemo(() => {
     return teams
       .map((team) => {
-        const { wins = 0, losses = 0 } = standings[team] || {};
+        const { wins = 0, losses = 0, pointDiff = 0 } = standings[team] || {};
         const played = wins + losses;
         const winPct = played ? wins / played : 0;
-        return { team, wins, losses, winPct };
+        return { team, wins, losses, winPct, pointDiff };
       })
       .sort((a, b) => {
         if (b.winPct !== a.winPct) return b.winPct - a.winPct;
-        return b.wins - a.wins;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return b.pointDiff - a.pointDiff;
       });
   }, [teams, standings]);
 
@@ -194,6 +198,7 @@ export default function TeamList() {
                 <SkeletonBar className="h-4 w-8 flex-none" />
                 <SkeletonBar className="h-4 w-8 flex-none" />
                 <SkeletonBar className="h-4 w-12 flex-none" />
+                <SkeletonBar className="h-4 w-10 flex-none" />
               </div>
             ))}
           </SkeletonBlock>
@@ -204,10 +209,10 @@ export default function TeamList() {
             <table className="w-full table-auto divide-y divide-[#e2e8f0] text-center text-base sm:text-lg">
               <thead className="bg-[#f8fafc] text-[#64748b]">
                 <tr>
-                  {["#", "Team", "W", "L", "Win%"].map((col) => (
+                  {["#", "Team", "W", "L", "Win%", "+/-"].map((col) => (
                     <th
                       key={col}
-                      className="px-4 py-4 text-sm font-black uppercase tracking-wide"
+                      className="px-2 py-4 text-sm font-black uppercase tracking-wide sm:px-4"
                     >
                       {col}
                     </th>
@@ -217,8 +222,8 @@ export default function TeamList() {
               <tbody className="divide-y divide-[#e2e8f0] bg-[#ffffff]">
                 {standingsArray.map((row, idx) => (
                   <tr key={row.team} className={idx % 2 ? "bg-[#f8fafc]" : ""}>
-                    <td className="px-4 py-5 font-bold text-[#64748b]">{idx + 1}</td>
-                    <td className="px-4 py-5 text-left">
+                    <td className="px-2 py-5 font-bold text-[#64748b] sm:px-4">{idx + 1}</td>
+                    <td className="px-2 py-5 text-left sm:px-4">
                       <Link
                         to={
                           season
@@ -227,16 +232,27 @@ export default function TeamList() {
                               )}/roster`
                             : `/teams/${encodeURIComponent(row.team)}/roster`
                         }
-                        className="inline-flex min-h-11 items-center gap-3 rounded-md px-3 text-xl font-black text-[#0284c7] transition hover:bg-[#e0f2fe] hover:text-[#075985] hover:underline focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-lg font-black text-[#0284c7] transition hover:bg-[#e0f2fe] hover:text-[#075985] hover:underline focus:outline-none focus:ring-2 focus:ring-[#0284c7] focus:ring-offset-2 sm:gap-3 sm:px-3 sm:text-xl"
                       >
                         <TeamLogo season={activeSeason} name={row.team} />
                         {row.team}
                       </Link>
                     </td>
-                    <td className="px-4 py-5 font-bold text-[#475569]">{row.wins}</td>
-                    <td className="px-4 py-5 font-bold text-[#475569]">{row.losses}</td>
-                    <td className="px-4 py-5 font-bold text-[#475569]">
+                    <td className="px-2 py-5 font-bold text-[#475569] sm:px-4">{row.wins}</td>
+                    <td className="px-2 py-5 font-bold text-[#475569] sm:px-4">{row.losses}</td>
+                    <td className="px-2 py-5 font-bold text-[#475569] sm:px-4">
                       {(row.winPct * 100).toFixed(1)}%
+                    </td>
+                    <td
+                      className={`px-2 py-5 font-bold sm:px-4 ${
+                        row.pointDiff > 0
+                          ? "text-[#16a34a]"
+                          : row.pointDiff < 0
+                          ? "text-[#dc2626]"
+                          : "text-[#475569]"
+                      }`}
+                    >
+                      {row.pointDiff > 0 ? `+${row.pointDiff}` : row.pointDiff}
                     </td>
                   </tr>
                 ))}

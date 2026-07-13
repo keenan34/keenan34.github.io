@@ -45,6 +45,8 @@ router.get("/:seasonSlug", async (req, res, next) => {
           losses: 0,
           played: 0,
           winPct: 0,
+          pointsFor: 0,
+          pointsAgainst: 0,
         },
       ])
     );
@@ -56,6 +58,11 @@ router.get("/:seasonSlug", async (req, res, next) => {
 
       teamA.played += 1;
       teamB.played += 1;
+
+      teamA.pointsFor += game.scoreA;
+      teamA.pointsAgainst += game.scoreB;
+      teamB.pointsFor += game.scoreB;
+      teamB.pointsAgainst += game.scoreA;
 
       if (game.scoreA > game.scoreB) {
         teamA.wins += 1;
@@ -70,8 +77,15 @@ router.get("/:seasonSlug", async (req, res, next) => {
       .map((row) => ({
         ...row,
         winPct: row.played ? Number((row.wins / row.played).toFixed(3)) : 0,
+        pointDiff: row.pointsFor - row.pointsAgainst,
       }))
-      .sort((a, b) => b.winPct - a.winPct || b.wins - a.wins || a.team.localeCompare(b.team));
+      .sort(
+        (a, b) =>
+          b.winPct - a.winPct ||
+          b.wins - a.wins ||
+          b.pointDiff - a.pointDiff ||
+          a.team.localeCompare(b.team)
+      );
 
     res.json({
       season: req.params.seasonSlug,
