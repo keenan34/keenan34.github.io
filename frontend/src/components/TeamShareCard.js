@@ -300,7 +300,7 @@ export default function TeamShareCard({
       );
 
       const options = {
-        pixelRatio: 2,
+        pixelRatio: 3,
         cacheBust: false,
       };
       // A throwaway warm-up pass populates html-to-image's resource cache so the

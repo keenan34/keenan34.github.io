@@ -733,7 +733,7 @@ export default function PlayerShareCard({
       );
 
       const options = {
-        pixelRatio: 2,
+        pixelRatio: 3,
         cacheBust: false,
       };
       // html-to-image inlines remote images lazily, so the first pass often
