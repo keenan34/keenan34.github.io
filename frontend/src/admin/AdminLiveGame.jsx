@@ -12,6 +12,7 @@ import {
   submitAdminTeamToPublish,
   undoAdminGameEvent,
   updateAdminGameStatus,
+  updateAdminGameClock,
   updateAdminGameScore,
   updateAdminGameTimeouts,
   updateAdminGameYoutubeUrl,
@@ -436,6 +437,7 @@ function AdminLiveGame() {
   const [isSavingYoutubeUrl, setIsSavingYoutubeUrl] = useState(false);
   const [reassigningEvent, setReassigningEvent] = useState(null);
   const [isSavingTimeouts, setIsSavingTimeouts] = useState(false);
+  const [isSavingHalf, setIsSavingHalf] = useState(false);
   const [half, setHalf] = useState(1);
   const [halfFoulBaseline, setHalfFoulBaseline] = useState({});
 
@@ -481,7 +483,19 @@ function AdminLiveGame() {
   }, [gameId, handleAdminError, token]);
 
   const applyLiveGameState = useCallback((data) => {
-    setGame(data.game);
+    const nextGame = data.game;
+    const nextHalfFoulBaseline = {};
+
+    if (Number.isInteger(nextGame?.homeTeam?.firstHalfFouls)) {
+      nextHalfFoulBaseline[nextGame.homeTeam.id] = nextGame.homeTeam.firstHalfFouls;
+    }
+    if (Number.isInteger(nextGame?.awayTeam?.firstHalfFouls)) {
+      nextHalfFoulBaseline[nextGame.awayTeam.id] = nextGame.awayTeam.firstHalfFouls;
+    }
+
+    setGame(nextGame);
+    setHalf(nextGame?.clock?.period ?? 1);
+    setHalfFoulBaseline(nextHalfFoulBaseline);
     setRosters(
       (data.rosters || []).map((roster) => ({
         ...roster,
@@ -770,18 +784,42 @@ function AdminLiveGame() {
     return teamTotalFouls(roster) - baseline;
   }
 
-  function switchHalf(nextHalf) {
-    if (nextHalf === half) return;
+  async function switchHalf(nextHalf) {
+    if (nextHalf === half || isSavingHalf || !game) return;
+
+    const previousHalf = half;
+    const previousBaseline = halfFoulBaseline;
+    let nextBaseline = halfFoulBaseline;
+    const clockUpdate = { period: nextHalf };
+
     // Snapshot the 1st-half foul totals the first time we enter the 2nd half.
     // Switching back and forth afterwards keeps each half's count intact.
     if (nextHalf === 2 && Object.keys(halfFoulBaseline).length === 0) {
-      const baseline = {};
+      nextBaseline = {};
       rosters.forEach((roster) => {
-        baseline[roster.team.id] = teamTotalFouls(roster);
+        nextBaseline[roster.team.id] = teamTotalFouls(roster);
       });
-      setHalfFoulBaseline(baseline);
+
+      clockUpdate.homeFirstHalfFouls = nextBaseline[game.homeTeam.id] || 0;
+      clockUpdate.awayFirstHalfFouls = nextBaseline[game.awayTeam.id] || 0;
     }
+
     setHalf(nextHalf);
+    setHalfFoulBaseline(nextBaseline);
+    setIsSavingHalf(true);
+    setError("");
+
+    try {
+      const data = await updateAdminGameClock(gameId, clockUpdate, token);
+      applyLiveGameState(data);
+    } catch (err) {
+      if (handleAdminError(err)) return;
+      setHalf(previousHalf);
+      setHalfFoulBaseline(previousBaseline);
+      setError(err.message);
+    } finally {
+      setIsSavingHalf(false);
+    }
   }
 
   async function saveTimeouts(teamId, nextUsed) {
@@ -1789,7 +1827,8 @@ function AdminLiveGame() {
               <button
                 className={`admin-half-button ${half === n ? "admin-half-button-active" : ""}`}
                 key={n}
-                onClick={() => switchHalf(n)}
+                disabled={isSavingHalf}
+                onClick={() => void switchHalf(n)}
                 type="button"
               >
                 {n === 1 ? "1st" : "2nd"}

@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS games (
   away_score integer,
   status text NOT NULL DEFAULT 'scheduled',
   period integer NOT NULL DEFAULT 1,
+  home_first_half_fouls integer,
+  away_first_half_fouls integer,
   clock_seconds_remaining integer NOT NULL DEFAULT 1200,
   clock_status text NOT NULL DEFAULT 'stopped',
   clock_updated_at timestamptz NOT NULL DEFAULT now(),
@@ -79,6 +81,12 @@ CREATE TABLE IF NOT EXISTS games (
   UNIQUE (season_id, public_game_id),
   CONSTRAINT games_status_check CHECK (status IN ('scheduled', 'live', 'final', 'cancelled')),
   CONSTRAINT games_period_check CHECK (period IN (1, 2)),
+  CONSTRAINT games_home_first_half_fouls_check CHECK (
+    home_first_half_fouls IS NULL OR home_first_half_fouls >= 0
+  ),
+  CONSTRAINT games_away_first_half_fouls_check CHECK (
+    away_first_half_fouls IS NULL OR away_first_half_fouls >= 0
+  ),
   CONSTRAINT games_clock_seconds_check CHECK (
     clock_seconds_remaining >= 0
     AND clock_seconds_remaining <= 1200
@@ -91,6 +99,8 @@ CREATE TABLE IF NOT EXISTS games (
 
 ALTER TABLE IF EXISTS games
   ADD COLUMN IF NOT EXISTS period integer NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS home_first_half_fouls integer,
+  ADD COLUMN IF NOT EXISTS away_first_half_fouls integer,
   ADD COLUMN IF NOT EXISTS clock_seconds_remaining integer NOT NULL DEFAULT 1200,
   ADD COLUMN IF NOT EXISTS clock_status text NOT NULL DEFAULT 'stopped',
   ADD COLUMN IF NOT EXISTS clock_updated_at timestamptz NOT NULL DEFAULT now();

@@ -274,6 +274,7 @@ function mapAdminGame(row) {
       slug: row.homeTeamSlug,
       score: row.homeScore,
       timeoutsUsed: row.homeTimeoutsUsed,
+      firstHalfFouls: row.homeFirstHalfFouls ?? null,
       isPlaceholder: row.homeTeamIsPlaceholder ?? false,
     },
     awayTeam: {
@@ -282,6 +283,7 @@ function mapAdminGame(row) {
       slug: row.awayTeamSlug,
       score: row.awayScore,
       timeoutsUsed: row.awayTimeoutsUsed,
+      firstHalfFouls: row.awayFirstHalfFouls ?? null,
       isPlaceholder: row.awayTeamIsPlaceholder ?? false,
     },
   };
@@ -361,6 +363,8 @@ async function getGame(gameId) {
         g.status,
         g.is_playoff AS "isPlayoff",
         g.period,
+        g.home_first_half_fouls AS "homeFirstHalfFouls",
+        g.away_first_half_fouls AS "awayFirstHalfFouls",
         g.clock_seconds_remaining AS "clockSecondsRemaining",
         g.clock_status AS "clockStatus",
         g.clock_updated_at AS "clockUpdatedAt",
@@ -688,6 +692,8 @@ async function swapGameHomeAway(gameId) {
           away_score = home_score,
           home_timeouts_used = away_timeouts_used,
           away_timeouts_used = home_timeouts_used,
+          home_first_half_fouls = away_first_half_fouls,
+          away_first_half_fouls = home_first_half_fouls,
           updated_at = now()
       WHERE id = $1
       RETURNING id
@@ -1316,6 +1322,10 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
 
   const body = req.body || {};
   const period = body.period;
+  const homeFirstHalfFouls =
+    body.homeFirstHalfFouls ?? body.home_first_half_fouls;
+  const awayFirstHalfFouls =
+    body.awayFirstHalfFouls ?? body.away_first_half_fouls;
   const secondsRemaining =
     body.clockSecondsRemaining ?? body.clock_seconds_remaining;
   const clockStatus = body.clockStatus ?? body.clock_status;
@@ -1329,6 +1339,24 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
     } else {
       values.push(period);
       updates.push(`period = $${values.length}`);
+    }
+  }
+
+  if (homeFirstHalfFouls !== undefined) {
+    if (!Number.isInteger(homeFirstHalfFouls) || homeFirstHalfFouls < 0) {
+      errors.push("homeFirstHalfFouls must be a nonnegative integer");
+    } else {
+      values.push(homeFirstHalfFouls);
+      updates.push(`home_first_half_fouls = $${values.length}`);
+    }
+  }
+
+  if (awayFirstHalfFouls !== undefined) {
+    if (!Number.isInteger(awayFirstHalfFouls) || awayFirstHalfFouls < 0) {
+      errors.push("awayFirstHalfFouls must be a nonnegative integer");
+    } else {
+      values.push(awayFirstHalfFouls);
+      updates.push(`away_first_half_fouls = $${values.length}`);
     }
   }
 
@@ -1485,6 +1513,9 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
           UPDATE games
           SET home_timeouts_used = 0,
               away_timeouts_used = 0,
+              period = 1,
+              home_first_half_fouls = NULL,
+              away_first_half_fouls = NULL,
               updated_at = now()
           WHERE id = $1
         `,
