@@ -283,6 +283,10 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
   }
 
   const isPlayoff = Boolean(scheduleGame?.playoff ?? fallback.isPlayoff ?? false);
+  // Seeded ("Winner") slots remember their placeholder so the bracket can
+  // resolve and revert automatically from results.
+  const homeSourceId = isPlaceholderTeam(homeTeamName) ? homeTeamId : null;
+  const awaySourceId = isPlaceholderTeam(awayTeamName) ? awayTeamId : null;
 
   const result = await client.query(
     `
@@ -298,9 +302,11 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
         away_score,
         status,
         is_playoff,
+        home_source_team_id,
+        away_source_team_id,
         youtube_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       ON CONFLICT (season_id, week_number, game_number)
       DO UPDATE SET
         public_game_id = EXCLUDED.public_game_id,
@@ -311,6 +317,8 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
         away_score = EXCLUDED.away_score,
         status = EXCLUDED.status,
         is_playoff = EXCLUDED.is_playoff,
+        home_source_team_id = EXCLUDED.home_source_team_id,
+        away_source_team_id = EXCLUDED.away_source_team_id,
         youtube_url = COALESCE(EXCLUDED.youtube_url, games.youtube_url),
         updated_at = now()
       RETURNING id
@@ -335,6 +343,8 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
         ? "final"
         : "scheduled",
       isPlayoff,
+      homeSourceId,
+      awaySourceId,
       fallback.youtubeUrl || null,
     ]
   );

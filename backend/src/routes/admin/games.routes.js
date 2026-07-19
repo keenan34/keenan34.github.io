@@ -785,83 +785,103 @@ function placeholderHourLabel(name) {
   return match ? `${Number(match[1])} ${match[2].toUpperCase()}` : null;
 }
 
-// Auto-advance the playoff bracket: for every "<H> PM Winner" placeholder that
-// still occupies a game slot, look up the finished game played at that tip-off
-// and, once it has a decisive result, replace the placeholder with the winner.
-// Idempotent and safe to call after any finalize/score change. Returns the ids
-// of games whose matchup changed.
-async function resolvePlayoffBracket(db = pool) {
-  const { rows: placeholders } = await db.query(`
-    SELECT DISTINCT t.id, t.name, t.season_id AS "seasonId"
-    FROM teams t
-    WHERE t.is_placeholder = true
-      AND EXISTS (
-        SELECT 1 FROM games g
-        WHERE g.home_team_id = t.id OR g.away_team_id = t.id
-      )
-  `);
+// What a seeded slot should currently hold: the winner of its source game once
+// that game is decided, otherwise the placeholder itself (so it reverts to
+// "<H> PM Winner" if the source game is reset/un-finalized).
+async function slotTarget(db, seasonId, placeholderId, placeholderName) {
+  const hourLabel = placeholderHourLabel(placeholderName);
+  if (!hourLabel) return placeholderId;
 
-  const changedGameIds = new Set();
+  const { rows } = await db.query(
+    `
+      SELECT
+        home_team_id AS "homeTeamId",
+        away_team_id AS "awayTeamId",
+        home_score AS "homeScore",
+        away_score AS "awayScore",
+        status
+      FROM games
+      WHERE season_id = $1
+        AND is_playoff = true
+        AND to_char(scheduled_at AT TIME ZONE 'America/Chicago', 'FMHH12 AM') = $2
+      LIMIT 1
+    `,
+    [seasonId, hourLabel]
+  );
 
-  for (const placeholder of placeholders) {
-    const hourLabel = placeholderHourLabel(placeholder.name);
-    if (!hourLabel) continue;
-
-    const { rows: sourceRows } = await db.query(
-      `
-        SELECT
-          home_team_id AS "homeTeamId",
-          away_team_id AS "awayTeamId",
-          home_score AS "homeScore",
-          away_score AS "awayScore",
-          status
-        FROM games
-        WHERE season_id = $1
-          AND is_playoff = true
-          AND to_char(scheduled_at AT TIME ZONE 'America/Chicago', 'FMHH12 AM') = $2
-        LIMIT 1
-      `,
-      [placeholder.seasonId, hourLabel]
-    );
-
-    const source = sourceRows[0];
-    if (!source || source.status !== "final") continue;
-    if (
-      source.homeScore == null ||
-      source.awayScore == null ||
-      source.homeScore === source.awayScore
-    ) {
-      continue;
-    }
-
-    const winnerId =
-      source.homeScore > source.awayScore
-        ? source.homeTeamId
-        : source.awayTeamId;
-
-    // Guard against ever setting home === away (skips if the other slot already
-    // holds the winner).
-    const home = await db.query(
-      `
-        UPDATE games SET home_team_id = $1, updated_at = now()
-        WHERE home_team_id = $2 AND away_team_id <> $1
-        RETURNING id
-      `,
-      [winnerId, placeholder.id]
-    );
-    const away = await db.query(
-      `
-        UPDATE games SET away_team_id = $1, updated_at = now()
-        WHERE away_team_id = $2 AND home_team_id <> $1
-        RETURNING id
-      `,
-      [winnerId, placeholder.id]
-    );
-
-    [...home.rows, ...away.rows].forEach((row) => changedGameIds.add(row.id));
+  const source = rows[0];
+  if (
+    !source ||
+    source.status !== "final" ||
+    source.homeScore == null ||
+    source.awayScore == null ||
+    source.homeScore === source.awayScore
+  ) {
+    return placeholderId;
   }
 
-  return [...changedGameIds];
+  return source.homeScore > source.awayScore
+    ? source.homeTeamId
+    : source.awayTeamId;
+}
+
+// Keep every seeded playoff slot in sync with its source game's result. Slots
+// advance to the winner when decided and revert to their placeholder when not.
+// Idempotent; safe to call after any finalize/score/status change. Returns the
+// ids of games whose matchup changed.
+async function resolvePlayoffBracket(db = pool) {
+  const { rows: games } = await db.query(`
+    SELECT
+      g.id,
+      g.season_id AS "seasonId",
+      g.home_team_id AS "homeTeamId",
+      g.away_team_id AS "awayTeamId",
+      g.home_source_team_id AS "homeSourceId",
+      g.away_source_team_id AS "awaySourceId",
+      hs.name AS "homeSourceName",
+      aws.name AS "awaySourceName"
+    FROM games g
+    LEFT JOIN teams hs ON hs.id = g.home_source_team_id
+    LEFT JOIN teams aws ON aws.id = g.away_source_team_id
+    WHERE g.home_source_team_id IS NOT NULL
+       OR g.away_source_team_id IS NOT NULL
+  `);
+
+  const changedGameIds = [];
+
+  for (const game of games) {
+    let nextHome = game.homeTeamId;
+    let nextAway = game.awayTeamId;
+
+    if (game.homeSourceId) {
+      nextHome = await slotTarget(
+        db,
+        game.seasonId,
+        game.homeSourceId,
+        game.homeSourceName
+      );
+    }
+    if (game.awaySourceId) {
+      nextAway = await slotTarget(
+        db,
+        game.seasonId,
+        game.awaySourceId,
+        game.awaySourceName
+      );
+    }
+
+    if (nextHome === game.homeTeamId && nextAway === game.awayTeamId) continue;
+    // Never violate the "different teams" constraint; leave the slot as-is.
+    if (nextHome === nextAway) continue;
+
+    await db.query(
+      `UPDATE games SET home_team_id = $2, away_team_id = $3, updated_at = now() WHERE id = $1`,
+      [game.id, nextHome, nextAway]
+    );
+    changedGameIds.push(game.id);
+  }
+
+  return changedGameIds;
 }
 
 function createGamesRouter({ broadcastLiveGameState } = {}) {
@@ -2120,4 +2140,4 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
   return router;
 }
 
-module.exports = { createGamesRouter, getLiveGameState };
+module.exports = { createGamesRouter, getLiveGameState, resolvePlayoffBracket };

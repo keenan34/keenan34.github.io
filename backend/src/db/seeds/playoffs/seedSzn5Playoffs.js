@@ -11,6 +11,7 @@
  * Run with: node src/db/seeds/playoffs/seedSzn5Playoffs.js
  */
 const { pool } = require("../../pool");
+const { resolvePlayoffBracket } = require("../../../routes/admin/games.routes");
 
 const SEASON_SLUG = "szn5";
 const WEEK_NUMBER = 7;
@@ -50,6 +51,16 @@ async function ensureColumns(client) {
   await client.query(
     `ALTER TABLE games ADD COLUMN IF NOT EXISTS is_playoff boolean NOT NULL DEFAULT false`
   );
+  await client.query(
+    `ALTER TABLE games ADD COLUMN IF NOT EXISTS home_source_team_id uuid REFERENCES teams(id) ON DELETE SET NULL`
+  );
+  await client.query(
+    `ALTER TABLE games ADD COLUMN IF NOT EXISTS away_source_team_id uuid REFERENCES teams(id) ON DELETE SET NULL`
+  );
+}
+
+function isPlaceholderName(name) {
+  return PLACEHOLDER_TEAMS.includes(name);
 }
 
 async function getSeasonId(client) {
@@ -90,21 +101,30 @@ async function resolveTeamId(client, seasonId, name) {
 async function upsertGame(client, seasonId, game, homeTeamId, awayTeamId) {
   const publicGameId = `week${WEEK_NUMBER}-game${game.gameNumber}`;
   const scheduledAt = `${GAME_DATE} ${game.time} ${GAME_TZ}`;
+  // Record which slots are seeded by a placeholder so the bracket can resolve
+  // (and un-resolve) automatically from game results.
+  const homeSourceId = isPlaceholderName(game.home) ? homeTeamId : null;
+  const awaySourceId = isPlaceholderName(game.away) ? awayTeamId : null;
 
   // On conflict we intentionally do NOT touch home_team_id / away_team_id /
-  // scores / status, so an admin's picked winners and live scoring survive.
+  // scores / status — those are owned by live scoring and the auto-resolver.
+  // The source columns and scheduling metadata are structural, so we refresh
+  // them.
   await client.query(
     `
       INSERT INTO games (
         season_id, week_number, game_number, public_game_id,
-        scheduled_at, home_team_id, away_team_id, status, is_playoff
+        scheduled_at, home_team_id, away_team_id, status, is_playoff,
+        home_source_team_id, away_source_team_id
       )
-      VALUES ($1, $2, $3, $4, $5::timestamptz, $6, $7, 'scheduled', true)
+      VALUES ($1, $2, $3, $4, $5::timestamptz, $6, $7, 'scheduled', true, $8, $9)
       ON CONFLICT (season_id, week_number, game_number)
       DO UPDATE SET
         public_game_id = EXCLUDED.public_game_id,
         scheduled_at = EXCLUDED.scheduled_at,
         is_playoff = true,
+        home_source_team_id = EXCLUDED.home_source_team_id,
+        away_source_team_id = EXCLUDED.away_source_team_id,
         updated_at = now()
     `,
     [
@@ -115,6 +135,8 @@ async function upsertGame(client, seasonId, game, homeTeamId, awayTeamId) {
       scheduledAt,
       homeTeamId,
       awayTeamId,
+      homeSourceId,
+      awaySourceId,
     ]
   );
 }
@@ -142,6 +164,11 @@ async function main() {
     console.log(
       `Seeded ${PLAYOFF_GAMES.length} ${SEASON_SLUG} playoff games (week ${WEEK_NUMBER}).`
     );
+
+    // Normalize every seeded slot against current results: advances decided
+    // slots to their winner and reverts undecided ones to their placeholder.
+    const changed = await resolvePlayoffBracket(pool);
+    console.log(`Resolved bracket: ${changed.length} matchup(s) updated.`);
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     throw err;
