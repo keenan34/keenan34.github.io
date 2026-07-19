@@ -265,6 +265,7 @@ function mapAdminGame(row) {
     time: row.time,
     venue: row.venue,
     status: row.status,
+    isPlayoff: row.isPlayoff ?? false,
     clock: clockStateFromRow(row),
     youtubeUrl: row.youtubeUrl,
     homeTeam: {
@@ -273,6 +274,7 @@ function mapAdminGame(row) {
       slug: row.homeTeamSlug,
       score: row.homeScore,
       timeoutsUsed: row.homeTimeoutsUsed,
+      isPlaceholder: row.homeTeamIsPlaceholder ?? false,
     },
     awayTeam: {
       id: row.awayTeamId,
@@ -280,6 +282,7 @@ function mapAdminGame(row) {
       slug: row.awayTeamSlug,
       score: row.awayScore,
       timeoutsUsed: row.awayTimeoutsUsed,
+      isPlaceholder: row.awayTeamIsPlaceholder ?? false,
     },
   };
 }
@@ -356,6 +359,7 @@ async function getGame(gameId) {
         END AS time,
         g.venue,
         g.status,
+        g.is_playoff AS "isPlayoff",
         g.period,
         g.clock_seconds_remaining AS "clockSecondsRemaining",
         g.clock_status AS "clockStatus",
@@ -364,11 +368,13 @@ async function getGame(gameId) {
         home.id AS "homeTeamId",
         home.name AS "homeTeamName",
         home.slug AS "homeTeamSlug",
+        home.is_placeholder AS "homeTeamIsPlaceholder",
         g.home_score AS "homeScore",
         g.home_timeouts_used AS "homeTimeoutsUsed",
         away.id AS "awayTeamId",
         away.name AS "awayTeamName",
         away.slug AS "awayTeamSlug",
+        away.is_placeholder AS "awayTeamIsPlaceholder",
         g.away_score AS "awayScore",
         g.away_timeouts_used AS "awayTimeoutsUsed"
       FROM games g
@@ -808,15 +814,18 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
         END AS time,
         g.venue,
         g.status,
+        g.is_playoff AS "isPlayoff",
         g.youtube_url AS "youtubeUrl",
         home.id AS "homeTeamId",
         home.name AS "homeTeamName",
         home.slug AS "homeTeamSlug",
+        home.is_placeholder AS "homeTeamIsPlaceholder",
         g.home_score AS "homeScore",
         g.home_timeouts_used AS "homeTimeoutsUsed",
         away.id AS "awayTeamId",
         away.name AS "awayTeamName",
         away.slug AS "awayTeamSlug",
+        away.is_placeholder AS "awayTeamIsPlaceholder",
         g.away_score AS "awayScore",
         g.away_timeouts_used AS "awayTimeoutsUsed"
       FROM games g
@@ -979,6 +988,113 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
     next(err);
   }
 });
+
+  // Assign a real team to a playoff slot (e.g. replace the "5 PM Winner"
+  // placeholder with the team that actually advanced). Either side may be
+  // provided; the other keeps its current team.
+  router.patch("/:gameId/matchup", async (req, res, next) => {
+    const { gameId } = req.params;
+
+    if (!isUuid(gameId)) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    const body = req.body || {};
+    const homeTeamId = body.homeTeamId ?? body.home_team_id;
+    const awayTeamId = body.awayTeamId ?? body.away_team_id;
+
+    if (homeTeamId === undefined && awayTeamId === undefined) {
+      res.status(400).json({ error: "At least one team is required" });
+      return;
+    }
+
+    for (const [label, value] of [
+      ["homeTeamId", homeTeamId],
+      ["awayTeamId", awayTeamId],
+    ]) {
+      if (value !== undefined && value !== null && !isUuid(value)) {
+        res.status(400).json({ error: `${label} must be a team id` });
+        return;
+      }
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      const gameResult = await client.query(
+        `
+          SELECT season_id AS "seasonId",
+                 home_team_id AS "homeTeamId",
+                 away_team_id AS "awayTeamId"
+          FROM games
+          WHERE id = $1
+          LIMIT 1
+        `,
+        [gameId]
+      );
+
+      const gameRow = gameResult.rows[0];
+      if (!gameRow) {
+        await client.query("ROLLBACK");
+        res.status(404).json({ error: "Game not found" });
+        return;
+      }
+
+      const nextHomeId =
+        homeTeamId === undefined ? gameRow.homeTeamId : homeTeamId;
+      const nextAwayId =
+        awayTeamId === undefined ? gameRow.awayTeamId : awayTeamId;
+
+      if (!nextHomeId || !nextAwayId) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "Both teams are required" });
+        return;
+      }
+
+      if (nextHomeId === nextAwayId) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "Home and away teams must be different" });
+        return;
+      }
+
+      // Only allow teams that belong to this game's season.
+      const teamsResult = await client.query(
+        `SELECT id FROM teams WHERE season_id = $1 AND id IN ($2, $3)`,
+        [gameRow.seasonId, nextHomeId, nextAwayId]
+      );
+      const validIds = new Set(teamsResult.rows.map((row) => row.id));
+      if (!validIds.has(nextHomeId) || !validIds.has(nextAwayId)) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "Team is not part of this season" });
+        return;
+      }
+
+      await client.query(
+        `
+          UPDATE games
+          SET home_team_id = $2,
+              away_team_id = $3,
+              updated_at = now()
+          WHERE id = $1
+        `,
+        [gameId, nextHomeId, nextAwayId]
+      );
+
+      await client.query("COMMIT");
+
+      const game = await getGame(gameId);
+      res.json({ game });
+      await notifyLiveGameState(gameId, "matchup-updated");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {});
+      next(err);
+    } finally {
+      client.release();
+    }
+  });
 
   router.post("/:gameId/teams/:teamId/temp-players", async (req, res, next) => {
   const { gameId, teamId } = req.params;

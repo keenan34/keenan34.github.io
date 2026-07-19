@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "import:json": "node src/db/seeds/import-json/importSeasons.js"
+    "import:json": "node src/db/seeds/import-json/importSeasons.js",
+    "seed:playoffs": "node src/db/seeds/playoffs/seedSzn5Playoffs.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

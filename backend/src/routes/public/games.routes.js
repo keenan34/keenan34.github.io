@@ -57,9 +57,12 @@ function legacyGameRow(row) {
     teamB: row.teamB,
     teamAId: row.teamAId,
     teamBId: row.teamBId,
+    teamAIsPlaceholder: row.teamAIsPlaceholder ?? false,
+    teamBIsPlaceholder: row.teamBIsPlaceholder ?? false,
     scoreA: hasPublicScore ? row.scoreA : null,
     scoreB: hasPublicScore ? row.scoreB : null,
     status: row.status,
+    isPlayoff: row.isPlayoff ?? false,
     youtubeUrl: row.youtubeUrl,
   };
 }
@@ -85,11 +88,14 @@ router.get("/seasons/:seasonSlug/games", async (req, res, next) => {
           END AS time,
           home.id AS "teamAId",
           home.name AS "teamA",
+          home.is_placeholder AS "teamAIsPlaceholder",
           away.id AS "teamBId",
           away.name AS "teamB",
+          away.is_placeholder AS "teamBIsPlaceholder",
           g.home_score AS "scoreA",
           g.away_score AS "scoreB",
           g.status,
+          g.is_playoff AS "isPlayoff",
           g.youtube_url AS "youtubeUrl"
         FROM games g
         JOIN seasons s ON s.id = g.season_id
@@ -132,11 +138,14 @@ router.get("/games/:publicGameId", async (req, res, next) => {
           END AS time,
           home.id AS "teamAId",
           home.name AS "teamA",
+          home.is_placeholder AS "teamAIsPlaceholder",
           away.id AS "teamBId",
           away.name AS "teamB",
+          away.is_placeholder AS "teamBIsPlaceholder",
           g.home_score AS "scoreA",
           g.away_score AS "scoreB",
           g.status,
+          g.is_playoff AS "isPlayoff",
           g.youtube_url AS "youtubeUrl"
         FROM games g
         JOIN seasons s ON s.id = g.season_id

@@ -169,47 +169,52 @@
 
   {
     "date": "7/19/2026",
-    "time": "4:00 PM",
-    "teamA": "Seed 3",
-    "teamB": "Seed 6",
-    "scoreA": null,
-    "scoreB": null,
-    "gameId": "week7-game1"
-  },
-  {
-    "date": "7/19/2026",
     "time": "5:00 PM",
-    "teamA": "Seed 4",
-    "teamB": "Seed 5",
+    "teamA": "Real Ikhwan",
+    "teamB": "Brick Squad",
     "scoreA": null,
     "scoreB": null,
-    "gameId": "week7-game2"
+    "gameId": "week7-game1",
+    "playoff": true
   },
   {
     "date": "7/19/2026",
     "time": "6:00 PM",
-    "teamA": "Seed 1",
-    "teamB": "4 PM Winner",
+    "teamA": "UMMA",
+    "teamB": "AVO",
     "scoreA": null,
     "scoreB": null,
-    "gameId": "week7-game3"
+    "gameId": "week7-game2",
+    "playoff": true
   },
   {
     "date": "7/19/2026",
     "time": "7:00 PM",
-    "teamA": "Seed 2",
+    "teamA": "The Northmen",
     "teamB": "5 PM Winner",
     "scoreA": null,
     "scoreB": null,
-    "gameId": "week7-game4"
+    "gameId": "week7-game3",
+    "playoff": true
   },
   {
     "date": "7/19/2026",
     "time": "8:00 PM",
-    "teamA": "6 PM Winner",
-    "teamB": "7 PM Winner",
+    "teamA": "5 Pillars",
+    "teamB": "6 PM Winner",
     "scoreA": null,
     "scoreB": null,
-    "gameId": "week7-game5"
+    "gameId": "week7-game4",
+    "playoff": true
+  },
+  {
+    "date": "7/19/2026",
+    "time": "9:00 PM",
+    "teamA": "7 PM Winner",
+    "teamB": "8 PM Winner",
+    "scoreA": null,
+    "scoreB": null,
+    "gameId": "week7-game5",
+    "playoff": true
   }
 ]

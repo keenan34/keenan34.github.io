@@ -11,6 +11,7 @@ router.get("/:seasonSlug", async (req, res, next) => {
         FROM seasons s
         JOIN teams t ON t.season_id = s.id
         WHERE s.slug = $1
+          AND t.is_placeholder = false
         ORDER BY t.name
       `,
       [req.params.seasonSlug]

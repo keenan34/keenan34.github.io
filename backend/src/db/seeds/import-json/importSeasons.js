@@ -214,19 +214,20 @@ async function upsertSeason(client, slug) {
   return result.rows[0].id;
 }
 
-async function upsertTeam(client, seasonId, teamName) {
+async function upsertTeam(client, seasonId, teamName, isPlaceholder = false) {
   const slug = slugify(teamName);
   const result = await client.query(
     `
-      INSERT INTO teams (season_id, name, slug)
-      VALUES ($1, $2, $3)
+      INSERT INTO teams (season_id, name, slug, is_placeholder)
+      VALUES ($1, $2, $3, $4)
       ON CONFLICT (season_id, slug)
       DO UPDATE SET
         name = EXCLUDED.name,
+        is_placeholder = EXCLUDED.is_placeholder,
         updated_at = now()
       RETURNING id
     `,
-    [seasonId, teamName, slug]
+    [seasonId, teamName, slug, isPlaceholder]
   );
 
   return result.rows[0].id;
@@ -281,6 +282,8 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
     throw new Error(`Cannot import game ${publicGameId || JSON.stringify(fallback)}`);
   }
 
+  const isPlayoff = Boolean(scheduleGame?.playoff ?? fallback.isPlayoff ?? false);
+
   const result = await client.query(
     `
       INSERT INTO games (
@@ -294,9 +297,10 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
         home_score,
         away_score,
         status,
+        is_playoff,
         youtube_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (season_id, week_number, game_number)
       DO UPDATE SET
         public_game_id = EXCLUDED.public_game_id,
@@ -306,6 +310,7 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
         home_score = EXCLUDED.home_score,
         away_score = EXCLUDED.away_score,
         status = EXCLUDED.status,
+        is_playoff = EXCLUDED.is_playoff,
         youtube_url = COALESCE(EXCLUDED.youtube_url, games.youtube_url),
         updated_at = now()
       RETURNING id
@@ -329,6 +334,7 @@ async function upsertGame(client, seasonId, teamIdsByName, scheduleGame, fallbac
       Number.isFinite(Number(scheduleGame.scoreB))
         ? "final"
         : "scheduled",
+      isPlayoff,
       fallback.youtubeUrl || null,
     ]
   );
@@ -412,6 +418,17 @@ function isPlaceholderTeam(name) {
   return /^Seed\s+\d+/i.test(name) || /\bWinner\b/i.test(name);
 }
 
+function collectPlaceholderTeamNames(schedule) {
+  const names = new Set();
+
+  (schedule || []).forEach((game) => {
+    if (game.teamA && isPlaceholderTeam(game.teamA)) names.add(game.teamA);
+    if (game.teamB && isPlaceholderTeam(game.teamB)) names.add(game.teamB);
+  });
+
+  return [...names];
+}
+
 function collectTeamNames(rosters, playersWithImages, schedule, weekDataByFile) {
   const names = new Set();
 
@@ -476,6 +493,13 @@ async function importSeason(client, seasonSlug) {
     teamIdsByName.set(teamName, await upsertTeam(client, seasonId, teamName));
   }
 
+  // Placeholder teams (e.g. "5 PM Winner") fill undetermined playoff slots.
+  // They are flagged so standings, rosters, and team listings ignore them.
+  for (const teamName of collectPlaceholderTeamNames(schedule)) {
+    if (teamIdsByName.has(teamName)) continue;
+    teamIdsByName.set(teamName, await upsertTeam(client, seasonId, teamName, true));
+  }
+
   for (const [teamName, teamPlayers] of Object.entries(rosters || {})) {
     const teamId = teamIdsByName.get(teamName);
     if (!teamId) continue;
@@ -513,7 +537,14 @@ async function importSeason(client, seasonSlug) {
 
   for (const scheduleGame of schedule || []) {
     if (!scheduleGame?.gameId) continue;
-    if (isPlaceholderTeam(scheduleGame.teamA) || isPlaceholderTeam(scheduleGame.teamB)) continue;
+    // Import any game whose teams both resolve to a team id, including playoff
+    // games that reference placeholder ("Winner") teams.
+    if (
+      !teamIdsByName.has(scheduleGame.teamA) ||
+      !teamIdsByName.has(scheduleGame.teamB)
+    ) {
+      continue;
+    }
     await upsertGame(client, seasonId, teamIdsByName, scheduleGame);
   }
 

@@ -77,7 +77,10 @@ export default function Schedule() {
     return () => controller.abort();
   }, [activeSeason]);
 
-  const gamesByDate = games.reduce((acc, game) => {
+  const playoffGames = games.filter((game) => game.isPlayoff);
+  const regularGames = games.filter((game) => !game.isPlayoff);
+
+  const gamesByDate = regularGames.reduce((acc, game) => {
     if (!acc[game.date]) acc[game.date] = [];
     acc[game.date].push(game);
     return acc;
@@ -86,6 +89,108 @@ export default function Schedule() {
     ([a], [b]) => new Date(a) - new Date(b)
   );
 
+  const playoffDate = playoffGames.find((game) => game.date)?.date;
+
+  function renderGameCard(game, idx) {
+    const [weekPart, idPart] =
+      typeof game.gameId === "string" ? game.gameId.split("-") : ["", ""];
+    const isFinished = game.status === "final" || game.status === "finished";
+    const teamAWon = isFinished && game.scoreA > game.scoreB;
+    const teamBWon = isFinished && game.scoreB > game.scoreA;
+    const recA = records[game.teamA] || { wins: 0, losses: 0 };
+    const recB = records[game.teamB] || { wins: 0, losses: 0 };
+    const hasScore =
+      isFinished &&
+      typeof game.scoreA === "number" &&
+      typeof game.scoreB === "number";
+
+    const cardClasses = `h-full rounded-lg border bg-[#f8fafc] p-4 shadow-sm transition ${
+      isFinished
+        ? "border-[#e2e8f0] hover:border-[#0284c7] hover:shadow-md"
+        : "border-[#e2e8f0] opacity-80"
+    }`;
+
+    const teamRow = (name, isPlaceholder, rec, won, score) => (
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <div
+            className={`min-w-0 truncate text-sm font-black ${
+              won
+                ? "text-[#34d399]"
+                : isPlaceholder
+                  ? "italic text-[#94a3b8]"
+                  : "text-[#0f172a]"
+            }`}
+          >
+            {name}
+          </div>
+          {!isPlaceholder && (
+            <div className="mt-0.5 text-xs font-bold text-[#64748b]">
+              {rec.wins}-{rec.losses}
+            </div>
+          )}
+        </div>
+        <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#0f172a]">
+          {score}
+        </div>
+      </div>
+    );
+
+    const content = (
+      <article className={cardClasses}>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span
+            className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase ${statusClasses(
+              game.status
+            )}`}
+          >
+            {statusLabel(game.status)}
+          </span>
+          <span className="text-xs font-bold text-[#64748b]">
+            {game.time || "TBD"}
+          </span>
+        </div>
+
+        <div className="grid gap-3">
+          {teamRow(
+            game.teamA,
+            game.teamAIsPlaceholder,
+            recA,
+            teamAWon,
+            hasScore ? game.scoreA : "-"
+          )}
+
+          <div className="h-px bg-[#0f172a]" />
+
+          {teamRow(
+            game.teamB,
+            game.teamBIsPlaceholder,
+            recB,
+            teamBWon,
+            hasScore ? game.scoreB : "-"
+          )}
+        </div>
+
+        {!isFinished && (
+          <div className="mt-4 rounded-md bg-[#ffffff] px-3 py-2 text-center text-xs font-black text-[#64748b]">
+            Box score available after game
+          </div>
+        )}
+      </article>
+    );
+
+    return isFinished && weekPart && idPart ? (
+      <Link
+        key={idx}
+        to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
+        className="block no-underline"
+      >
+        {content}
+      </Link>
+    ) : (
+      <div key={idx}>{content}</div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8 text-[#0f172a] sm:px-6">
@@ -146,6 +251,29 @@ export default function Schedule() {
           </div>
         ) : (
           <div className="ifn-fade-in grid gap-6">
+            {playoffGames.length > 0 && (
+              <section className="overflow-hidden rounded-lg border-2 border-[#f59e0b] bg-[#ffffff] shadow-sm">
+                <div className="flex items-center justify-between gap-3 border-b border-[#e2e8f0] bg-[rgba(245,158,11,0.08)] px-4 py-3 sm:px-5">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-[#b45309]">
+                      Playoffs{playoffDate ? ` · ${playoffDate}` : ""}
+                    </p>
+                    <h3 className="text-lg font-black text-[#0f172a]">
+                      Championship Bracket
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-[rgba(245,158,11,0.16)] px-3 py-1 text-xs font-black text-[#b45309]">
+                    {playoffGames.length}{" "}
+                    {playoffGames.length === 1 ? "game" : "games"}
+                  </span>
+                </div>
+
+                <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+                  {playoffGames.map((game, idx) => renderGameCard(game, idx))}
+                </div>
+              </section>
+            )}
+
             {dateEntries.map(([date, dayGames]) => {
               return (
                 <section
@@ -167,100 +295,7 @@ export default function Schedule() {
                   </div>
 
                   <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
-                    {dayGames.map((game, idx) => {
-                      const [weekPart, idPart] =
-                        typeof game.gameId === "string"
-                          ? game.gameId.split("-")
-                          : ["", ""];
-                      const isFinished =
-                        game.status === "final" || game.status === "finished";
-                      const teamAWon = isFinished && game.scoreA > game.scoreB;
-                      const teamBWon = isFinished && game.scoreB > game.scoreA;
-                      const recA = records[game.teamA] || { wins: 0, losses: 0 };
-                      const recB = records[game.teamB] || { wins: 0, losses: 0 };
-                      const hasScore =
-                        isFinished &&
-                        typeof game.scoreA === "number" &&
-                        typeof game.scoreB === "number";
-
-                      const cardClasses = `h-full rounded-lg border bg-[#f8fafc] p-4 shadow-sm transition ${
-                        isFinished
-                          ? "border-[#e2e8f0] hover:border-[#0284c7] hover:shadow-md"
-                          : "border-[#e2e8f0] opacity-80"
-                      }`;
-
-                      const teamNameClass = (won) =>
-                        `min-w-0 truncate text-sm font-black ${
-                          won ? "text-[#34d399]" : "text-[#0f172a]"
-                        }`;
-
-                      const content = (
-                        <article className={cardClasses}>
-                          <div className="mb-4 flex items-center justify-between gap-3">
-                            <span
-                              className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase ${statusClasses(
-                                game.status
-                              )}`}
-                            >
-                              {statusLabel(game.status)}
-                            </span>
-                            <span className="text-xs font-bold text-[#64748b]">
-                              {game.time || "TBD"}
-                            </span>
-                          </div>
-
-                          <div className="grid gap-3">
-                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                              <div className="min-w-0">
-                                <div className={teamNameClass(teamAWon)}>
-                                  {game.teamA}
-                                </div>
-                                <div className="mt-0.5 text-xs font-bold text-[#64748b]">
-                                  {recA.wins}-{recA.losses}
-                                </div>
-                              </div>
-                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#0f172a]">
-                                {hasScore ? game.scoreA : "-"}
-                              </div>
-                            </div>
-
-                            <div className="h-px bg-[#0f172a]" />
-
-                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                              <div className="min-w-0">
-                                <div className={teamNameClass(teamBWon)}>
-                                  {game.teamB}
-                                </div>
-                                <div className="mt-0.5 text-xs font-bold text-[#64748b]">
-                                  {recB.wins}-{recB.losses}
-                                </div>
-                              </div>
-                              <div className="min-w-[2.25rem] text-right text-2xl font-black text-[#0f172a]">
-                                {hasScore ? game.scoreB : "-"}
-                              </div>
-                            </div>
-                          </div>
-
-                          {!isFinished && (
-                            <div className="mt-4 rounded-md bg-[#ffffff] px-3 py-2 text-center text-xs font-black text-[#64748b]">
-                              Box score available after game
-                            </div>
-                          )}
-                        </article>
-                      );
-
-                      return isFinished && weekPart && idPart ? (
-                        <Link
-                          key={idx}
-                          to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}
-                          className="block no-underline"
-                        >
-                          {content}
-                        </Link>
-                      ) : (
-                        <div key={idx}>{content}</div>
-                      );
-                    })}
+                    {dayGames.map((game, idx) => renderGameCard(game, idx))}
                   </div>
                 </section>
               );

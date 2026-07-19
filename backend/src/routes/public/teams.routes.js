@@ -34,6 +34,7 @@ router.get("/:seasonSlug/teams", async (req, res, next) => {
         LEFT JOIN players p ON p.id = tp.player_id
           AND p.is_temp = false
         WHERE s.slug = $1
+          AND t.is_placeholder = false
         GROUP BY t.id, t.name, t.slug, t.display_order
         ORDER BY t.display_order NULLS LAST, t.name
       `,

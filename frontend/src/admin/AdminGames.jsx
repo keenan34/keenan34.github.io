@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { getAdminGames } from "../api/client";
+import {
+  getAdminGames,
+  getSeasonTeams,
+  updateAdminGameMatchup,
+} from "../api/client";
 import {
   clearAdminToken,
   getAdminToken,
@@ -64,6 +68,108 @@ function groupGamesByWeek(seasonGames) {
     .sort(([leftWeek], [rightWeek]) => leftWeek - rightWeek);
 }
 
+const pickerPanel = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: 10,
+  margin: "2px 0 8px",
+  padding: "8px 12px",
+  borderRadius: 8,
+  border: "1px dashed #f59e0b",
+  background: "rgba(245,158,11,0.08)",
+};
+
+const pickerField = { display: "flex", alignItems: "center", gap: 6 };
+
+const pickerLinkButton = {
+  border: "none",
+  background: "none",
+  padding: 0,
+  fontSize: 12,
+  fontWeight: 800,
+  color: "#0284c7",
+  cursor: "pointer",
+};
+
+function MatchupPicker({ game, teams, disabled, onAssign }) {
+  const [editing, setEditing] = useState({ home: false, away: false });
+
+  const sides = [
+    ["home", game.homeTeam],
+    ["away", game.awayTeam],
+  ];
+
+  function stopEditing(side) {
+    setEditing((current) => ({ ...current, [side]: false }));
+  }
+
+  return (
+    <div style={pickerPanel}>
+      <span style={{ fontSize: 12, fontWeight: 800, color: "#b45309" }}>
+        Set matchup
+      </span>
+      {sides.map(([side, team]) => {
+        const showSelect = team.isPlaceholder || editing[side];
+
+        if (showSelect) {
+          return (
+            <span style={pickerField} key={side}>
+              <span
+                style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}
+              >
+                {team.isPlaceholder ? team.name : "Change to"}
+              </span>
+              <select
+                value={team.isPlaceholder ? "" : team.id}
+                disabled={disabled || !teams.length}
+                onChange={(event) => {
+                  onAssign(game, side, event.target.value);
+                  stopEditing(side);
+                }}
+              >
+                <option value="">
+                  {teams.length ? "Pick team…" : "Loading…"}
+                </option>
+                {teams.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+              {!team.isPlaceholder && (
+                <button
+                  type="button"
+                  style={pickerLinkButton}
+                  onClick={() => stopEditing(side)}
+                >
+                  Cancel
+                </button>
+              )}
+            </span>
+          );
+        }
+
+        return (
+          <span style={pickerField} key={side}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>
+              {team.name}
+            </span>
+            <button
+              type="button"
+              style={pickerLinkButton}
+              disabled={disabled}
+              onClick={() => setEditing((current) => ({ ...current, [side]: true }))}
+            >
+              Change
+            </button>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function AdminGames() {
   const navigate = useNavigate();
   const token = getAdminToken();
@@ -72,6 +178,8 @@ function AdminGames() {
   const [games, setGames] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [teamsBySeason, setTeamsBySeason] = useState({});
+  const [assigningGameId, setAssigningGameId] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -99,6 +207,65 @@ function AdminGames() {
       isCurrent = false;
     };
   }, [navigate, token]);
+
+  // Load the real teams for any season with a playoff game, so bracket slots
+  // can be assigned (or corrected) inline.
+  useEffect(() => {
+    const slugs = [
+      ...new Set(
+        games
+          .filter((game) => game.isPlayoff)
+          .map((game) => game.season?.slug)
+          .filter(Boolean)
+      ),
+    ].filter((slug) => !teamsBySeason[slug]);
+
+    if (!slugs.length) return;
+
+    let isCurrent = true;
+    Promise.all(
+      slugs.map((slug) =>
+        getSeasonTeams(slug)
+          .then((data) => [slug, data.teams || []])
+          .catch(() => [slug, []])
+      )
+    ).then((entries) => {
+      if (!isCurrent) return;
+      setTeamsBySeason((current) => ({
+        ...current,
+        ...Object.fromEntries(entries),
+      }));
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [games, teamsBySeason]);
+
+  async function assignMatchupTeam(game, side, teamId) {
+    if (!teamId) return;
+
+    setAssigningGameId(game.id);
+    setError("");
+
+    try {
+      const payload =
+        side === "home" ? { homeTeamId: teamId } : { awayTeamId: teamId };
+      const data = await updateAdminGameMatchup(game.id, payload, token);
+      setGames((current) =>
+        current.map((item) => (item.id === game.id ? data.game : item))
+      );
+    } catch (err) {
+      if (isAdminAuthError(err)) {
+        clearAdminToken();
+        navigate("/admin/login", { replace: true });
+        return;
+      }
+      setError(err.message);
+    } finally {
+      setAssigningGameId("");
+    }
+  }
 
   if (!token) {
     return <Navigate to="/admin/login" replace />;
@@ -156,29 +323,44 @@ function AdminGames() {
                       </span>
                     </div>
                     <div className="admin-games-list">
-                      {weekGames.map((game) => (
-                        <Link
-                          className="admin-game-row"
-                          key={game.id}
-                          to={`/admin/games/${game.id}/live`}
-                        >
-                          <div className="admin-game-row-main">
-                            <div className="admin-game-title">
-                              {game.awayTeam.name} at {game.homeTeam.name}
-                            </div>
-                            <div className="admin-game-meta">
-                              {game.season.slug} · Week {game.weekNumber} · Game{" "}
-                              {game.gameNumber}
-                            </div>
+                      {weekGames.map((game) => {
+                        return (
+                          <div key={game.id}>
+                            <Link
+                              className="admin-game-row"
+                              to={`/admin/games/${game.id}/live`}
+                            >
+                              <div className="admin-game-row-main">
+                                <div className="admin-game-title">
+                                  {game.awayTeam.name} at {game.homeTeam.name}
+                                </div>
+                                <div className="admin-game-meta">
+                                  {game.season.slug} · Week {game.weekNumber} ·
+                                  Game {game.gameNumber}
+                                  {game.isPlayoff ? " · Playoff" : ""}
+                                </div>
+                              </div>
+                              <div className="admin-game-score">
+                                <span
+                                  className={`admin-status admin-status-${game.status}`}
+                                >
+                                  {game.status}
+                                </span>
+                                <strong>{scoreLabel(game)}</strong>
+                              </div>
+                            </Link>
+
+                            {game.isPlayoff && (
+                              <MatchupPicker
+                                game={game}
+                                teams={teamsBySeason[game.season?.slug] || []}
+                                disabled={assigningGameId === game.id}
+                                onAssign={assignMatchupTeam}
+                              />
+                            )}
                           </div>
-                          <div className="admin-game-score">
-                            <span className={`admin-status admin-status-${game.status}`}>
-                              {game.status}
-                            </span>
-                            <strong>{scoreLabel(game)}</strong>
-                          </div>
-                        </Link>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

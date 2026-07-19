@@ -33,6 +33,7 @@ router.get("/:seasonSlug", async (req, res, next) => {
         LEFT JOIN team_players tp ON tp.team_id = t.id AND tp.season_id = s.id
         LEFT JOIN players p ON p.id = tp.player_id AND p.is_temp = false
         WHERE s.slug = $1
+          AND t.is_placeholder = false
         ORDER BY t.name, NULLIF(regexp_replace(tp.jersey_number, '[^0-9]', '', 'g'), '')::int NULLS LAST, p.name
       `,
       [req.params.seasonSlug]
