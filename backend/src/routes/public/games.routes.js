@@ -11,11 +11,13 @@ function normalizePlayerName(name) {
   return PLAYER_NAME_ALIASES[raw.toLowerCase()] || raw;
 }
 
-// Map a raw game_events row into a compact, public-safe event with stat deltas.
+// Map a raw game_events row into a compact, public-safe event with stat deltas
+// plus the player's running totals at that moment (for live play-by-play).
 function legacyEvent(row) {
   const before = row.beforeStats || {};
   const after = row.afterStats || {};
   const delta = (key) => Number(after[key] || 0) - Number(before[key] || 0);
+  const total = (key) => Number(after[key] || 0);
 
   return {
     id: row.id,
@@ -37,6 +39,18 @@ function legacyEvent(row) {
     turnovers: delta("turnovers"),
     fouls: delta("fouls"),
     stealsBlocks: delta("stealsBlocks"),
+    totals: {
+      points: total("points"),
+      assists: total("assists"),
+      rebounds: total("rebounds"),
+      fgm: total("fgm"),
+      fga: total("fga"),
+      ftm: total("ftm"),
+      fta: total("fta"),
+      turnovers: total("turnovers"),
+      fouls: total("fouls"),
+      stealsBlocks: total("stealsBlocks"),
+    },
   };
 }
 

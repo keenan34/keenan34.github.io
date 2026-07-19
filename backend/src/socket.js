@@ -9,6 +9,10 @@ function gameRoom(gameId) {
   return `game:${gameId}`;
 }
 
+function publicGameRoom(gameId) {
+  return `public-game:${gameId}`;
+}
+
 function registerSocketServer(httpServer) {
   const io = new Server(httpServer, {
     cors: {
@@ -19,8 +23,11 @@ function registerSocketServer(httpServer) {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
 
+    // No token = public viewer. They can only join public rooms, which carry
+    // no payload beyond a "something changed" ping.
     if (!token) {
-      next(new Error("Authentication required"));
+      socket.admin = null;
+      next();
       return;
     }
 
@@ -34,12 +41,29 @@ function registerSocketServer(httpServer) {
 
   io.on("connection", (socket) => {
     socket.on("admin:game:join", (gameId, ack) => {
+      if (!socket.admin) {
+        if (typeof ack === "function") {
+          ack({ ok: false, error: "Authentication required" });
+        }
+        return;
+      }
+
       if (!UUID_PATTERN.test(gameId)) {
         if (typeof ack === "function") ack({ ok: false, error: "Invalid gameId" });
         return;
       }
 
       socket.join(gameRoom(gameId));
+      if (typeof ack === "function") ack({ ok: true });
+    });
+
+    socket.on("public:game:join", (gameId, ack) => {
+      if (!UUID_PATTERN.test(gameId)) {
+        if (typeof ack === "function") ack({ ok: false, error: "Invalid gameId" });
+        return;
+      }
+
+      socket.join(publicGameRoom(gameId));
       if (typeof ack === "function") ack({ ok: true });
     });
   });
@@ -56,6 +80,13 @@ function registerSocketServer(httpServer) {
         game: liveGameState.game,
       });
     }
+
+    // Public viewers only get a ping; they refetch the public endpoint, which
+    // applies the usual public-safe filtering.
+    io.to(publicGameRoom(gameId)).emit("public:live-game:update", {
+      reason,
+      gameId,
+    });
   }
 
   return { io, broadcastLiveGameState };

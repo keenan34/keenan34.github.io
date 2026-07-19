@@ -95,19 +95,22 @@ export default function Schedule() {
     const [weekPart, idPart] =
       typeof game.gameId === "string" ? game.gameId.split("-") : ["", ""];
     const isFinished = game.status === "final" || game.status === "finished";
+    const isLive = game.status === "live";
     const teamAWon = isFinished && game.scoreA > game.scoreB;
     const teamBWon = isFinished && game.scoreB > game.scoreA;
     const recA = records[game.teamA] || { wins: 0, losses: 0 };
     const recB = records[game.teamB] || { wins: 0, losses: 0 };
     const hasScore =
-      isFinished &&
+      (isFinished || isLive) &&
       typeof game.scoreA === "number" &&
       typeof game.scoreB === "number";
 
     const cardClasses = `h-full rounded-lg border bg-[#f8fafc] p-4 shadow-sm transition ${
       isFinished
         ? "border-[#e2e8f0] hover:border-[#0284c7] hover:shadow-md"
-        : "border-[#e2e8f0] opacity-80"
+        : isLive
+          ? "border-[#f87171] hover:border-[#f87171] hover:shadow-md"
+          : "border-[#e2e8f0] opacity-80"
     }`;
 
     const teamRow = (name, isPlaceholder, rec, won, score) => (
@@ -171,15 +174,21 @@ export default function Schedule() {
           )}
         </div>
 
-        {!isFinished && (
-          <div className="mt-4 rounded-md bg-[#ffffff] px-3 py-2 text-center text-xs font-black text-[#64748b]">
-            Box score available after game
+        {isLive ? (
+          <div className="mt-4 rounded-md bg-[rgba(248,113,113,0.1)] px-3 py-2 text-center text-xs font-black text-[#f87171]">
+            Live now — Tap for play-by-play
           </div>
+        ) : (
+          !isFinished && (
+            <div className="mt-4 rounded-md bg-[#ffffff] px-3 py-2 text-center text-xs font-black text-[#64748b]">
+              Box score available after game
+            </div>
+          )
         )}
       </article>
     );
 
-    return isFinished && weekPart && idPart ? (
+    return (isFinished || isLive) && weekPart && idPart ? (
       <Link
         key={idx}
         to={`/season/${activeSeason}/boxscore/${weekPart}/${idPart}`}

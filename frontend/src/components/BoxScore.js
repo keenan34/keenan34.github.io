@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import { io } from "socket.io-client";
 import { resolveApiBaseUrl } from "../api/baseUrl";
 import PlayerShareCard from "./PlayerShareCard";
 import TeamShareCard from "./TeamShareCard";
@@ -250,6 +251,94 @@ function toLegacyBoxScore(apiData) {
   };
 }
 
+// ---- Live play-by-play feed helpers ----
+// Public events carry per-event stat deltas plus the player's running totals,
+// so each row can read like "3PT bucket — Adam K. · 12 pts". There is no game
+// clock in this league (halves only), so rows show the event's wall-clock time.
+
+function feedEventDetails(event) {
+  const totals = event.totals || {};
+
+  if (event.points > 0) {
+    return {
+      title:
+        event.ftm > 0
+          ? "Free throw made"
+          : event.points === 3
+            ? "3PT bucket"
+            : "2PT bucket",
+      stat: `${totals.points ?? 0} pts`,
+      made: true,
+    };
+  }
+  if (event.fta > 0 && event.ftm === 0) {
+    return {
+      title: "Missed free throw",
+      stat: `${totals.ftm ?? 0}/${totals.fta ?? 0} ft`,
+    };
+  }
+  if (event.fga > 0 || event.twoPa > 0 || event.threePa > 0) {
+    return {
+      title: event.threePa > 0 ? "Missed 3PT shot" : "Missed 2PT shot",
+      stat: `${totals.fgm ?? 0}/${totals.fga ?? 0} fg`,
+    };
+  }
+  if (event.rebounds > 0) {
+    return { title: "Rebound", stat: `${totals.rebounds ?? 0} reb` };
+  }
+  if (event.assists > 0) {
+    return { title: "Assist", stat: `${totals.assists ?? 0} ast` };
+  }
+  if (event.stealsBlocks > 0) {
+    return { title: "Steal / Block", stat: `${totals.stealsBlocks ?? 0} stl/blk` };
+  }
+  if (event.turnovers > 0) {
+    return { title: "Turnover", stat: `${totals.turnovers ?? 0} to` };
+  }
+  if (event.fouls > 0) {
+    return { title: "Foul", stat: `${totals.fouls ?? 0} pf` };
+  }
+  return null;
+}
+
+function isAssistOnlyEvent(event) {
+  return event.assists > 0 && event.points === 0 && event.fga === 0;
+}
+
+// Newest first, with an assist folded into the made shot it set up (the admin
+// records the bucket first, then the assist, so the assist is the newer event).
+function buildFeedItems(events) {
+  const newestFirst = [...events].reverse();
+  const items = [];
+
+  for (let index = 0; index < newestFirst.length; index += 1) {
+    const event = newestFirst[index];
+    const nextEvent = newestFirst[index + 1];
+
+    if (
+      isAssistOnlyEvent(event) &&
+      nextEvent &&
+      nextEvent.points > 0 &&
+      nextEvent.teamId === event.teamId
+    ) {
+      items.push({ event: nextEvent, assistEvent: event });
+      index += 1;
+    } else {
+      items.push({ event, assistEvent: null });
+    }
+  }
+
+  return items.filter((item) => feedEventDetails(item.event));
+}
+
+function formatFeedTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function ProfileImage({ src, fallbackSrc, name, onClick, className = "w-16 h-16" }) {
   const shown = useStableImage([src, fallbackSrc]);
   const initials = name.split(" ").map((n) => n[0]).join("");
@@ -323,6 +412,9 @@ export default function BoxScore() {
         setEvents(Array.isArray(apiData?.events) ? apiData.events : []);
         setYoutubeUrl(game.youtubeUrl ?? null);
         setScores({ a: game.scoreA ?? null, b: game.scoreB ?? null });
+
+        // Live games open on the play-by-play feed (unless a team was linked).
+        if (game.status === "live" && !teamParam) setTab("feed");
       })
       .catch((err) => {
         if (err.name === "AbortError") return;
@@ -334,7 +426,70 @@ export default function BoxScore() {
       });
 
     return () => controller.abort();
+  }, [activeSeason, week, gameId, teamParam]);
+
+  const isLiveGame = matchInfo?.status === "live";
+  const liveGameDbId = matchInfo?.id;
+  const refreshingRef = useRef(false);
+
+  // Silent refetch used while the game is live: updates score, box score, and
+  // events in place without flashing the loading skeleton.
+  const refreshLiveGame = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+
+    try {
+      const publicGameId = `${week}-${gameId}`;
+      const apiData = await apiGet(
+        `/api/games/${encodeURIComponent(publicGameId)}?season=${encodeURIComponent(
+          activeSeason
+        )}`
+      );
+      const game = apiData?.game;
+      const boxScore = toLegacyBoxScore(apiData);
+      if (!game || !boxScore) return;
+
+      setData(boxScore);
+      setMatchInfo(game);
+      setEvents(Array.isArray(apiData?.events) ? apiData.events : []);
+      setYoutubeUrl(game.youtubeUrl ?? null);
+      setScores({ a: game.scoreA ?? null, b: game.scoreB ?? null });
+    } catch (_err) {
+      // Silent: the next socket ping or poll tick will retry.
+    } finally {
+      refreshingRef.current = false;
+    }
   }, [activeSeason, week, gameId]);
+
+  // Real-time updates: join the public socket room for this game and refetch
+  // on every "something changed" ping from the scorer's table.
+  useEffect(() => {
+    if (!isLiveGame || !liveGameDbId) return undefined;
+
+    const socket = io(API_BASE_URL || undefined, { reconnection: true });
+    const join = () => socket.emit("public:game:join", liveGameDbId);
+
+    socket.on("connect", join);
+    socket.io.on("reconnect", join);
+    socket.on("public:live-game:update", refreshLiveGame);
+
+    return () => {
+      socket.off("public:live-game:update", refreshLiveGame);
+      socket.disconnect();
+    };
+  }, [isLiveGame, liveGameDbId, refreshLiveGame]);
+
+  // Fallback polling in case the socket can't connect.
+  useEffect(() => {
+    if (!isLiveGame) return undefined;
+    const interval = setInterval(refreshLiveGame, 30000);
+    return () => clearInterval(interval);
+  }, [isLiveGame, refreshLiveGame]);
+
+  // When the game finalizes, the Feed tab goes away — land on the box score.
+  useEffect(() => {
+    if (!isLiveGame && tab === "feed") setTab("home");
+  }, [isLiveGame, tab]);
 
   useLayoutEffect(() => {
     return scheduleDocumentTopReset();
@@ -486,7 +641,16 @@ export default function BoxScore() {
       </div>
 
       <div className="flex flex-col items-center">
-        <span className="rounded-full bg-[rgba(56,189,248,0.12)] px-3 py-1 text-xs font-black uppercase text-[#0284c7]">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-black uppercase ${
+            isLive
+              ? "bg-[rgba(248,113,113,0.12)] text-[#f87171]"
+              : "bg-[rgba(56,189,248,0.12)] text-[#0284c7]"
+          }`}
+        >
+          {isLive && (
+            <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-[#f87171]" />
+          )}
           {statusText}
         </span>
         {matchInfo?.date && (
@@ -793,6 +957,99 @@ export default function BoxScore() {
     </div>
   );
 
+  // ---- live play-by-play feed ----
+  const renderFeed = () => {
+    const playersById = new Map();
+    [teamA, teamB].forEach((team) => {
+      (team?.players || []).forEach((player) => {
+        if (player.id != null) playersById.set(player.id, player);
+      });
+    });
+    const teamNamesById = {
+      [matchInfo?.teamAId]: teamA.name,
+      [matchInfo?.teamBId]: teamB.name,
+    };
+
+    const items = buildFeedItems(events).slice(0, 150);
+
+    if (!items.length) {
+      return (
+        <div className="rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-8 text-center shadow-sm">
+          <div className="text-base font-black text-[#0f172a]">
+            No plays yet
+          </div>
+          <div className="mt-1 text-sm font-bold text-[#64748b]">
+            Plays will appear here as they happen.
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-2">
+        {items.map(({ event, assistEvent }) => {
+          const details = feedEventDetails(event);
+          const player = playersById.get(event.playerId);
+          const playerName =
+            normalizePlayerName(event.playerName) || player?.Player || "";
+          const teamName = teamNamesById[event.teamId] || "";
+          const imgSrc = player
+            ? season
+              ? seasonPlayerImageUrl(activeSeason, player)
+              : player.imgUrl
+            : null;
+          const assistName = assistEvent
+            ? normalizePlayerName(assistEvent.playerName)
+            : null;
+
+          return (
+            <article
+              key={event.id}
+              className="flex items-start gap-3 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-3 shadow-sm"
+            >
+              <ProfileImage
+                className="h-11 w-11"
+                src={imgSrc}
+                fallbackSrc={null}
+                name={playerName || teamName || "?"}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#64748b]">
+                  <span className="truncate">{teamName}</span>
+                  <span className="flex-none">
+                    {formatFeedTime(event.createdAt)}
+                  </span>
+                </div>
+                <div
+                  className={`text-sm font-black ${
+                    details.made ? "text-[#059669]" : "text-[#0f172a]"
+                  }`}
+                >
+                  {details.title}
+                </div>
+                <div className="text-xs font-bold text-[#64748b]">
+                  {playerName}
+                  {details.stat ? ` · ${details.stat}` : ""}
+                </div>
+                {assistEvent && (
+                  <div className="mt-0.5 text-xs font-bold text-[#0284c7]">
+                    Assist · {assistName}
+                    {assistEvent.totals?.assists != null
+                      ? ` · ${assistEvent.totals.assists} ast`
+                      : ""}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
+        <div className="py-2 text-center text-[11px] font-black uppercase tracking-[0.14em] text-[#94a3b8]">
+          Start of game
+        </div>
+      </div>
+    );
+  };
+
   // player-photo zoom modal
   const ZoomModal = () => (
     <div
@@ -828,11 +1085,26 @@ export default function BoxScore() {
 
       {/* tabs */}
       <div className="mb-4 flex border-b border-[#e2e8f0]">
-        {[
-          { id: "home", label: teamA.name },
-          { id: "away", label: teamB.name },
-          { id: "game", label: "Replay" },
-        ].map((t) => (
+        {(isLive
+          ? [
+              {
+                id: "feed",
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 flex-none animate-pulse rounded-full bg-[#f87171]" />
+                    Feed
+                  </span>
+                ),
+              },
+              { id: "home", label: teamA.name },
+              { id: "away", label: teamB.name },
+            ]
+          : [
+              { id: "home", label: teamA.name },
+              { id: "away", label: teamB.name },
+              { id: "game", label: "Replay" },
+            ]
+        ).map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -849,6 +1121,7 @@ export default function BoxScore() {
       </div>
 
       {/* content */}
+      {tab === "feed" && isLive && renderFeed()}
       {tab === "home" && (hasBoxScore ? renderBoard(teamA) : <ScheduledMessage />)}
       {tab === "away" && (hasBoxScore ? renderBoard(teamB) : <ScheduledMessage />)}
       {tab === "game" && (
