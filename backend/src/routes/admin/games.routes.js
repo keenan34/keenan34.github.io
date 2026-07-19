@@ -778,6 +778,92 @@ async function upsertPlayerStats(client, gameId, teamId, playerId, stats) {
   );
 }
 
+// A placeholder team is named for the tip-off it feeds from, e.g.
+// "5 PM Winner" -> "5 PM". Returns null for non-placeholder names.
+function placeholderHourLabel(name) {
+  const match = String(name || "").match(/^(\d{1,2})\s*(AM|PM)\b/i);
+  return match ? `${Number(match[1])} ${match[2].toUpperCase()}` : null;
+}
+
+// Auto-advance the playoff bracket: for every "<H> PM Winner" placeholder that
+// still occupies a game slot, look up the finished game played at that tip-off
+// and, once it has a decisive result, replace the placeholder with the winner.
+// Idempotent and safe to call after any finalize/score change. Returns the ids
+// of games whose matchup changed.
+async function resolvePlayoffBracket(db = pool) {
+  const { rows: placeholders } = await db.query(`
+    SELECT DISTINCT t.id, t.name, t.season_id AS "seasonId"
+    FROM teams t
+    WHERE t.is_placeholder = true
+      AND EXISTS (
+        SELECT 1 FROM games g
+        WHERE g.home_team_id = t.id OR g.away_team_id = t.id
+      )
+  `);
+
+  const changedGameIds = new Set();
+
+  for (const placeholder of placeholders) {
+    const hourLabel = placeholderHourLabel(placeholder.name);
+    if (!hourLabel) continue;
+
+    const { rows: sourceRows } = await db.query(
+      `
+        SELECT
+          home_team_id AS "homeTeamId",
+          away_team_id AS "awayTeamId",
+          home_score AS "homeScore",
+          away_score AS "awayScore",
+          status
+        FROM games
+        WHERE season_id = $1
+          AND is_playoff = true
+          AND to_char(scheduled_at AT TIME ZONE 'America/Chicago', 'FMHH12 AM') = $2
+        LIMIT 1
+      `,
+      [placeholder.seasonId, hourLabel]
+    );
+
+    const source = sourceRows[0];
+    if (!source || source.status !== "final") continue;
+    if (
+      source.homeScore == null ||
+      source.awayScore == null ||
+      source.homeScore === source.awayScore
+    ) {
+      continue;
+    }
+
+    const winnerId =
+      source.homeScore > source.awayScore
+        ? source.homeTeamId
+        : source.awayTeamId;
+
+    // Guard against ever setting home === away (skips if the other slot already
+    // holds the winner).
+    const home = await db.query(
+      `
+        UPDATE games SET home_team_id = $1, updated_at = now()
+        WHERE home_team_id = $2 AND away_team_id <> $1
+        RETURNING id
+      `,
+      [winnerId, placeholder.id]
+    );
+    const away = await db.query(
+      `
+        UPDATE games SET away_team_id = $1, updated_at = now()
+        WHERE away_team_id = $2 AND home_team_id <> $1
+        RETURNING id
+      `,
+      [winnerId, placeholder.id]
+    );
+
+    [...home.rows, ...away.rows].forEach((row) => changedGameIds.add(row.id));
+  }
+
+  return [...changedGameIds];
+}
+
 function createGamesRouter({ broadcastLiveGameState } = {}) {
   const router = Router();
 
@@ -789,6 +875,19 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
       if (liveGameState) broadcastLiveGameState(gameId, liveGameState, event);
     } catch (err) {
       console.error("Failed to broadcast live game state", err);
+    }
+  }
+
+  // Advance the bracket after a result changes, then push the updated matchup to
+  // any dependent games that just had a "Winner" slot filled in.
+  async function resolveBracketAndBroadcast() {
+    try {
+      const changedGameIds = await resolvePlayoffBracket(pool);
+      for (const changedGameId of changedGameIds) {
+        await notifyLiveGameState(changedGameId, "matchup-updated");
+      }
+    } catch (err) {
+      console.error("Failed to resolve playoff bracket", err);
     }
   }
 
@@ -968,6 +1067,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
 
     res.json({ game });
     await notifyLiveGameState(req.params.gameId, "status-updated");
+    await resolveBracketAndBroadcast();
   } catch (err) {
     next(err);
   }
@@ -989,112 +1089,6 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
   }
 });
 
-  // Assign a real team to a playoff slot (e.g. replace the "5 PM Winner"
-  // placeholder with the team that actually advanced). Either side may be
-  // provided; the other keeps its current team.
-  router.patch("/:gameId/matchup", async (req, res, next) => {
-    const { gameId } = req.params;
-
-    if (!isUuid(gameId)) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
-
-    const body = req.body || {};
-    const homeTeamId = body.homeTeamId ?? body.home_team_id;
-    const awayTeamId = body.awayTeamId ?? body.away_team_id;
-
-    if (homeTeamId === undefined && awayTeamId === undefined) {
-      res.status(400).json({ error: "At least one team is required" });
-      return;
-    }
-
-    for (const [label, value] of [
-      ["homeTeamId", homeTeamId],
-      ["awayTeamId", awayTeamId],
-    ]) {
-      if (value !== undefined && value !== null && !isUuid(value)) {
-        res.status(400).json({ error: `${label} must be a team id` });
-        return;
-      }
-    }
-
-    const client = await pool.connect();
-
-    try {
-      await client.query("BEGIN");
-
-      const gameResult = await client.query(
-        `
-          SELECT season_id AS "seasonId",
-                 home_team_id AS "homeTeamId",
-                 away_team_id AS "awayTeamId"
-          FROM games
-          WHERE id = $1
-          LIMIT 1
-        `,
-        [gameId]
-      );
-
-      const gameRow = gameResult.rows[0];
-      if (!gameRow) {
-        await client.query("ROLLBACK");
-        res.status(404).json({ error: "Game not found" });
-        return;
-      }
-
-      const nextHomeId =
-        homeTeamId === undefined ? gameRow.homeTeamId : homeTeamId;
-      const nextAwayId =
-        awayTeamId === undefined ? gameRow.awayTeamId : awayTeamId;
-
-      if (!nextHomeId || !nextAwayId) {
-        await client.query("ROLLBACK");
-        res.status(400).json({ error: "Both teams are required" });
-        return;
-      }
-
-      if (nextHomeId === nextAwayId) {
-        await client.query("ROLLBACK");
-        res.status(400).json({ error: "Home and away teams must be different" });
-        return;
-      }
-
-      // Only allow teams that belong to this game's season.
-      const teamsResult = await client.query(
-        `SELECT id FROM teams WHERE season_id = $1 AND id IN ($2, $3)`,
-        [gameRow.seasonId, nextHomeId, nextAwayId]
-      );
-      const validIds = new Set(teamsResult.rows.map((row) => row.id));
-      if (!validIds.has(nextHomeId) || !validIds.has(nextAwayId)) {
-        await client.query("ROLLBACK");
-        res.status(400).json({ error: "Team is not part of this season" });
-        return;
-      }
-
-      await client.query(
-        `
-          UPDATE games
-          SET home_team_id = $2,
-              away_team_id = $3,
-              updated_at = now()
-          WHERE id = $1
-        `,
-        [gameId, nextHomeId, nextAwayId]
-      );
-
-      await client.query("COMMIT");
-
-      const game = await getGame(gameId);
-      res.json({ game });
-      await notifyLiveGameState(gameId, "matchup-updated");
-    } catch (err) {
-      await client.query("ROLLBACK").catch(() => {});
-      next(err);
-    } finally {
-      client.release();
-    }
-  });
 
   router.post("/:gameId/teams/:teamId/temp-players", async (req, res, next) => {
   const { gameId, teamId } = req.params;
@@ -1488,6 +1482,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
 
     res.json(liveGameState);
     await notifyLiveGameState(gameId, "score-updated");
+    await resolveBracketAndBroadcast();
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     next(err);
@@ -1884,6 +1879,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
       gameId,
       result.isGameFinal ? "finalized" : "team-finalized"
     );
+    if (result.isGameFinal) await resolveBracketAndBroadcast();
   } catch (err) {
     if (!committed) await client.query("ROLLBACK");
     next(err);
@@ -1940,6 +1936,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
       gameId,
       result.isGameFinal ? "finalized" : "team-finalized"
     );
+    if (result.isGameFinal) await resolveBracketAndBroadcast();
   } catch (err) {
     if (!committed) await client.query("ROLLBACK");
     next(err);
@@ -2111,6 +2108,7 @@ function createGamesRouter({ broadcastLiveGameState } = {}) {
 
     res.json({ game });
     await notifyLiveGameState(gameId, "finalized");
+    await resolveBracketAndBroadcast();
   } catch (err) {
     if (!committed) await client.query("ROLLBACK");
     next(err);

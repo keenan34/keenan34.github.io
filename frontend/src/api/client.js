@@ -99,17 +99,6 @@ export function updateAdminGameStatus(gameId, status, token) {
   });
 }
 
-export function updateAdminGameMatchup(gameId, teams, token) {
-  return apiRequest(`/api/admin/games/${encodeURIComponent(gameId)}/matchup`, {
-    method: "PATCH",
-    headers: {
-      ...authHeaders(token),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(teams),
-  });
-}
-
 export function swapAdminGameHomeAway(gameId, token) {
   return apiRequest(
     `/api/admin/games/${encodeURIComponent(gameId)}/swap-home-away`,
