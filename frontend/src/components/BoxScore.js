@@ -94,6 +94,25 @@ function abbreviateName(name) {
 const playerImageUrl = (player) =>
   player.imgUrl || player.image_url || player.imageUrl || null;
 
+// Keep the box score behind its skeleton until every image has settled. An
+// error still counts as settled so one missing photo shows its initials
+// fallback instead of leaving the page loading indefinitely.
+function preloadImages(sources) {
+  const uniqueSources = [...new Set(sources.filter(Boolean))];
+
+  return Promise.all(
+    uniqueSources.map(
+      (src) =>
+        new Promise((resolve) => {
+          const image = new Image();
+          image.onload = resolve;
+          image.onerror = resolve;
+          image.src = src;
+        })
+    )
+  );
+}
+
 function seasonPlayerImageUrl(season, player) {
   const slug =
     player.slug ||
@@ -399,7 +418,7 @@ export default function BoxScore() {
         signal: controller.signal,
       }
     )
-      .then((apiData) => {
+      .then(async (apiData) => {
         const game = apiData?.game;
         const boxScore = toLegacyBoxScore(apiData);
 
@@ -412,6 +431,21 @@ export default function BoxScore() {
         setEvents(Array.isArray(apiData?.events) ? apiData.events : []);
         setYoutubeUrl(game.youtubeUrl ?? null);
         setScores({ a: game.scoreA ?? null, b: game.scoreB ?? null });
+
+        const playerPhotos = [boxScore.teamA, boxScore.teamB].flatMap(
+          (team) =>
+            (team?.players || []).map((player) =>
+              season
+                ? seasonPlayerImageUrl(activeSeason, player)
+                : player.imgUrl
+            )
+        );
+        const teamLogos = [boxScore.teamA?.name, boxScore.teamB?.name].map((team) =>
+          team ? teamLogoUrl(activeSeason, team) : null
+        );
+
+        await preloadImages([...playerPhotos, ...teamLogos]);
+        if (controller.signal.aborted) return;
 
         // Live games open on the play-by-play feed (unless a team was linked).
         if (game.status === "live" && !teamParam) setTab("feed");
@@ -426,7 +460,7 @@ export default function BoxScore() {
       });
 
     return () => controller.abort();
-  }, [activeSeason, week, gameId, teamParam]);
+  }, [activeSeason, week, gameId, teamParam, season]);
 
   const isLiveGame = matchInfo?.status === "live";
   const liveGameDbId = matchInfo?.id;
@@ -544,22 +578,6 @@ export default function BoxScore() {
     if (data.teamB?.name === wanted) setTab("away");
     else if (data.teamA?.name === wanted) setTab("home");
   }, [data, teamParam]);
-
-  // Preload every player photo for BOTH teams up front so the first switch to
-  // the other team's tab paints from cache instead of flashing initials. No
-  // crossOrigin here, to match ProfileImage's cache key.
-  useEffect(() => {
-    if (!data) return;
-    [data.teamA, data.teamB].forEach((team) => {
-      team?.players?.forEach((p) => {
-        const src = season ? seasonPlayerImageUrl(activeSeason, p) : p.imgUrl;
-        if (!src) return;
-        const img = new Image();
-        img.src = src;
-      });
-    });
-  }, [data, season, activeSeason]);
-
 
   if (loading)
     return (
