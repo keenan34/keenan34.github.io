@@ -170,36 +170,6 @@ body,
   box-shadow: 0 6px 18px rgba(2, 132, 199, 0.08);
 }
 
-.site-share-button {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  flex: none;
-  border: 1px solid rgba(2, 132, 199, 0.34);
-  border-radius: 50%;
-  background: rgba(2, 132, 199, 0.1);
-  color: var(--accent2);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
-}
-
-.site-share-button:hover {
-  border-color: rgba(56, 189, 248, 0.7);
-  background: rgba(2, 132, 199, 0.2);
-  color: #fff;
-}
-
-.site-share-button svg {
-  width: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-}
-
 /*
  * Public pages predate the shared theme tokens and still contain light
  * Tailwind color utilities. Keep this compatibility layer on public routes so
