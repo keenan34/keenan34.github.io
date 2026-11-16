@@ -53,7 +53,8 @@ a:hover { color: var(--red); }
 .top {
   position: sticky; top: 0; z-index: 5;
   display: flex; align-items: center; gap: 24px;
-  max-width: var(--max); margin: 0 auto; padding: 14px var(--gutter);
+  /* Full-width bar; the padding lines its content up with the page column. */
+  padding: 14px max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(8px);
 }
@@ -203,7 +204,8 @@ h1 {
   display: block; position: sticky; top: 0; height: 100vh; height: 100svh;
   overflow: hidden;
 }
-.tour-on #map { position: absolute; inset: 0; }
+.tour-on #map { position: absolute; inset: 0; opacity: 0; transition: opacity .8s; }
+.tour-on.map-ready #map { opacity: 1; }
 .tour-on .tour-stage::after {
   /* Fade the map into the page above and below. */
   content: ""; position: absolute; inset: 0; pointer-events: none;
