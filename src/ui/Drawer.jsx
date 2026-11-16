@@ -55,7 +55,7 @@ export default function Drawer({ title, side = "right", onClose, children }) {
       transition={{ type: "spring", damping: 32, stiffness: 280, opacity: { duration: 0.25 } }}
     >
       <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-5">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/90">{title}</h2>
+        <h2 className="text-lg font-semibold tracking-[-0.01em] text-white">{title}</h2>
         <button
           type="button"
           onClick={onClose}

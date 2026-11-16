@@ -1,15 +1,21 @@
 @import "tailwindcss";
 
-/* Design tokens: dusk-over-Chicago palette, Chicago-flag accents. */
+/* Design tokens. Type and the sign plates follow CTA wayfinding: one grotesque,
+   white on black, line colors as markers. */
 @theme {
   --color-night: #0b0f19;
   --color-ink: #e8edf2;
   --color-mist: #94a3b8;
-  --color-flag-blue: #7dd3fc;
-  --color-flag-red: #ef3340;
-  --color-neon-orange: #fb923c;
-  --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-display: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-sign: #121212;
+  --color-sign-ink: #f4f4f1;
+  --color-line-brown: #62361b;
+  --color-line-green: #009b3a;
+  --color-line-orange: #f9461c;
+  --color-line-pink: #e27ea6;
+  --color-line-purple: #522398;
+  --color-line-blue: #00a1de;
 }
 
 html, body, #root { height: 100%; }
@@ -22,9 +28,9 @@ body {
   overflow: hidden;
 }
 
-:focus-visible { outline: 2px solid var(--color-flag-blue); outline-offset: 3px; border-radius: 6px; }
+:focus-visible { outline: 2px solid var(--color-line-blue); outline-offset: 3px; border-radius: 6px; }
 /* Drawers take focus programmatically when they open; they don't need a ring. */
 [role="dialog"]:focus-visible { outline: none; }
 
 /* The scrollable panels inside drawers keep a quiet scrollbar. */
-.scroll-quiet { scrollbar-width: thin; scrollbar-color: rgb(125 211 252 / 0.3) transparent; }
+.scroll-quiet { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.2) transparent; }

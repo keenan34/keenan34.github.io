@@ -8,7 +8,7 @@ export default function PlainPortfolio() {
       <div className="mx-auto max-w-2xl space-y-12 px-5 py-10">
         <AboutPanel />
         <section>
-          <h2 className="mb-4 font-display text-3xl font-black uppercase tracking-wide text-white">Projects</h2>
+          <h2 className="mb-4 text-2xl font-bold tracking-[-0.015em] text-white">Projects</h2>
           <ProjectsPanel />
         </section>
       </div>

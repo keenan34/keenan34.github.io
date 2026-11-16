@@ -9,23 +9,25 @@ const elements = new Map();  // id -> label <span> in the page
 export const registerAnchor = (id) => (obj) => (obj ? anchors.set(id, obj) : anchors.delete(id));
 export const setHover = (id, on) => { const el = elements.get(id); if (el) el.dataset.hover = on ? "1" : "0"; };
 
+// Each label is a small sign plate; the marker is the 'L' line color it belongs to.
 const LABELS = [
-  ["projects", "Projects"],
-  ["about", "About"],
+  ["projects", "Projects", "bg-line-green"],
+  ["about", "About", "bg-line-blue"],
 ];
 
 // Lives outside the <Canvas>, on top of it.
 export function LabelLayer({ hidden }) {
   return (
     <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"}`}>
-      {LABELS.map(([id, text]) => (
+      {LABELS.map(([id, text, marker]) => (
         <span
           key={id}
           ref={(el) => (el ? elements.set(id, el) : elements.delete(id))}
           data-hover="0"
-          className="absolute left-0 top-0 whitespace-nowrap rounded-full border border-sky-400/40 bg-slate-900/70 px-3 py-1 font-display text-sm font-bold uppercase tracking-wider text-sky-100 opacity-0 backdrop-blur-md transition-[background-color,border-color,color,box-shadow] data-[hover=1]:border-flag-blue data-[hover=1]:bg-flag-blue/25 data-[hover=1]:text-white data-[hover=1]:shadow-[0_0_18px_rgba(125,211,252,0.6)]"
+          className="absolute left-0 top-0 flex items-center gap-2 whitespace-nowrap rounded-[3px] bg-sign py-1 pl-2 pr-2.5 text-[0.8rem] font-semibold text-sign-ink opacity-0 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-colors data-[hover=1]:bg-sign-ink data-[hover=1]:text-sign"
         >
-          [ {text} ]
+          <span className={`h-2.5 w-2.5 rounded-[2px] ${marker}`} />
+          {text}
         </span>
       ))}
     </div>

@@ -68,7 +68,7 @@ export default function App() {
 
 function Loading() {
   return (
-    <div className="grid h-full place-items-center font-display text-2xl tracking-wide text-flag-blue/70">
+    <div className="grid h-full place-items-center text-sm text-white/50">
       Building the block…
     </div>
   );
