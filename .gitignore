@@ -2,3 +2,5 @@
 assets/flight/chicago/
 # Kling drafts and source stills. Only encoded clips ship.
 assets/clips/raw/
+node_modules/
+dist/
