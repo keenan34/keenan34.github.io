@@ -6,7 +6,6 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   base: "./",
   plugins: [react(), tailwindcss()],
-  worker: { format: "es" },
   server: {
     // The raw video renders live under assets/ and are gitignored; keep Vite away from them.
     watch: { ignored: ["**/assets/**"] },
@@ -15,7 +14,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("@mlc-ai/web-llm")) return "webllm";
           if (id.includes("three") || id.includes("@react-three") || id.includes("postprocessing")) return "three";
         },
       },

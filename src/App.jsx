@@ -4,7 +4,6 @@ import Hud from "./ui/Hud.jsx";
 import Drawer from "./ui/Drawer.jsx";
 import ProjectsPanel from "./ui/ProjectsPanel.jsx";
 import AboutPanel from "./ui/AboutPanel.jsx";
-import ChatPanel from "./ui/ChatPanel.jsx";
 import PlainPortfolio from "./ui/PlainPortfolio.jsx";
 import { LabelLayer } from "./scene/labels.jsx";
 
@@ -18,7 +17,6 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 const PANELS = {
   projects: { title: "Projects", Body: ProjectsPanel },
   about: { title: "About", Body: AboutPanel },
-  chat: { title: "Talk to my AI twin", Body: ChatPanel },
 };
 
 export default function App() {

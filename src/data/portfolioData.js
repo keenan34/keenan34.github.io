@@ -1,5 +1,5 @@
 // Everything about Keenan lives here. Edit this file to change the site's text,
-// links and projects; the 3D scene and the chat read from it.
+// links and projects; the 3D scene and its panels read from it.
 
 export const person = {
   name: "Keenan Jajeh",
@@ -109,43 +109,3 @@ export const skills = [
   { group: "Cloud", items: "AWS (EC2, S3, RDS), GCP Cloud Run, Docker, CI/CD, Linux" },
   { group: "AI", items: "LLM integration (Claude API), embeddings and semantic search, AI agents and browser automation, in-browser models (WebLLM)" },
 ];
-
-// ---------- AI twin ----------
-
-// The facts the in-browser model answers from. Kept short on purpose: a 1B model
-// answers well from a tight fact sheet and rambles from a long one.
-const facts = [
-  `- ${person.name} is a ${person.role.toLowerCase()} in ${person.city}.`,
-  ...projects.map((p) => `- ${p.name}: ${p.pitch} (${p.stack.slice(0, 4).join(", ")})`),
-  ...experience.map((e) => `- ${e.title} at ${e.org} since ${e.when.split(" ")[1]}: ${e.points[0]}`),
-  `- ${education.title} from ${education.org}, Dean's List.`,
-  `- Contact: ${links.email}, GitHub keenan34, LinkedIn keenan-jajeh.`,
-].join("\n");
-
-export const ai = {
-  // Smaller models (SmolLM2-360M) fall apart on this prompt, so the 1B is the floor.
-  models: [{ id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", label: "Llama 3.2 1B", size: "about 880 MB" }],
-  systemPrompt:
-    "You are the AI digital twin of a Chicago-based Software Engineer named Keenan. You are friendly, sharp, and occasionally drop subtle Chicago references (the 'L', lakefront wind, tavern-style vs. deep dish, Wrigley). Keep answers concise (under 3 sentences). Highlight skills in React, TypeScript, 3D Web, and AI engineering. Encourage recruiters to check out the Projects marquee or reach out via GitHub/LinkedIn.\n\nFacts about Keenan (use only these; if asked something else, say you don't know and point to the résumé):\n" +
-    facts,
-};
-
-// Scripted twin for browsers without WebGPU (and before the model is booted).
-// Each entry matches any of its keywords; the first match wins.
-export const scriptedReplies = [
-  { keys: ["hi", "hey", "hello", "sup", "yo"], reply: "Hey! I’m Keenan’s twin, running right here in your browser. Ask me about his projects, his stack, the AI work, or how to reach him." },
-  { keys: ["project", "built", "build", "work", "portfolio"], reply: "Keenan’s highlights: Ripple (alternate sports history sims), the IFNBL league platform, BlitzWatch (NFL blitz prediction, ~85% accuracy), and a private group portal with seven apps, including an AI job agent. Click the PROJECTS marquee for the details." },
-  { keys: ["ripple"], reply: "Ripple lets you change one moment in sports history and watch the seasons after it play out. A deterministic engine means every result has a shareable link. Next.js, TypeScript, Supabase." },
-  { keys: ["ifnbl", "basketball", "league"], reply: "IFNBL is a rec basketball league’s site: standings, schedules and stats over three seasons, fed by a Node ETL into PostgreSQL with live Socket.IO updates." },
-  { keys: ["blitz", "nfl", "football", "machine learning", "ml", "model"], reply: "BlitzWatch predicts NFL blitzes before the snap: LightGBM on 90,000+ plays at about 85% accuracy, with React and D3 dashboards." },
-  { keys: ["ai", "llm", "agent", "claude", "gpt", "embedding"], reply: "Keenan builds AI into real products. His job agent ranks listings with embeddings and Claude scoring and fills out applications from a browser extension. This chat itself can run a real model in your browser via WebGPU." },
-  { keys: ["stack", "tech", "skill", "language", "react", "typescript", "go", "python"], reply: "Full stack: React and TypeScript up front, Node, Go and Python behind, PostgreSQL underneath, deployed on AWS and GCP Cloud Run. Plus Three.js for this very diorama." },
-  { keys: ["job", "experience", "stars", "convention", "work history"], reply: "At Stars Tech Group he built and ran the registration and payment platform for a 40,000+ attendee national convention and kept checkout up through a three-day rush." },
-  { keys: ["school", "depaul", "degree", "education", "college"], reply: "B.S. in Computer Science from DePaul, Dean’s List. Lincoln Park, right off the Fullerton ‘L’ stop." },
-  { keys: ["contact", "email", "hire", "reach", "linkedin", "github", "resume", "résumé"], reply: `Reach him at ${links.email}, on LinkedIn (keenan-jajeh) or GitHub (keenan34). The résumé is in the About section, under the Bean.` },
-  { keys: ["pizza", "deep dish", "tavern", "hot dog", "food"], reply: "Tavern-style, cut in squares, no debate. Deep dish is for visitors and Saturdays. And never ketchup on a hot dog." },
-  { keys: ["cubs", "sox", "bears", "bulls", "wrigley", "sports"], reply: "Born and raised on Chicago sports, which is exactly why half his side projects are sports analytics." },
-  { keys: ["chicago", "city", "weather", "wind"], reply: "Chicago through and through. The lakefront wind builds character, and the ‘L’ is a fine place to think about database schemas." },
-];
-export const scriptedFallback =
-  "Good question. I only know the highlights, so check the PROJECTS marquee or the About section, or email Keenan directly at " + links.email + ".";

@@ -4,9 +4,7 @@ import { useEffect } from "react";
 import Island from "./Island.jsx";
 import Tower from "./Tower.jsx";
 import LTrain from "./LTrain.jsx";
-import Marquee from "./Marquee.jsx";
 import Bean from "./Bean.jsx";
-import Booth from "./Booth.jsx";
 import Streetlamp from "./Streetlamp.jsx";
 import ChicagoProps from "./ChicagoProps.jsx";
 import { LabelProjector } from "./labels.jsx";
@@ -68,10 +66,8 @@ export default function Scene({ onOpen, paused }) {
           <Island />
           <Tower />
           <ChicagoProps />
-          <Marquee onOpen={() => onOpen("projects")} />
-          <Booth onOpen={() => onOpen("chat")} paused={paused} />
           <Bean onOpen={() => onOpen("about")} />
-          <LTrain paused={paused} />
+          <LTrain paused={paused} onOpen={() => onOpen("projects")} />
           <Streetlamp position={[-4.2, 0, 0.6]} />
           <Streetlamp position={[1.8, 0, 0.6]} />
         </group>

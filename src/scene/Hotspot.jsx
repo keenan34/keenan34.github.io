@@ -4,7 +4,7 @@ import { registerAnchor, setHover } from "./labels.jsx";
 
 // Wraps a landmark: grows on hover, opens a panel on click, and anchors its
 // floating label (drawn by LabelLayer) at labelOffset.
-export default function Hotspot({ id, labelOffset = [0, 2, 0], onOpen, children, ...props }) {
+export default function Hotspot({ id, labelOffset = [0, 2, 0], onOpen, onHoverChange, children, ...props }) {
   const ref = useRef();
   const [hovered, setHovered] = useState(false);
 
@@ -17,6 +17,7 @@ export default function Hotspot({ id, labelOffset = [0, 2, 0], onOpen, children,
   const hover = (on) => {
     setHovered(on);
     setHover(id, on);
+    onHoverChange?.(on);
     document.body.style.cursor = on ? "pointer" : "";
   };
 

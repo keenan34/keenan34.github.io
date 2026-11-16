@@ -1,19 +1,15 @@
 # keenan34.github.io
 
 Keenan Jajeh's portfolio: an isometric 3D Chicago block (React Three Fiber) with
-three clickable landmarks, plus an AI twin that can run a real language model in
-the visitor's browser (WebLLM + WebGPU).
+the Sears Tower, the Hancock, the 'L', the Bean and a dyed-green river.
 
-- **PROJECTS marquee** opens the project list.
+- **The 'L' train** opens the project list.
 - **The Bean** opens About: bio, experience, skills, résumé.
-- **Rooftop booth** opens the chat. It starts as a scripted twin and offers a
-  "Boot AI twin" button (Llama 3.2 1B, ~880 MB, cached after the first visit) on
-  browsers with WebGPU.
 
 ## Edit your info
 
-Everything — text, links, projects, the AI's system prompt and the scripted
-answers — lives in `src/data/portfolioData.js`. No 3D code needed.
+Everything — text, links, projects, experience, skills — lives in
+`src/data/portfolioData.js`. No 3D code needed.
 
 ## Run locally
 

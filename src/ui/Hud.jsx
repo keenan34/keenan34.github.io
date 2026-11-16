@@ -29,9 +29,9 @@ export default function Hud({ paused, onTogglePause, onOpen }) {
         </button>
       </header>
 
-      {/* Keyboard and screen-reader access to the three landmarks; shown when focused. */}
+      {/* Keyboard and screen-reader access to the landmarks; shown when focused. */}
       <nav aria-label="Sections" className="absolute left-4 top-28 flex flex-col gap-2">
-        {[["projects", "Projects"], ["about", "About"], ["chat", "Talk to AI"]].map(([key, label]) => (
+        {[["projects", "Projects"], ["about", "About"]].map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -44,7 +44,7 @@ export default function Hud({ paused, onTogglePause, onOpen }) {
       </nav>
 
       <p className="pointer-events-none absolute inset-x-0 bottom-5 mx-auto w-fit max-w-[92%] rounded-full border border-sky-400/30 bg-slate-900/70 px-4 py-2 text-center text-xs text-sky-100/90 backdrop-blur-md sm:text-sm">
-        Drag to rotate the block · Click the glowing landmarks to explore
+        Drag to rotate · Click the ‘L’ train for projects, the Bean for about
       </p>
     </>
   );

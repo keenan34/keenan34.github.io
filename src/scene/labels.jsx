@@ -12,7 +12,6 @@ export const setHover = (id, on) => { const el = elements.get(id); if (el) el.da
 const LABELS = [
   ["projects", "Projects"],
   ["about", "About"],
-  ["chat", "Talk to AI"],
 ];
 
 // Lives outside the <Canvas>, on top of it.
