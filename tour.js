@@ -1,101 +1,167 @@
-// Chicago fly-through: a pre-rendered Google Earth Studio flight, scrubbed by scroll.
-// Each stop carries data-t, the moment (in seconds) the flight rests on its landmark.
-// Wide screens get the 16:9 render, phones a portrait crop of it. With reduced motion
-// the stage shows each stop's still frame; without JS the stops are a plain list.
+// Chicago fly-through: a sticky 3D map whose camera is driven by scroll position.
+// Every stop carries data-cam="lng,lat,zoom,pitch,bearing". Without a token,
+// WebGL or motion, the stops render as the ordinary project list.
 (() => {
+  const MAPBOX_VERSION = "3.35.0";
   const root = document.documentElement;
   const tour = document.querySelector(".tour");
-  if (!tour) return;
+  const token = window.MAPBOX_TOKEN;
 
-  const video = tour.querySelector(".flight");
-  const still = tour.querySelector(".flight-still");
-  const placeLabel = tour.querySelector(".tour-place span");
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const canPlay = !!video.canPlayType && video.canPlayType('video/mp4; codecs="avc1.64001f"') !== "";
+  const hasWebGL = (() => {
+    try { return !!document.createElement("canvas").getContext("webgl2"); } catch (e) { return false; }
+  })();
+  if (!tour || !token || reduced || !hasWebGL) return;
 
-  const stops = [...tour.querySelectorAll(".stop")].map((el, i) => ({
-    el, i, place: el.dataset.place, t: Number(el.dataset.t),
-  }));
+  // Switch to the tour layout straight away, so the page never jumps from the
+  // list to the tall tour once Mapbox arrives. A failure switches back.
+  root.classList.add("tour-on");
+  const fallBack = () => root.classList.remove("tour-on", "map-ready");
 
-  // Phones keep cards in the lower part of the screen and use the portrait render.
-  const narrow = () => innerWidth <= 820;
-  let kind = "";
-  function useKind() {
-    const next = narrow() ? "tall" : "wide";
-    if (next === kind) return;
-    kind = next;
-    still.src = `assets/flight/stills/${kind}-${active ? active.i : 0}.webp`;
-    if (motion) {
-      video.src = `assets/flight/flight-${kind}.mp4`;
-      video.load();
-      // iOS only buffers a muted inline video once it has started playing.
-      video.play().then(() => video.pause()).catch(() => {});
-    }
+  const stops = [...tour.querySelectorAll(".stop")].map((el) => {
+    const [lng, lat, zoom, pitch, bearing] = el.dataset.cam.split(",").map(Number);
+    return { el, place: el.dataset.place, lng, lat, zoom, pitch, bearing };
+  });
+  const placeLabel = tour.querySelector(".tour-place span");
+  const sizer = tour.querySelector(".stop:not(.featured):not(:first-child)");
+
+  function load(src, tag) {
+    return new Promise((resolve, reject) => {
+      const node = document.createElement(tag);
+      if (tag === "link") { node.rel = "stylesheet"; node.href = src; } else { node.src = src; }
+      node.onload = resolve; node.onerror = reject;
+      document.head.appendChild(node);
+    });
   }
 
-  // Which stop is in view, and how far the scroll has carried us toward the next one.
+  // Load Mapbox only when the Work section gets close, so the hero stays fast.
+  const io = new IntersectionObserver((entries) => {
+    if (!entries.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    const base = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_VERSION}/mapbox-gl`;
+    Promise.all([load(base + ".css", "link"), load(base + ".js", "script")])
+      .then(start)
+      .catch(fallBack);
+  }, { rootMargin: "1200px 0px" });
+  io.observe(tour);
+
+  function lightPreset() {
+    const theme = root.dataset.theme ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    return theme === "dark" ? "night" : "dusk";
+  }
+
+  // Where the camera should be for the current scroll position.
+  // Phones keep cards in the lower part of the screen; wide screens beside them.
+  const narrow = () => innerWidth <= 820;
+
   function target() {
-    const focus = innerHeight * (narrow() ? 0.72 : 0.5);
+    const mid = innerHeight * (narrow() ? 0.68 : 0.5);
     const centers = stops.map((s) => {
       const r = s.el.getBoundingClientRect();
       return r.top + Math.min(r.height, innerHeight) / 2;
     });
+
     let i = 0;
-    while (i < stops.length - 2 && centers[i + 1] <= focus) i++;
+    while (i < stops.length - 2 && centers[i + 1] <= mid) i++;
     const a = stops[i], b = stops[i + 1];
-    let p = clamp((focus - centers[i]) / (centers[i + 1] - centers[i] || 1), 0, 1);
+    let t = clamp((mid - centers[i]) / (centers[i + 1] - centers[i] || 1), 0, 1);
     // Rest on each landmark for the first and last stretch of scroll between stops.
-    p = smooth(clamp((p - 0.2) / 0.6, 0, 1));
-    return { time: lerp(a.t, b.t, p), active: p < 0.5 ? a : b };
+    t = smooth(clamp((t - 0.2) / 0.6, 0, 1));
+
+    // Climb to a cruising height that depends on the distance, then descend.
+    // Never climb below the higher of the two ends, so a hop that starts
+    // zoomed out just descends instead of pulling back first.
+    const dx = (b.lng - a.lng) * Math.cos(a.lat * Math.PI / 180), dy = b.lat - a.lat;
+    const climb = clamp(Math.log2(Math.hypot(dx, dy) / 0.004), 0, 6);
+    const cruise = Math.min(a.zoom, b.zoom, Math.max(a.zoom, b.zoom) - climb);
+    const zoom = t < 0.5
+      ? lerp(a.zoom, cruise, smooth(t * 2))
+      : lerp(cruise, b.zoom, smooth(t * 2 - 1));
+
+    return {
+      lng: lerp(a.lng, b.lng, t), lat: lerp(a.lat, b.lat, t), zoom,
+      pitch: lerp(a.pitch, b.pitch, t),
+      bearing: a.bearing + angle(b.bearing - a.bearing) * t,
+      active: t < 0.5 ? a : b,
+    };
   }
 
-  function buffered(t) {
-    const b = video.buffered;
-    for (let i = 0; i < b.length; i++) if (t >= b.start(i) - 0.05 && t <= b.end(i) + 0.05) return true;
-    return false;
-  }
+  function start() {
+    const first = stops[0];
+    mapboxgl.accessToken = token;
+    let map;
+    try {
+      map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/standard",
+        config: { basemap: { lightPreset: lightPreset(), showPointOfInterestLabels: false } },
+        center: [first.lng, first.lat], zoom: first.zoom, pitch: first.pitch, bearing: first.bearing,
+        interactive: false, attributionControl: true,
+      });
+    } catch (e) { fallBack(); return; }
 
-  let motion = canPlay && !reduced;
-  let active = null, time = null, raf = 0, last = 0;
+    let failed = false;
+    map.on("error", (e) => {
+      // A bad or blocked token fails before the style loads: fall back to the list.
+      if (!map.isStyleLoaded()) { failed = true; fallBack(); map.remove(); }
+      console.warn("[tour]", e.error && e.error.message);
+    });
 
-  // The flight time eases toward the scroll target every frame, so wheel notches
-  // become a glide. Seeks are only issued once the previous one has landed.
-  function frame(now) {
-    raf = 0;
-    const goal = target();
-    if (goal.active !== active) {
-      active = goal.active;
-      placeLabel.textContent = active.place;
-      stops.forEach((s) => s.el.classList.toggle("is-active", s === active));
-      still.src = `assets/flight/stills/${kind}-${active.i}.webp`;
+    // The camera eases toward the scroll target every frame instead of
+    // jumping, so mouse-wheel notches turn into a glide.
+    let cam = null, raf = 0, last = 0;
+    function frame(now) {
+      raf = 0;
+      const goal = target();
+      const dt = last ? Math.min(now - last, 64) : 16;
+      last = now;
+      if (!cam) cam = { ...goal };
+      const k = 1 - Math.exp(-dt / 110);
+      cam.lng += (goal.lng - cam.lng) * k;
+      cam.lat += (goal.lat - cam.lat) * k;
+      cam.zoom += (goal.zoom - cam.zoom) * k;
+      cam.pitch += (goal.pitch - cam.pitch) * k;
+      cam.bearing += angle(goal.bearing - cam.bearing) * k;
+
+      // Aim each landmark at the open space beside (or, on phones, above) the cards.
+      const cardRight = sizer && !narrow() ? sizer.getBoundingClientRect().right + 24 : 0;
+      map.jumpTo({
+        center: [cam.lng, cam.lat], zoom: cam.zoom, pitch: cam.pitch, bearing: cam.bearing,
+        padding: narrow()
+          ? { left: 0, right: 0, top: 56, bottom: innerHeight * 0.5 }
+          : { left: Math.min(cardRight, innerWidth * 0.6), right: 0, top: 0, bottom: 0 },
+      });
+
+      if (placeLabel.textContent !== goal.active.place) placeLabel.textContent = goal.active.place;
+      stops.forEach((s) => s.el.classList.toggle("is-active", s === goal.active));
+
+      const settling = Math.abs(goal.zoom - cam.zoom) > 0.002 ||
+        Math.abs(goal.lng - cam.lng) > 1e-6 || Math.abs(goal.lat - cam.lat) > 1e-6 ||
+        Math.abs(goal.pitch - cam.pitch) > 0.02 || Math.abs(angle(goal.bearing - cam.bearing)) > 0.02;
+      if (settling) raf = requestAnimationFrame(frame); else last = 0;
     }
-    if (!motion) return;
+    const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
 
-    const dt = last ? Math.min(now - last, 64) : 16;
-    last = now;
-    if (time === null) time = goal.time;
-    time += (goal.time - time) * (1 - Math.exp(-dt / 120));
+    map.on("style.load", () => {
+      if (failed) return;
+      map.resize();
+      cam = null;
+      kick();
+      root.classList.add("map-ready");
+    });
 
-    const ready = video.readyState >= 2 && buffered(time);
-    root.classList.toggle("flight-ready", ready);
-    if (ready && !video.seeking && Math.abs(video.currentTime - time) > 1 / 30) video.currentTime = time;
+    addEventListener("scroll", kick, { passive: true });
+    addEventListener("resize", () => { map.resize(); kick(); });
 
-    if (Math.abs(goal.time - time) > 0.005 || !ready) raf = requestAnimationFrame(frame);
-    else last = 0;
+    // Keep the map's light in step with the site's theme toggle.
+    new MutationObserver(() => {
+      if (map.isStyleLoaded()) map.setConfigProperty("basemap", "lightPreset", lightPreset());
+    }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
   }
-  const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
-
-  root.classList.add("tour-on");
-  useKind();
-  video.addEventListener("progress", kick);
-  video.addEventListener("seeked", kick);
-  video.addEventListener("loadeddata", kick);
-  video.addEventListener("error", () => { motion = false; root.classList.remove("flight-ready"); });
-  addEventListener("scroll", kick, { passive: true });
-  addEventListener("resize", () => { useKind(); kick(); });
-  kick();
 
   function lerp(x, y, t) { return x + (y - x) * t; }
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
   function smooth(t) { return t * t * (3 - 2 * t); }
+  function angle(d) { return ((d + 540) % 360) - 180; }
 })();
