@@ -171,6 +171,28 @@ h1 {
 }
 .tags { margin: 6px 0 0; font: 400 13px/1.6 var(--mono); color: var(--muted); }
 
+/* Featured project: header and stat line side by side, apps listed underneath. */
+.project.featured { grid-template-columns: 1.35fr 1fr; align-items: start; }
+.project.featured header { grid-row: auto; }
+.project.featured .points { margin-top: 14px; }
+.project.featured .statline { flex-direction: column; }
+.project.featured .statline li + li { border-left: 0; border-top: 1px solid var(--line); }
+.project.featured .apps, .project.featured .tags { grid-column: 1 / -1; }
+
+.apps {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px;
+  margin: 20px 0 0;
+}
+.apps div { padding: 14px 0; border-top: 1px solid var(--line); }
+.apps .app-wide { grid-column: 1 / -1; }
+.apps dt { font: 900 22px/1.1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.apps dt span {
+  margin-left: 8px; padding: 2px 6px; vertical-align: 3px;
+  font: 500 11px/1 var(--mono); letter-spacing: .08em;
+  color: #fff; background: var(--red); border-radius: 3px;
+}
+.apps dd { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+
 /* ---------- experience ---------- */
 .job { padding: 0 0 24px; }
 .job + .job { padding-top: 24px; border-top: 1px solid var(--line); }
@@ -206,6 +228,10 @@ h1 {
   .jersey { bottom: -24px; right: 0; }
   .project { grid-template-columns: 1fr; }
   .project header { grid-row: auto; margin-bottom: 8px; }
+  .project.featured { grid-template-columns: 1fr; }
+  .project.featured .statline { flex-direction: row; }
+  .project.featured .statline li + li { border-top: 0; border-left: 1px solid var(--line); }
+  .apps { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
   .top nav { display: none; }

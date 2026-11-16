@@ -59,20 +59,58 @@
     <section id="work" class="section">
       <h2 class="section-title">Selected work</h2>
 
-      <article class="project">
+      <article class="project featured">
         <header>
           <h3>Private group portal</h3>
-          <p class="pitch">A private portal for my friend group: one login, one Go server, and several apps behind it.</p>
+          <p class="pitch">A members-only site for my friend group that I designed, built and run myself. One login, one Go server and one PostgreSQL database sit behind seven apps.</p>
+          <ul class="points">
+            <li>Each app is its own React bundle. The Go binary embeds them all and sends each link to the app that owns it.</li>
+            <li>Shared pieces across apps: sessions, roles and admin approval, profile photos, notifications, comment threads.</li>
+            <li>CI runs the tests, builds a Docker image and deploys to Cloud Run. Migrations run against Cloud SQL.</li>
+          </ul>
         </header>
         <ul class="statline" aria-label="Key facts">
-          <li><b>4</b> apps</li><li><b>1</b> login</li><li><b>Cloud Run</b> deploy</li>
+          <li><b>7</b> apps</li><li><b>3</b> browser extensions</li><li><b>1</b> Go server</li>
         </ul>
-        <ul class="points">
-          <li><strong>Jobs / AutoApply:</strong> a job feed built from hundreds of Greenhouse, Lever and Ashby boards. It ranks listings with Voyage embeddings and Claude scoring, drafts answers to application questions, and fills the forms from a Chrome and Firefox extension. Submitting is always left to the person.</li>
-          <li><strong>Movie Club:</strong> members take turns picking the film, with OMDb search, nominations, ratings and reviews, and admin tools.</li>
-          <li><strong>Draft Order:</strong> a deal-or-no-deal style game that decides the fantasy football draft order.</li>
-        </ul>
-        <p class="tags">Go · chi · pgx · PostgreSQL · React · TypeScript · Vite · Tailwind · GCP</p>
+        <dl class="apps">
+          <div class="app-wide">
+            <dt>Jobs <span>AI job agent</span></dt>
+            <dd>Pulls listings from 360+ Greenhouse, Lever and Ashby boards every 15 minutes. Ranks them for each member with Voyage embeddings and Claude scoring, drafts answers to application questions, and fills out the forms from a Chrome/Firefox extension. Each member brings their own API key, and nothing is submitted without the member’s say-so.</dd>
+          </div>
+          <div>
+            <dt>Fantasy</dt>
+            <dd>The league hub: power rankings, weekly matchups, team pages, NFL and NBA player pages, surveys, and a live draft room. A deal-or-no-deal game sets the draft order.</dd>
+          </div>
+          <div>
+            <dt>Game analyzer</dt>
+            <dd>Pregame NFL breakdowns built from nflverse play-by-play (EPA, success rate, explosive plays), depth charts, injuries and National Weather Service forecasts, with every source tracked. A browser extension captures the sportsbook lines for a whole slate in one pass.</dd>
+          </div>
+          <div>
+            <dt>Movie Club</dt>
+            <dd>Members take turns picking the movie. Includes OMDb search, a nomination pool, 0–10 ratings and reviews, watch tracking, admin controls, and a self-hosted Stremio client for watching.</dd>
+          </div>
+          <div>
+            <dt>Workouts</dt>
+            <dd>Plans, today’s session with set tracking, history, and bodyweight charts. Built mobile-first with accessible, keyboard-friendly charts.</dd>
+          </div>
+          <div>
+            <dt>Games</dt>
+            <dd>Tier lists with a shared feed, crosswords, a Street View geography guesser, quizzes with leaderboards, and a graph editor.</dd>
+          </div>
+          <div>
+            <dt>Timeline</dt>
+            <dd>The group’s history from 1997 to now in one scroll. Members submit events with photos, video, places and comment threads, and admins approve them.</dd>
+          </div>
+          <div>
+            <dt>Yearbook</dt>
+            <dd>A page-turning yearbook of everyone in the group, with portraits, write-ups and cards you can share.</dd>
+          </div>
+          <div>
+            <dt>Bet slip sharing</dt>
+            <dd>An extension and a bookmarklet turn a sportsbook slip into a link. Anyone who opens it can add the same picks to their own slip.</dd>
+          </div>
+        </dl>
+        <p class="tags">Go · chi · pgx · sqlc · PostgreSQL · React · TypeScript · Vite · Tailwind · Radix · TanStack Query · Docker · GCP Cloud Run · GitHub Actions · Claude API · Voyage</p>
       </article>
 
       <article class="project">
