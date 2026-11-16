@@ -50,9 +50,10 @@ export function ctaNameplate() {
 }
 
 // LED arrival board, laid out like the real "Service at … platform" displays.
+// Real service at Clark/Lake's Inner Loop platform.
 const ARRIVALS = [
-  { line: "Green Line #022 to", dest: "Ripple", min: 2, color: "#00b140" },
-  { line: "Orange Line #723 to", dest: "IFNBL", min: 4, color: "#f14b1c" },
+  { line: "Green Line #022 to", dest: "Ashland/63rd", min: 2, color: "#00b140" },
+  { line: "Orange Line #723 to", dest: "Midway", min: 4, color: "#f14b1c", airport: true },
 ];
 
 let board;
@@ -83,6 +84,20 @@ export function ctaArrivalBoard() {
       g.fillText(a.line, x0 + 58, y + 22);
       g.font = `700 44px ${SANS}`;
       g.fillText(a.dest, x0 + 56, y + 60);
+      if (a.airport) {
+        // White tile with an airplane, as on the real signs for airport trains.
+        const bx = x0 + 64 + g.measureText(a.dest).width;
+        g.fillStyle = "#ffffff";
+        g.beginPath();
+        g.roundRect(bx, y + 40, 40, 40, 6);
+        g.fill();
+        g.fillStyle = a.color;
+        g.font = `700 30px ${SANS}`;
+        g.textAlign = "center";
+        g.fillText("✈", bx + 20, y + 61);
+        g.textAlign = "left";
+      }
+      g.fillStyle = "#ffffff";
       g.textAlign = "right";
       g.font = `700 40px ${SANS}`;
       g.fillText(`${a.min} min`, x1 - 48, y + 50);
