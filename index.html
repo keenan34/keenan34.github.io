@@ -9,12 +9,12 @@
   <meta property="og:description" content="Full-stack engineer in Chicago. Projects: Ripple, IFNBL, BlitzWatch, an AI job agent.">
   <meta property="og:image" content="https://keenan34.github.io/assets/keenan.jpg">
   <meta property="og:url" content="https://keenan34.github.io/">
-  <meta name="theme-color" content="#B3DDF2">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
   <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
@@ -35,39 +35,34 @@
 
   <main id="main">
     <section class="hero" id="top">
-      <div class="flag" aria-hidden="true"><span></span><span></span></div>
-      <div class="hero-inner">
-        <div class="hero-text">
-          <p class="eyebrow"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#star"/></svg> Chicago, IL</p>
-          <h1>Keenan<br>Jajeh</h1>
-          <p class="role">Full-stack software engineer</p>
-          <p class="lede">I build web apps end to end: React front ends, Node, Go and Python back ends, and PostgreSQL underneath. I’m fluent with AI, both building it into products (LLM scoring, embeddings, agents that fill out real forms) and using it to ship faster. Give me a problem and I’ll figure out how to build it.</p>
-          <div class="actions">
-            <a class="btn primary" href="assets/Keenan-Jajeh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a>
-            <a class="btn" href="https://github.com/keenan34" target="_blank" rel="noopener">GitHub</a>
-            <a class="btn" href="https://www.linkedin.com/in/keenan-jajeh" target="_blank" rel="noopener">LinkedIn</a>
-            <a class="btn" href="mailto:Kjajeh@depaul.edu">Email</a>
-          </div>
+      <div class="hero-text">
+        <h1>Keenan<br>Jajeh</h1>
+        <p class="role">Full-stack software engineer in Chicago</p>
+        <p class="lede">I build web apps end to end, from React front ends to Node, Go and Python services on PostgreSQL. I also build AI into products: LLM scoring, embeddings, and agents that fill out real forms. Give me a problem and I’ll find a way to build it.</p>
+        <div class="actions">
+          <a class="btn" href="assets/Keenan-Jajeh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a>
+          <a href="https://github.com/keenan34" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.linkedin.com/in/keenan-jajeh" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="mailto:Kjajeh@depaul.edu">Email</a>
         </div>
-        <figure class="portrait">
-          <img src="assets/keenan.jpg" width="600" height="600" alt="Keenan Jajeh in a navy suit and tie, smiling, against a light blue background">
-          <span class="jersey" aria-hidden="true">34</span>
-        </figure>
       </div>
+      <figure class="portrait">
+        <img src="assets/keenan.jpg" width="600" height="600" alt="Keenan Jajeh in a navy suit and tie, smiling, against a light blue background">
+      </figure>
     </section>
 
     <section id="work" class="work">
       <div class="section">
-        <h2 class="section-title">Selected work</h2>
+        <h2 class="section-title">Work</h2>
       </div>
       <div class="tour">
         <div class="tour-stage" aria-hidden="true">
           <div id="map"></div>
-          <p class="tour-place"><svg class="star" viewBox="0 0 24 24"><use href="#star"/></svg><span>Chicago</span></p>
+          <p class="tour-place"><span>Chicago</span></p>
         </div>
         <div class="tour-steps">
       <div class="stop tour-only" data-place="Chicago" data-cam="-87.6280,41.8800,12.6,58,-28">
-        <p class="tour-intro">Everything I’ve built has a place in Chicagoland. Scroll to fly through it.</p>
+        <p class="tour-intro">Each project has a place on the map. Scroll to fly between them</p>
       </div>
 
       <div class="stop tour-only project" data-place="McCormick Place" data-cam="-87.6168,41.8512,16.2,62,-35">
@@ -83,11 +78,9 @@
           <h3>BlitzWatch</h3>
           <p class="pitch">Predicts whether an NFL defense will blitz before the snap.</p>
         </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>90K+</b> plays</li><li><b>~85%</b> accuracy</li><li><b>LightGBM</b></li>
-        </ul>
         <ul class="points">
-          <li>The whole stack: a Python and SQL ETL feeds tuned LightGBM models, and React and D3 dashboards show the predictions play by play.</li>
+          <li>Trained LightGBM models on 90,000+ plays, reaching about 85% accuracy.</li>
+          <li>A Python and SQL ETL feeds the models, and React and D3 dashboards show the predictions play by play.</li>
         </ul>
         <p class="tags">Python · SQL · Pandas · LightGBM · React · D3.js</p>
       </article>
@@ -98,9 +91,6 @@
           <p class="pitch">Alternate sports history: change one moment and see how the seasons after it play out.</p>
           <p class="links"><a href="https://playripple.app" target="_blank" rel="noopener">playripple.app ↗</a></p>
         </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>Seeded</b> simulation</li><li><b>Shareable</b> results</li><li><b>Vitest + Playwright</b></li>
-        </ul>
         <ul class="points">
           <li>A deterministic simulation engine with a structured world-state model. A seed always gives the same result, so every result has a link you can share.</li>
           <li>Creator Studio, where people build scenarios on a visual decision graph and publish them as immutable versions.</li>
@@ -112,7 +102,7 @@
       <div class="stop tour-only project" data-place="DePaul · Lincoln Park" data-cam="-87.6555,41.9245,16.4,60,-15">
         <header>
           <h3>DePaul University</h3>
-          <p class="pitch">B.S. in Computer Science, Dean’s List. This is where it started.</p>
+          <p class="pitch">B.S. in Computer Science, Dean’s List.</p>
         </header>
       </div>
 
@@ -125,9 +115,6 @@
             <a href="https://github.com/keenan34/ifn-league-platform" target="_blank" rel="noopener">Source ↗</a>
           </p>
         </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>3</b> seasons</li><li><b>Live</b> updates</li><li><b>ETL</b> pipeline</li>
-        </ul>
         <ul class="points">
           <li>A Node ETL pipeline loads per-game box-score JSON into a normalized PostgreSQL schema. It reconciles mismatched keys, fixes malformed values and logs every correction.</li>
           <li>Live updates over Socket.IO, with JWT-protected admin endpoints and CORS scoped to each environment.</li>
@@ -145,13 +132,10 @@
             <li>CI runs the tests, builds a Docker image and deploys to Cloud Run. Migrations run against Cloud SQL.</li>
           </ul>
         </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>7</b> apps</li><li><b>3</b> browser extensions</li><li><b>1</b> Go server</li>
-        </ul>
         <dl class="apps">
           <div class="app-wide">
-            <dt>Jobs <span>AI job agent</span></dt>
-            <dd>Pulls listings from 360+ Greenhouse, Lever and Ashby boards every 15 minutes. Ranks them for each member with Voyage embeddings and Claude scoring, drafts answers to application questions, and fills out the forms from a Chrome/Firefox extension. Each member brings their own API key, and nothing is submitted without the member’s say-so.</dd>
+            <dt>Jobs</dt>
+            <dd>An AI job agent. It pulls listings from 360+ Greenhouse, Lever and Ashby boards every 15 minutes. Ranks them for each member with Voyage embeddings and Claude scoring, drafts answers to application questions, and fills out the forms from a Chrome/Firefox extension. Each member brings their own API key, and nothing is submitted without the member’s say-so.</dd>
           </div>
           <div>
             <dt>Fantasy</dt>
@@ -229,7 +213,7 @@
       <h2 class="section-title">About</h2>
       <div class="prose">
         <p>I’m a software developer from Chicago. Most of what I build sits across the whole stack: a database schema I’ve thought hard about, an API that does what it says, and an interface that feels natural to use. I care about clear code that someone else can maintain.</p>
-        <p>AI is part of how I work every day. I put LLMs and embeddings into real products, like the job agent in my group portal, and I use AI coding tools to move from idea to working software quickly. I’m comfortable picking up whatever a project needs.</p>
+        <p>I use AI tools every day, and the job agent in my group portal is where I’ve pushed LLMs and embeddings furthest.</p>
         <p>Outside of work I do photography and videography, build PCs, and look for anything in sports that can be counted. That last one keeps turning into projects.</p>
       </div>
     </section>
@@ -242,15 +226,11 @@
   </main>
 
   <footer class="foot">
-    <div class="flag" aria-hidden="true"><span></span><span></span></div>
     <p>© <span id="year">2026</span> Keenan Jajeh · <a href="https://github.com/keenan34">GitHub</a> · <a href="https://www.linkedin.com/in/keenan-jajeh">LinkedIn</a></p>
   </footer>
 
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <symbol id="star" viewBox="0 0 24 24"><path d="M12 1L14.5 7.67 21.53 6.5 17 12 21.53 17.5 14.5 16.33 12 23 9.5 16.33 2.47 17.5 7 12 2.47 6.5 9.5 7.67z"/></symbol>
-  </svg>
-  <script src="script.js?v=4"></script>
-  <script src="config.js?v=4"></script>
-  <script src="tour.js?v=4"></script>
+  <script src="script.js?v=5"></script>
+  <script src="config.js?v=5"></script>
+  <script src="tour.js?v=5"></script>
 </body>
 </html>
