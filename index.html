@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
@@ -38,11 +38,13 @@
 
     <div class="tour">
       <div class="tour-stage" aria-hidden="true">
-        <div id="map"></div>
+        <img class="flight-still" alt="">
+        <video class="flight" muted playsinline preload="auto" disablepictureinpicture></video>
         <p class="tour-place"><span>Chicago</span></p>
+        <p class="credit">Google Earth · Imagery NOAA, Vexcel Imaging US, Inc.</p>
       </div>
       <div class="tour-steps">
-      <section class="hero stop" id="top" data-place="Chicago" data-cam="-87.6310,41.8800,15.3,68,-18">
+      <section class="hero stop" id="top" data-place="Chicago" data-t="0">
         <img class="portrait" src="assets/keenan-hat.jpg" width="360" height="450" alt="Keenan Jajeh smiling in a black cowboy hat against a blue backdrop">
         <div class="hero-id">
           <h1>Keenan Jajeh</h1>
@@ -60,7 +62,7 @@
 
       <h2 class="section-title work-title" id="work">Work</h2>
 
-      <div class="stop tour-only project" data-place="McCormick Place" data-cam="-87.6168,41.8512,16.2,62,-35">
+      <div class="stop tour-only project" data-place="McCormick Place" data-t="3.733">
         <header>
           <h3>Stars Tech Group</h3>
           <p class="pitch">The registration and payment platform for a national convention with 40,000+ attendees. It handled online and on-site sign-up and stayed up through a three-day, high-traffic event.</p>
@@ -68,7 +70,7 @@
         <p class="tags">AWS · PostgreSQL · REST APIs · PCI-DSS payments</p>
       </div>
 
-      <article class="project stop" data-place="Soldier Field" data-cam="-87.6167,41.8623,16.4,63,20">
+      <article class="project stop" data-place="Soldier Field" data-t="7.233">
         <header>
           <h3>BlitzWatch</h3>
           <p class="pitch">Predicts whether an NFL defense will blitz before the snap.</p>
@@ -80,7 +82,7 @@
         <p class="tags">Python · SQL · Pandas · LightGBM · React · D3.js</p>
       </article>
 
-      <article class="project stop" data-place="United Center" data-cam="-87.6742,41.8807,16.6,62,-60">
+      <article class="project stop" data-place="United Center" data-t="10.733">
         <header>
           <h3>Ripple</h3>
           <p class="pitch">Alternate sports history: change one moment and see how the seasons after it play out.</p>
@@ -94,14 +96,14 @@
       </article>
 
 
-      <div class="stop tour-only project" data-place="DePaul · Lincoln Park" data-cam="-87.6555,41.9245,16.4,60,-15">
+      <div class="stop tour-only project" data-place="DePaul · Lincoln Park" data-t="14.233">
         <header>
           <h3>DePaul University</h3>
           <p class="pitch">B.S. in Computer Science, Dean’s List.</p>
         </header>
       </div>
 
-      <article class="project stop" data-place="Canlan Sports · Libertyville" data-cam="-88.0033,42.3087,16.2,60,25">
+      <article class="project stop" data-place="Canlan Sports · Libertyville" data-t="19.733">
         <header>
           <h3>IFNBL league platform</h3>
           <p class="pitch">The site for a rec basketball league: standings, schedules and player stats across three seasons.</p>
@@ -117,7 +119,7 @@
         <p class="tags">React · Node.js · Express · PostgreSQL · Socket.IO</p>
       </article>
 
-      <article class="project featured stop" data-place="Chicago" data-cam="-87.6350,41.8900,12.2,50,-20">
+      <article class="project featured stop" data-place="Chicago" data-t="25.233">
         <header>
           <h3>Private group portal</h3>
           <p class="pitch">A members-only site for my friend group that I designed, built and run myself. One login, one Go server and one PostgreSQL database sit behind seven apps.</p>
@@ -223,8 +225,7 @@
     <p>© <span id="year">2026</span> Keenan Jajeh · <a href="https://github.com/keenan34">GitHub</a> · <a href="https://www.linkedin.com/in/keenan-jajeh">LinkedIn</a></p>
   </footer>
 
-  <script src="script.js?v=6"></script>
-  <script src="config.js?v=6"></script>
-  <script src="tour.js?v=6"></script>
+  <script src="script.js?v=7"></script>
+  <script src="tour.js?v=7"></script>
 </body>
 </html>
