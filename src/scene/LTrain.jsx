@@ -4,6 +4,7 @@ import * as THREE from "three";
 import Hotspot from "./Hotspot.jsx";
 import Station from "./Station.jsx";
 import { ctaLogo } from "./ctaArt.js";
+import Glow from "./Glow.jsx";
 
 // The elevated 'L': steel pillars and track over the street, with one boxy CTA car
 // gliding back and forth. The car is the Projects landmark: it carries a CTA-style
@@ -40,7 +41,7 @@ function useHeadsign(text) {
   return texture;
 }
 
-function Car() {
+function Car({ windows }) {
   const sign = useHeadsign("PROJECTS");
   return (
     <group>
@@ -62,10 +63,10 @@ function Car() {
         </group>
       ))}
       {/* Lit windows on both sides, with the CTA roundel at the front. */}
-      {[-0.85, -0.3, 0.25].map((x) => [0.51, -0.51].map((z) => (
+      {[-0.85, -0.3, 0.25].map((x, i) => [0.51, -0.51].map((z, j) => (
         <mesh key={`${x}${z}`} position={[x, 0.85, z]}>
           <boxGeometry args={[0.4, 0.32, 0.02]} />
-          <meshStandardMaterial color="#fde68a" emissive="#fde68a" emissiveIntensity={1.4} toneMapped={false} />
+          <meshStandardMaterial ref={(m) => (windows.current[i * 2 + j] = m)} color="#fde68a" emissive="#fde68a" emissiveIntensity={1.4} toneMapped={false} />
         </mesh>
       )))}
       {[1, -1].map((side) => (
@@ -98,20 +99,49 @@ function Car() {
           <meshStandardMaterial color="#ffffff" emissive="#fff7cc" emissiveIntensity={3} toneMapped={false} />
         </mesh>
       ))}
+      {[-1.36, 1.36].map((x) => <Glow key={x} position={[x, 0.45, 0]} color="#fff3c4" size={0.7} opacity={0.8} />)}
     </group>
   );
 }
 
+// One loop of the run: [from x, to x, seconds]. Each leg eases in and out, so the
+// car pulls out gently, slows into Clark/Lake, dwells, and accelerates away.
+const STATION_X = -2.6;
+const LEGS = [
+  [-4.3, 4.3, 7],
+  [4.3, 4.3, 1.2],
+  [4.3, STATION_X, 6],
+  [STATION_X, STATION_X, 3],   // the 3-second station stop
+  [STATION_X, -4.3, 2.5],
+  [-4.3, -4.3, 1.2],
+];
+const LOOP = LEGS.reduce((n, l) => n + l[2], 0);
+const smoother = (p) => p * p * p * (p * (p * 6 - 15) + 10);
+
+function trainAt(time) {
+  let t = time % LOOP;
+  for (let i = 0; i < LEGS.length; i++) {
+    const [a, b, d] = LEGS[i];
+    if (t < d) return { x: a + (b - a) * smoother(t / d), dwelling: i === 3 };
+    t -= d;
+  }
+  return { x: LEGS[0][0], dwelling: false };
+}
+
 export default function LTrain({ paused, onOpen }) {
   const car = useRef();
+  const windows = useRef([]);
   const t = useRef(0);
   const held = useRef(false);
 
   useFrame((_, dt) => {
     if (paused || held.current) return;
     t.current += dt;
-    // Ease into each end of the run like a train pulling into a station.
-    car.current.position.x = Math.sin(t.current * 0.35) * 3.6;
+    const { x, dwelling } = trainAt(t.current);
+    car.current.position.x = x;
+    // Doors open at the platform: the cabin glows a little warmer.
+    const target = dwelling ? 2.4 : 1.4;
+    windows.current.forEach((m) => m && (m.emissiveIntensity += (target - m.emissiveIntensity) * Math.min(1, dt * 4)));
   });
 
   return (
@@ -141,10 +171,10 @@ export default function LTrain({ paused, onOpen }) {
         <boxGeometry args={[12, 0.06, 1]} />
         <meshStandardMaterial color="#334155" />
       </mesh>
-      <Station y={Y} />
+      <Station y={Y} onOpen={onOpen} />
       <group ref={car} position={[0, Y + 0.2, 0]}>
         <Hotspot id="projects" labelOffset={[0, 2, 0]} onOpen={onOpen} onHoverChange={(on) => (held.current = on)}>
-          <Car />
+          <Car windows={windows} />
         </Hotspot>
       </group>
     </group>

@@ -1,3 +1,5 @@
+import Glow from "./Glow.jsx";
+
 // A cast-iron street lamp with a warm glow that actually lights the sidewalk.
 export default function Streetlamp({ position }) {
   return (
@@ -8,8 +10,9 @@ export default function Streetlamp({ position }) {
       </mesh>
       <mesh position={[0, 2.5, 0]}>
         <sphereGeometry args={[0.2, 12, 12]} />
-        <meshStandardMaterial color="#fff1c1" emissive="#ffcf7a" emissiveIntensity={3} toneMapped={false} />
+        <meshStandardMaterial color="#fff1c1" emissive="#ffcf7a" emissiveIntensity={5} toneMapped={false} />
       </mesh>
+      <Glow position={[0, 2.5, 0]} color="#ffbf66" size={1.5} opacity={0.85} />
       <pointLight position={[0, 2.4, 0]} color="#ffb257" intensity={6} distance={5} decay={2} />
     </group>
   );

@@ -1,16 +1,24 @@
 import { ctaLogo, ctaNameplate, ctaArrivalBoard } from "./ctaArt.js";
+import Glow from "./Glow.jsx";
 
 // An 'L' platform on the far side of the tracks: deck with the yellow edge strip,
 // a canopy, a CTA roundel, the station nameplate and an LED arrival board.
 // Coordinates are local to the track group (track centered at z = 0, deck at y).
 const STEEL = "#475569";
 
-export default function Station({ x = -2.6, y }) {
+export default function Station({ x = -2.6, y, onOpen }) {
   const zDeck = -0.98;
   const len = 4.4;
+  const point = (on) => (document.body.style.cursor = on ? "pointer" : "");
 
+  // The whole station is part of the Projects landmark, like the train.
   return (
-    <group position={[x, 0, 0]}>
+    <group
+      position={[x, 0, 0]}
+      onClick={(e) => { e.stopPropagation(); point(false); onOpen?.(); }}
+      onPointerOver={(e) => { e.stopPropagation(); point(true); }}
+      onPointerOut={() => point(false)}
+    >
       {/* Deck and its supports down to the lot. */}
       <mesh position={[0, y + 0.14, zDeck]}>
         <boxGeometry args={[len, 0.12, 0.72]} />
@@ -65,8 +73,9 @@ export default function Station({ x = -2.6, y }) {
         </mesh>
         <mesh position={[0, 0, 0.052]}>
           <planeGeometry args={[2.24, 0.91]} />
-          <meshStandardMaterial map={ctaArrivalBoard()} emissiveMap={ctaArrivalBoard()} emissive="#ffffff" emissiveIntensity={1.1} toneMapped={false} />
+          <meshStandardMaterial map={ctaArrivalBoard()} emissiveMap={ctaArrivalBoard()} emissive="#ffffff" emissiveIntensity={1.6} toneMapped={false} />
         </mesh>
+        <Glow position={[0, 0, -0.2]} color="#ffd9a0" size={3.4} opacity={0.32} />
       </group>
     </group>
   );

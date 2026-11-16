@@ -15,9 +15,9 @@ const LABELS = [
 ];
 
 // Lives outside the <Canvas>, on top of it.
-export function LabelLayer() {
+export function LabelLayer({ hidden }) {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"}`}>
       {LABELS.map(([id, text]) => (
         <span
           key={id}

@@ -23,6 +23,8 @@ body {
 }
 
 :focus-visible { outline: 2px solid var(--color-flag-blue); outline-offset: 3px; border-radius: 6px; }
+/* Drawers take focus programmatically when they open; they don't need a ring. */
+[role="dialog"]:focus-visible { outline: none; }
 
 /* The scrollable panels inside drawers keep a quiet scrollbar. */
 .scroll-quiet { scrollbar-width: thin; scrollbar-color: rgb(125 211 252 / 0.3) transparent; }

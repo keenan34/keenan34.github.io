@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import Glow from "./Glow.jsx";
 
 // Small pieces that say "Chicago" at a glance: the Hancock Center, the city flag,
 // a Vienna Beef hot dog cart and a Divvy bike dock.
@@ -66,7 +68,7 @@ function Hancock({ position }) {
       {/* A four-sided frustum: a cylinder with 4 segments, turned to square up. */}
       <mesh position={[0, h / 2, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.72, 1.15, h, 4, 1]} />
-        <meshStandardMaterial map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={0.8} roughness={0.4} metalness={0.5} flatShading />
+        <meshStandardMaterial map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={1.25} roughness={0.4} metalness={0.5} flatShading />
       </mesh>
       <mesh position={[0, h + 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.74, 0.74, 0.16, 4, 1]} />
@@ -80,8 +82,9 @@ function Hancock({ position }) {
           </mesh>
           <mesh position={[0, ah + 0.03, 0]}>
             <sphereGeometry args={[0.06, 10, 10]} />
-            <meshStandardMaterial color="#ef3340" emissive="#ef3340" emissiveIntensity={3} toneMapped={false} />
+            <meshStandardMaterial color="#ef3340" emissive="#ef3340" emissiveIntensity={5} toneMapped={false} />
           </mesh>
+          <Glow position={[0, ah + 0.03, 0]} color="#ff3b4a" size={0.7} />
         </group>
       ))}
     </group>
@@ -89,7 +92,30 @@ function Hancock({ position }) {
 }
 
 // ---------- The Chicago flag on a pole ----------
-function Flag({ position }) {
+// The flag waves: each vertex swings out of plane by more the farther it is from the
+// pole, with the wave travelling outward.
+const FLAG_W = 1.05, FLAG_H = 0.7;
+
+function Flag({ position, paused, onOpen }) {
+  const cloth = useRef();
+  const base = useRef(null);
+  const t = useRef(0);
+  useFrame((_, dt) => {
+    if (paused) return;
+    t.current += dt;
+    const g = cloth.current.geometry;
+    const p = g.attributes.position;
+    base.current ??= Float32Array.from(p.array);
+    const b = base.current;
+    for (let i = 0; i < p.count; i++) {
+      const u = (b[i * 3] + FLAG_W / 2) / FLAG_W;
+      const v = b[i * 3 + 1] / FLAG_H;
+      p.array[i * 3 + 2] = Math.sin(u * 6 - t.current * 2.2 + v * 1.2) * 0.06 * u;
+    }
+    p.needsUpdate = true;
+    g.computeVertexNormals();
+  });
+  const point = (on) => (document.body.style.cursor = on ? "pointer" : "");
   const map = useMemo(
     () =>
       canvasTexture(300, 200, (g, w, h) => {
@@ -104,13 +130,18 @@ function Flag({ position }) {
     [],
   );
   return (
-    <group position={position}>
+    <group
+      position={position}
+      onClick={(e) => { e.stopPropagation(); point(false); onOpen?.(); }}
+      onPointerOver={(e) => { e.stopPropagation(); point(true); }}
+      onPointerOut={() => point(false)}
+    >
       <mesh position={[0, 1.6, 0]}>
         <cylinderGeometry args={[0.03, 0.04, 3.2, 8]} />
         <meshStandardMaterial color="#d1d5db" metalness={0.7} roughness={0.3} />
       </mesh>
-      <mesh position={[0.56, 2.75, 0]}>
-        <planeGeometry args={[1.05, 0.7]} />
+      <mesh ref={cloth} position={[0.56, 2.75, 0]}>
+        <planeGeometry args={[FLAG_W, FLAG_H, 24, 14]} />
         <meshStandardMaterial map={map} side={THREE.DoubleSide} emissive="#ffffff" emissiveMap={map} emissiveIntensity={0.35} />
       </mesh>
     </group>
@@ -193,11 +224,11 @@ function DivvyDock({ position }) {
   );
 }
 
-export default function ChicagoProps() {
+export default function ChicagoProps({ paused, onAbout }) {
   return (
     <group>
       <Hancock position={[-4.8, 0.1, -2.1]} />
-      <Flag position={[5.4, 0.22, -4.6]} />
+      <Flag position={[5.4, 0.22, -4.6]} paused={paused} onOpen={onAbout} />
       <HotDogCart position={[-2.2, 0.16, -0.25]} />
       <DivvyDock position={[3.8, 0.16, -0.3]} />
     </group>

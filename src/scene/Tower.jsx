@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import * as THREE from "three";
+import Glow from "./Glow.jsx";
 
 // The Sears (Willis) Tower: nine square tubes bundled 3×3 that step back at 50, 66,
 // 90 and 108 floors, black glass with lit windows, and the two white antennas.
@@ -52,7 +53,7 @@ function useTubeMaterials() {
           map,
           emissiveMap: map,
           emissive: "#ffffff",
-          emissiveIntensity: 0.85,
+          emissiveIntensity: 1.3,
           roughness: 0.35,
           metalness: 0.5,
         });
@@ -72,8 +73,9 @@ function Antenna({ position, height }) {
       </mesh>
       <mesh position={[0, height + 0.04, 0]}>
         <sphereGeometry args={[0.07, 10, 10]} />
-        <meshStandardMaterial color="#ef3340" emissive="#ef3340" emissiveIntensity={3} toneMapped={false} />
+        <meshStandardMaterial color="#ef3340" emissive="#ef3340" emissiveIntensity={5} toneMapped={false} />
       </mesh>
+      <Glow position={[0, height + 0.04, 0]} color="#ff3b4a" size={0.75} />
     </group>
   );
 }

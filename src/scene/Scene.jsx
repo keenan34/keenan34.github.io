@@ -1,6 +1,7 @@
-import { Canvas, useThree } from "@react-three/fiber";
-import { OrthographicCamera, OrbitControls, Float, Environment, Lightformer } from "@react-three/drei";
-import { useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Float, Environment, Lightformer } from "@react-three/drei";
+import { useRef } from "react";
+import CameraRig from "./CameraRig.jsx";
 import Island from "./Island.jsx";
 import Tower from "./Tower.jsx";
 import LTrain from "./LTrain.jsx";
@@ -9,21 +10,21 @@ import Streetlamp from "./Streetlamp.jsx";
 import ChicagoProps from "./ChicagoProps.jsx";
 import { LabelProjector } from "./labels.jsx";
 
-// The block is 12 units across and the tower about 11.5 tall; fit both on screen.
-function FitZoom() {
-  const { camera, size } = useThree();
-  useEffect(() => {
-    // Phones are narrow, so the block gets most of the width there.
-    const across = size.width < 640 ? 14 : 25;
-    camera.zoom = Math.max(16, Math.min(size.width, size.height * 1.2) / across);
-    camera.updateProjectionMatrix();
-  }, [camera, size]);
-  return null;
-}
+export default function Scene({ view, onOpen, onClose, paused }) {
+  // A click on empty space goes back to the overview, but not the end of a drag.
+  const down = useRef([0, 0]);
+  const missed = (e) => {
+    const [x, y] = down.current;
+    if (view && Math.hypot(e.clientX - x, e.clientY - y) < 6) onClose();
+  };
 
-export default function Scene({ onOpen, paused }) {
   return (
     <Canvas
+      // Orthographic from the first frame, so the camera controls bind to this camera.
+      orthographic
+      camera={{ position: [20, 18, 20], zoom: 35, near: 0.1, far: 200 }}
+      onPointerDown={(e) => (down.current = [e.clientX, e.clientY])}
+      onPointerMissed={missed}
       className="!absolute inset-0"
       dpr={[1, 1.5]}
       frameloop={paused ? "demand" : "always"}
@@ -32,19 +33,7 @@ export default function Scene({ onOpen, paused }) {
     >
       <color attach="background" args={["#0b0f19"]} />
       <fog attach="fog" args={["#0b0f19", 40, 80]} />
-      <OrthographicCamera makeDefault position={[20, 18, 20]} zoom={35} near={0.1} far={200} />
-      <FitZoom />
-      <OrbitControls
-        enablePan={false}
-        minPolarAngle={Math.PI / 6}
-        maxPolarAngle={Math.PI / 2.5}
-        minAzimuthAngle={-Math.PI / 12}
-        maxAzimuthAngle={Math.PI / 2 + Math.PI / 12}
-        minZoom={14}
-        maxZoom={90}
-        enableDamping
-        target={[0, 3.6, 0]}
-      />
+      <CameraRig view={view} />
 
       {/* Dusk: cool sky fill, warm low sun from one side, cyan rim from the other. */}
       <hemisphereLight args={["#6b7bb5", "#2a1830", 1.1]} />
@@ -65,7 +54,7 @@ export default function Scene({ onOpen, paused }) {
         <group position={[0, 0, 0]}>
           <Island />
           <Tower />
-          <ChicagoProps />
+          <ChicagoProps paused={paused} onAbout={() => onOpen("about")} />
           <Bean onOpen={() => onOpen("about")} />
           <LTrain paused={paused} onOpen={() => onOpen("projects")} />
           <Streetlamp position={[-4.2, 0, 0.6]} />
