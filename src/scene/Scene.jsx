@@ -2,20 +2,21 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrthographicCamera, OrbitControls, Float, Environment, Lightformer } from "@react-three/drei";
 import { useEffect } from "react";
 import Island from "./Island.jsx";
-import Tavern from "./Tavern.jsx";
+import Tower from "./Tower.jsx";
 import LTrain from "./LTrain.jsx";
 import Marquee from "./Marquee.jsx";
 import Bean from "./Bean.jsx";
 import Booth from "./Booth.jsx";
 import Streetlamp from "./Streetlamp.jsx";
+import ChicagoProps from "./ChicagoProps.jsx";
 import { LabelProjector } from "./labels.jsx";
 
-// The whole block is about 12 units across; fit it to the smaller screen side.
+// The block is 12 units across and the tower about 11.5 tall; fit both on screen.
 function FitZoom() {
   const { camera, size } = useThree();
   useEffect(() => {
     // Phones are narrow, so the block gets most of the width there.
-    const across = size.width < 640 ? 14 : 21;
+    const across = size.width < 640 ? 14 : 25;
     camera.zoom = Math.max(16, Math.min(size.width, size.height * 1.2) / across);
     camera.updateProjectionMatrix();
   }, [camera, size]);
@@ -44,7 +45,7 @@ export default function Scene({ onOpen, paused }) {
         minZoom={14}
         maxZoom={90}
         enableDamping
-        target={[0, 2.3, 0]}
+        target={[0, 3.6, 0]}
       />
 
       {/* Dusk: cool sky fill, warm low sun from one side, cyan rim from the other. */}
@@ -65,7 +66,8 @@ export default function Scene({ onOpen, paused }) {
       <Float speed={paused ? 0 : 1.2} rotationIntensity={0.08} floatIntensity={0.35}>
         <group position={[0, 0, 0]}>
           <Island />
-          <Tavern />
+          <Tower />
+          <ChicagoProps />
           <Marquee onOpen={() => onOpen("projects")} />
           <Booth onOpen={() => onOpen("chat")} paused={paused} />
           <Bean onOpen={() => onOpen("about")} />

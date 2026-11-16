@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Hotspot from "./Hotspot.jsx";
 
-// Rooftop neon broadcast booth for the AI twin: a light-blue glowing kiosk under a
+// Neon broadcast booth for the AI twin, on the tower's first setback roof: a light-blue glowing kiosk under a
 // radio mast, with red six-pointed Chicago stars pulsing on its sign.
 function useStarShape() {
   return useMemo(() => {
@@ -32,7 +32,7 @@ export default function Booth({ onOpen, paused }) {
   const keep = (i) => (m) => (glow.current[i] = m);
 
   return (
-    <Hotspot id="chat" labelOffset={[-0.4, 2.3, 1.4]} onOpen={onOpen} position={[-0.2, 4.78, -2.4]}>
+    <Hotspot id="chat" labelOffset={[-0.4, 2.3, 1.4]} onOpen={onOpen} position={[-0.6, 0.1 + 50 * 0.085, -2.4]} scale={0.62}>
       {/* Kiosk. */}
       <mesh position={[0, 0.6, 0]}>
         <boxGeometry args={[1.4, 1.2, 1.1]} />

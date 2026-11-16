@@ -1,0 +1,205 @@
+import { useMemo } from "react";
+import * as THREE from "three";
+
+// Small pieces that say "Chicago" at a glance: the Hancock Center, the city flag,
+// a Vienna Beef hot dog cart and a Divvy bike dock.
+
+function canvasTexture(w, h, draw) {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  draw(c.getContext("2d"), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+function star6(g, cx, cy, r) {
+  g.beginPath();
+  for (let i = 0; i < 12; i++) {
+    const rr = i % 2 === 0 ? r : r * 0.45;
+    const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+    g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+  }
+  g.closePath();
+  g.fill();
+}
+
+// ---------- John Hancock Center: tapered, black, X-braced, two antennas ----------
+function Hancock({ position }) {
+  const h = 7.6;
+  const map = useMemo(
+    () =>
+      canvasTexture(64, 384, (g, w, H) => {
+        g.fillStyle = "#0e1015";
+        g.fillRect(0, 0, w, H);
+        let s = 11;
+        const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+        for (let y = 2; y < H; y += 6) {
+          for (let x = 3; x < w; x += 8) {
+            const v = rnd();
+            g.fillStyle = v > 0.55 ? "#e8b765" : "#1d222d";
+            g.fillRect(x, y, 4, 2);
+          }
+        }
+        // Five stacked X braces and the horizontal ties between them.
+        g.strokeStyle = "#9aa3b2";
+        g.lineWidth = 3;
+        const bay = H / 5;
+        for (let i = 0; i < 5; i++) {
+          const y0 = i * bay, y1 = y0 + bay;
+          g.beginPath();
+          g.moveTo(0, y0); g.lineTo(w, y1);
+          g.moveTo(w, y0); g.lineTo(0, y1);
+          g.moveTo(0, y0); g.lineTo(w, y0);
+          g.stroke();
+        }
+      }),
+    [],
+  );
+  map.wrapS = THREE.RepeatWrapping;
+  map.repeat.set(4, 1);
+
+  return (
+    <group position={position}>
+      {/* A four-sided frustum: a cylinder with 4 segments, turned to square up. */}
+      <mesh position={[0, h / 2, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <cylinderGeometry args={[0.72, 1.15, h, 4, 1]} />
+        <meshStandardMaterial map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={0.8} roughness={0.4} metalness={0.5} flatShading />
+      </mesh>
+      <mesh position={[0, h + 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <cylinderGeometry args={[0.74, 0.74, 0.16, 4, 1]} />
+        <meshStandardMaterial color="#0b0c10" />
+      </mesh>
+      {[[-0.25, 1.9], [0.25, 1.7]].map(([x, ah]) => (
+        <group key={x} position={[x, h + 0.16, 0]}>
+          <mesh position={[0, ah / 2, 0]}>
+            <cylinderGeometry args={[0.03, 0.05, ah, 8]} />
+            <meshStandardMaterial color="#e5e7eb" />
+          </mesh>
+          <mesh position={[0, ah + 0.03, 0]}>
+            <sphereGeometry args={[0.06, 10, 10]} />
+            <meshStandardMaterial color="#ef3340" emissive="#ef3340" emissiveIntensity={3} toneMapped={false} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ---------- The Chicago flag on a pole ----------
+function Flag({ position }) {
+  const map = useMemo(
+    () =>
+      canvasTexture(300, 200, (g, w, h) => {
+        g.fillStyle = "#ffffff";
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = "#41b6e6";
+        g.fillRect(0, h * 0.17, w, h * 0.13);
+        g.fillRect(0, h * 0.7, w, h * 0.13);
+        g.fillStyle = "#e4002b";
+        [0.2, 0.4, 0.6, 0.8].forEach((x) => star6(g, w * x, h / 2, h * 0.11));
+      }),
+    [],
+  );
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.6, 0]}>
+        <cylinderGeometry args={[0.03, 0.04, 3.2, 8]} />
+        <meshStandardMaterial color="#d1d5db" metalness={0.7} roughness={0.3} />
+      </mesh>
+      <mesh position={[0.56, 2.75, 0]}>
+        <planeGeometry args={[1.05, 0.7]} />
+        <meshStandardMaterial map={map} side={THREE.DoubleSide} emissive="#ffffff" emissiveMap={map} emissiveIntensity={0.35} />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------- Vienna Beef hot dog cart ----------
+function HotDogCart({ position }) {
+  return (
+    <group position={position} rotation={[0, 0.3, 0]}>
+      <mesh position={[0, 0.42, 0]}>
+        <boxGeometry args={[0.9, 0.45, 0.5]} />
+        <meshStandardMaterial color="#d6d3d1" metalness={0.6} roughness={0.35} />
+      </mesh>
+      <mesh position={[0, 0.5, 0.26]}>
+        <boxGeometry args={[0.8, 0.14, 0.02]} />
+        <meshStandardMaterial color="#c8102e" />
+      </mesh>
+      <mesh position={[0, 0.38, 0.26]}>
+        <boxGeometry args={[0.8, 0.07, 0.02]} />
+        <meshStandardMaterial color="#ffc72c" emissive="#ffc72c" emissiveIntensity={0.3} />
+      </mesh>
+      {[-0.32, 0.32].map((x) => (
+        <mesh key={x} position={[x, 0.12, 0.27]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.12, 0.12, 0.05, 14]} />
+          <meshStandardMaterial color="#111827" />
+        </mesh>
+      ))}
+      <mesh position={[0.05, 1.1, 0]}>
+        <cylinderGeometry args={[0.02, 0.02, 0.9, 6]} />
+        <meshStandardMaterial color="#9ca3af" />
+      </mesh>
+      {/* Red and yellow striped umbrella. */}
+      {Array.from({ length: 8 }, (_, i) => (
+        <mesh key={i} position={[0.05, 1.55, 0]} rotation={[0, (i / 8) * Math.PI * 2, 0]}>
+          <coneGeometry args={[0.6, 0.28, 2, 1, true, 0, Math.PI / 4]} />
+          <meshStandardMaterial color={i % 2 ? "#ffc72c" : "#c8102e"} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ---------- Divvy bike dock ----------
+function DivvyBike({ x }) {
+  const blue = "#3db7e4";
+  return (
+    <group position={[x, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+      {[-0.22, 0.22].map((z) => (
+        <mesh key={z} position={[z, 0.18, 0]}>
+          <torusGeometry args={[0.15, 0.025, 6, 18]} />
+          <meshStandardMaterial color="#1f2937" />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.3, 0]} rotation={[0, 0, 0.25]}>
+        <boxGeometry args={[0.46, 0.06, 0.06]} />
+        <meshStandardMaterial color={blue} />
+      </mesh>
+      <mesh position={[0.2, 0.42, 0]}>
+        <boxGeometry args={[0.14, 0.12, 0.16]} />
+        <meshStandardMaterial color={blue} />
+      </mesh>
+    </group>
+  );
+}
+
+function DivvyDock({ position }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.03, 0]}>
+        <boxGeometry args={[1.9, 0.06, 0.45]} />
+        <meshStandardMaterial color="#374151" />
+      </mesh>
+      {[-0.66, -0.22, 0.22, 0.66].map((x) => <DivvyBike key={x} x={x} />)}
+      <mesh position={[-1.05, 0.45, 0]}>
+        <boxGeometry args={[0.12, 0.9, 0.25]} />
+        <meshStandardMaterial color="#3db7e4" emissive="#3db7e4" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+export default function ChicagoProps() {
+  return (
+    <group>
+      <Hancock position={[-4.8, 0.1, -2.1]} />
+      <Flag position={[5.4, 0.22, -4.6]} />
+      <HotDogCart position={[-2.2, 0.16, -0.25]} />
+      <DivvyDock position={[3.8, 0.16, -0.3]} />
+    </group>
+  );
+}

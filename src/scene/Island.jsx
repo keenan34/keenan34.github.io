@@ -37,21 +37,21 @@ export default function Island() {
         </mesh>
       ))}
 
-      {/* River wall and the emerald water, dyed like St. Patrick's Day. */}
-      <mesh position={[0, -0.25, 4.1]}>
-        <boxGeometry args={[W, 0.5, 0.2]} />
+      {/* River wall and the emerald water, dyed like St. Patrick's Day. Both sit on
+          top of the soil and stop just short of its edges: faces that line up exactly
+          with the soil's flicker (z-fighting). */}
+      <mesh position={[0, 0.05, 4.1]}>
+        <boxGeometry args={[W - 0.02, 0.1, 0.2]} />
         <meshStandardMaterial color="#9ca3af" roughness={0.8} />
       </mesh>
-      <mesh position={[0, -0.12, 5.1]}>
-        <boxGeometry args={[W, 0.16, 1.8]} />
+      <mesh position={[0, -0.05, 5.1]}>
+        <boxGeometry args={[W - 0.02, 0.08, 1.78]} />
         <meshPhysicalMaterial
           color="#10b981"
           emissive="#059669"
           emissiveIntensity={0.6}
           roughness={0.08}
           metalness={0.1}
-          transmission={0.35}
-          thickness={1}
           clearcoat={1}
         />
       </mesh>

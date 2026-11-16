@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import Hotspot from "./Hotspot.jsx";
 
-// A Chicago Theatre-style vertical marquee bolted to the tavern's corner. The letters
+// A Chicago Theatre-style vertical marquee bolted to the tower's corner. The letters
 // are drawn into a canvas texture so no font file has to be fetched by three.js.
 function useLetterTexture(word) {
   const texture = useMemo(() => {
@@ -40,7 +40,7 @@ export default function Marquee({ onOpen }) {
   const h = 4.2;
 
   return (
-    <Hotspot id="projects" labelOffset={[0.9, h * 0.32, 1.6]} onOpen={onOpen} position={[1.15, 0.6, -1.2]}>
+    <Hotspot id="projects" labelOffset={[0.9, h * 0.32, 1.6]} onOpen={onOpen} position={[0.25, 0.6, -2.1]}>
       {/* Bracket. */}
       <mesh position={[-0.35, 2.6, 0]}>
         <boxGeometry args={[0.5, 0.15, 0.15]} />
