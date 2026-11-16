@@ -193,6 +193,55 @@ h1 {
 }
 .apps dd { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
 
+/* ---------- Chicago fly-through ----------
+   Without .tour-on (no token, no WebGL, reduced motion) this is a plain list. */
+.tour-stage, .tour-only { display: none; }
+.tour-steps { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+
+.tour-on .tour { position: relative; }
+.tour-on .tour-stage {
+  display: block; position: sticky; top: 0; height: 100vh; height: 100svh;
+  overflow: hidden;
+}
+.tour-on #map { position: absolute; inset: 0; }
+.tour-on .tour-stage::after {
+  /* Fade the map into the page above and below. */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(var(--bg), transparent 14%, transparent 86%, var(--bg));
+}
+.tour-on .tour-place {
+  position: absolute; z-index: 1; bottom: 48px; margin: 0;
+  left: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
+  font: 500 13px/1 var(--mono); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--ink); background: color-mix(in srgb, var(--bg) 85%, transparent);
+  border: 1px solid var(--line); border-radius: 4px; backdrop-filter: blur(6px);
+}
+.tour-on .tour-steps {
+  position: relative; z-index: 2; margin-top: -100vh; margin-top: -100svh;
+  padding-bottom: 40svh; pointer-events: none;
+}
+.tour-on .tour-only { display: block; }
+.tour-on .stop {
+  pointer-events: auto;
+  display: block; max-width: 540px; margin: 0 0 75svh; padding: 24px 26px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 18px 50px -20px rgba(14, 26, 43, .45);
+  backdrop-filter: blur(10px);
+  opacity: .45; transition: opacity .3s;
+}
+.tour-on .stop.is-active { opacity: 1; }
+.tour-on .stop:first-child { margin-top: 35svh; }
+.tour-on .stop.featured { max-width: 820px; }
+.tour-on .project { padding: 24px 26px; border-top: 1px solid var(--line); }
+.tour-on .project, .tour-on .project.featured { grid-template-columns: 1fr; }
+.tour-on .project header { grid-row: auto; margin-bottom: 8px; }
+.tour-on .project.featured .statline { flex-direction: row; }
+.tour-on .project.featured .statline li + li { border-top: 0; border-left: 1px solid var(--line); }
+.tour-intro { margin: 0; font: 900 clamp(30px, 4.4vw, 46px)/1.02 var(--display); text-transform: uppercase; }
+.tour-on .mapboxgl-ctrl-bottom-right { z-index: 1; }
+
 /* ---------- experience ---------- */
 .job { padding: 0 0 24px; }
 .job + .job { padding-top: 24px; border-top: 1px solid var(--line); }
@@ -232,6 +281,8 @@ h1 {
   .project.featured .statline { flex-direction: row; }
   .project.featured .statline li + li { border-top: 0; border-left: 1px solid var(--line); }
   .apps { grid-template-columns: 1fr; }
+  .tour-on .stop { padding: 18px; margin-bottom: 85svh; }
+  .tour-on .tour-place { top: 76px; bottom: auto; }
 }
 @media (max-width: 560px) {
   .top nav { display: none; }

@@ -56,10 +56,86 @@
       </div>
     </section>
 
-    <section id="work" class="section">
-      <h2 class="section-title">Selected work</h2>
+    <section id="work" class="work">
+      <div class="section">
+        <h2 class="section-title">Selected work</h2>
+      </div>
+      <div class="tour">
+        <div class="tour-stage" aria-hidden="true">
+          <div id="map"></div>
+          <p class="tour-place"><svg class="star" viewBox="0 0 24 24"><use href="#star"/></svg><span>Chicago</span></p>
+        </div>
+        <div class="tour-steps">
+      <div class="stop tour-only" data-place="Chicago" data-cam="-87.6280,41.8800,12.6,58,-28">
+        <p class="tour-intro">Everything I’ve built has a place in this city. Scroll to fly through it.</p>
+      </div>
 
-      <article class="project featured">
+      <div class="stop tour-only project" data-place="McCormick Place" data-cam="-87.6168,41.8512,16.2,62,-35">
+        <header>
+          <h3>Stars Tech Group</h3>
+          <p class="pitch">The registration and payment platform for a national convention with 40,000+ attendees. It handled online and on-site sign-up and stayed up through a three-day, high-traffic event.</p>
+        </header>
+        <p class="tags">AWS · PostgreSQL · REST APIs · PCI-DSS payments</p>
+      </div>
+
+      <article class="project stop" data-place="Soldier Field" data-cam="-87.6167,41.8623,16.4,63,20">
+        <header>
+          <h3>BlitzWatch</h3>
+          <p class="pitch">Predicts whether an NFL defense will blitz before the snap.</p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>90K+</b> plays</li><li><b>~85%</b> accuracy</li><li><b>LightGBM</b></li>
+        </ul>
+        <ul class="points">
+          <li>The whole stack: a Python and SQL ETL feeds tuned LightGBM models, and React and D3 dashboards show the predictions play by play.</li>
+        </ul>
+        <p class="tags">Python · SQL · Pandas · LightGBM · React · D3.js</p>
+      </article>
+
+      <article class="project stop" data-place="United Center" data-cam="-87.6742,41.8807,16.6,62,-60">
+        <header>
+          <h3>Ripple</h3>
+          <p class="pitch">Alternate sports history: change one moment and see how the seasons after it play out.</p>
+          <p class="links"><a href="https://playripple.app" target="_blank" rel="noopener">playripple.app ↗</a></p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>Seeded</b> simulation</li><li><b>Shareable</b> results</li><li><b>Vitest + Playwright</b></li>
+        </ul>
+        <ul class="points">
+          <li>A deterministic simulation engine with a structured world-state model. A seed always gives the same result, so every result has a link you can share.</li>
+          <li>Creator Studio, where people build scenarios on a visual decision graph and publish them as immutable versions.</li>
+        </ul>
+        <p class="tags">Next.js · React · TypeScript · Supabase · PostgreSQL</p>
+      </article>
+
+<!-- TODO: IFNBL venue. Replace data-cam with the real gym or park (lng,lat,zoom,pitch,bearing) and data-place with its name. -->
+      <article class="project stop" data-place="IFNBL" data-cam="-87.6560,41.9000,15.2,55,15">
+        <header>
+          <h3>IFNBL league platform</h3>
+          <p class="pitch">The site for a rec basketball league: standings, schedules and player stats across three seasons.</p>
+          <p class="links">
+            <a href="https://ifnbl.com" target="_blank" rel="noopener">ifnbl.com ↗</a>
+            <a href="https://github.com/keenan34/ifn-league-platform" target="_blank" rel="noopener">Source ↗</a>
+          </p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>3</b> seasons</li><li><b>Live</b> updates</li><li><b>ETL</b> pipeline</li>
+        </ul>
+        <ul class="points">
+          <li>A Node ETL pipeline loads per-game box-score JSON into a normalized PostgreSQL schema. It reconciles mismatched keys, fixes malformed values and logs every correction.</li>
+          <li>Live updates over Socket.IO, with JWT-protected admin endpoints and CORS scoped to each environment.</li>
+        </ul>
+        <p class="tags">React · Node.js · Express · PostgreSQL · Socket.IO</p>
+      </article>
+
+      <div class="stop tour-only project" data-place="DePaul · Lincoln Park" data-cam="-87.6555,41.9245,16.4,60,-15">
+        <header>
+          <h3>DePaul University</h3>
+          <p class="pitch">B.S. in Computer Science, Dean’s List. This is where it started.</p>
+        </header>
+      </div>
+
+      <article class="project featured stop" data-place="Chicago" data-cam="-87.6350,41.8900,12.2,50,-20">
         <header>
           <h3>Private group portal</h3>
           <p class="pitch">A members-only site for my friend group that I designed, built and run myself. One login, one Go server and one PostgreSQL database sit behind seven apps.</p>
@@ -112,55 +188,8 @@
         </dl>
         <p class="tags">Go · chi · pgx · sqlc · PostgreSQL · React · TypeScript · Vite · Tailwind · Radix · TanStack Query · Docker · GCP Cloud Run · GitHub Actions · Claude API · Voyage</p>
       </article>
-
-      <article class="project">
-        <header>
-          <h3>Ripple</h3>
-          <p class="pitch">Alternate sports history: change one moment and see how the seasons after it play out.</p>
-          <p class="links"><a href="https://playripple.app" target="_blank" rel="noopener">playripple.app ↗</a></p>
-        </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>Seeded</b> simulation</li><li><b>Shareable</b> results</li><li><b>Vitest + Playwright</b></li>
-        </ul>
-        <ul class="points">
-          <li>A deterministic simulation engine with a structured world-state model. A seed always gives the same result, so every result has a link you can share.</li>
-          <li>Creator Studio, where people build scenarios on a visual decision graph and publish them as immutable versions.</li>
-        </ul>
-        <p class="tags">Next.js · React · TypeScript · Supabase · PostgreSQL</p>
-      </article>
-
-      <article class="project">
-        <header>
-          <h3>IFNBL league platform</h3>
-          <p class="pitch">The site for a rec basketball league: standings, schedules and player stats across three seasons.</p>
-          <p class="links">
-            <a href="https://ifnbl.com" target="_blank" rel="noopener">ifnbl.com ↗</a>
-            <a href="https://github.com/keenan34/ifn-league-platform" target="_blank" rel="noopener">Source ↗</a>
-          </p>
-        </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>3</b> seasons</li><li><b>Live</b> updates</li><li><b>ETL</b> pipeline</li>
-        </ul>
-        <ul class="points">
-          <li>A Node ETL pipeline loads per-game box-score JSON into a normalized PostgreSQL schema. It reconciles mismatched keys, fixes malformed values and logs every correction.</li>
-          <li>Live updates over Socket.IO, with JWT-protected admin endpoints and CORS scoped to each environment.</li>
-        </ul>
-        <p class="tags">React · Node.js · Express · PostgreSQL · Socket.IO</p>
-      </article>
-
-      <article class="project">
-        <header>
-          <h3>BlitzWatch</h3>
-          <p class="pitch">Predicts whether an NFL defense will blitz before the snap.</p>
-        </header>
-        <ul class="statline" aria-label="Key facts">
-          <li><b>90K+</b> plays</li><li><b>~85%</b> accuracy</li><li><b>LightGBM</b></li>
-        </ul>
-        <ul class="points">
-          <li>The whole stack: a Python and SQL ETL feeds tuned LightGBM models, and React and D3 dashboards show the predictions play by play.</li>
-        </ul>
-        <p class="tags">Python · SQL · Pandas · LightGBM · React · D3.js</p>
-      </article>
+        </div>
+      </div>
     </section>
 
     <section id="experience" class="section">
@@ -221,5 +250,7 @@
     <symbol id="star" viewBox="0 0 24 24"><path d="M12 1L14.5 7.67 21.53 6.5 17 12 21.53 17.5 14.5 16.33 12 23 9.5 16.33 2.47 17.5 7 12 2.47 6.5 9.5 7.67z"/></symbol>
   </svg>
   <script src="script.js"></script>
+  <script src="config.js"></script>
+  <script src="tour.js"></script>
 </body>
 </html>
