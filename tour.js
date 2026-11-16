@@ -103,7 +103,7 @@
 
       // Fly-to feel: rise higher the further apart two stops are, then come back down.
       const dx = (b.lng - a.lng) * Math.cos(a.lat * Math.PI / 180), dy = b.lat - a.lat;
-      const dip = clamp(Math.log2(Math.hypot(dx, dy) / 0.004), 0, 3);
+      const dip = clamp(Math.log2(Math.hypot(dx, dy) / 0.004), 0, 6);
       map.jumpTo({
         center: [lerp(a.lng, b.lng, t), lerp(a.lat, b.lat, t)],
         zoom: lerp(a.zoom, b.zoom, t) - dip * Math.sin(Math.PI * t),
