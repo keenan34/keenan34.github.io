@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keenan Jajeh</title>
+  <meta name="description" content="Keenan Jajeh is a full-stack software engineer in Chicago who builds React, Node, Go and Python apps on PostgreSQL and the cloud.">
+  <meta property="og:title" content="Keenan Jajeh — Full-Stack Software Engineer">
+  <meta property="og:description" content="Full-stack engineer in Chicago. Projects: Ripple, IFNBL, BlitzWatch, Bushbang.">
+  <meta property="og:image" content="https://keenan34.github.io/assets/keenan.jpg">
+  <meta property="og:url" content="https://keenan34.github.io/">
+  <meta name="theme-color" content="#B3DDF2">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <a class="mark" href="#top" aria-label="Keenan Jajeh, home">KJ</a>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#experience">Experience</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="theme" type="button" aria-label="Toggle dark mode">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg>
+    </button>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="flag" aria-hidden="true"><span></span><span></span></div>
+      <div class="hero-inner">
+        <div class="hero-text">
+          <p class="eyebrow"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><use href="#star"/></svg> Chicago, IL</p>
+          <h1>Keenan<br>Jajeh</h1>
+          <p class="role">Full-stack software engineer</p>
+          <p class="lede">I build web apps end to end: React front ends, Node, Go and Python back ends, and PostgreSQL underneath. A lot of them are about sports.</p>
+          <div class="actions">
+            <a class="btn primary" href="assets/Keenan-Jajeh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a>
+            <a class="btn" href="https://github.com/keenan34" target="_blank" rel="noopener">GitHub</a>
+            <a class="btn" href="https://www.linkedin.com/in/keenan-jajeh" target="_blank" rel="noopener">LinkedIn</a>
+            <a class="btn" href="mailto:Kjajeh@depaul.edu">Email</a>
+          </div>
+        </div>
+        <figure class="portrait">
+          <img src="assets/keenan.jpg" width="600" height="600" alt="Keenan Jajeh in a navy suit and tie, smiling, against a light blue background">
+          <span class="jersey" aria-hidden="true">34</span>
+        </figure>
+      </div>
+    </section>
+
+    <section id="work" class="section">
+      <h2 class="section-title">Selected work</h2>
+
+      <article class="project">
+        <header>
+          <h3>Bushbang.com</h3>
+          <p class="pitch">A private portal for my friend group: one login, one Go server, and several apps behind it.</p>
+          <p class="links"><a href="https://bushbang.com" target="_blank" rel="noopener">bushbang.com ↗</a></p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>4</b> apps</li><li><b>1</b> login</li><li><b>Cloud Run</b> deploy</li>
+        </ul>
+        <ul class="points">
+          <li><strong>Jobs / AutoApply:</strong> a job feed built from hundreds of Greenhouse, Lever and Ashby boards. It ranks listings with Voyage embeddings and Claude scoring, drafts answers to application questions, and fills the forms from a Chrome and Firefox extension. Submitting is always left to the person.</li>
+          <li><strong>Movie Club:</strong> members take turns picking the film, with OMDb search, nominations, ratings and reviews, and admin tools.</li>
+          <li><strong>Draft Order:</strong> a deal-or-no-deal style game that decides the fantasy football draft order.</li>
+        </ul>
+        <p class="tags">Go · chi · pgx · PostgreSQL · React · TypeScript · Vite · Tailwind · GCP</p>
+      </article>
+
+      <article class="project">
+        <header>
+          <h3>Ripple</h3>
+          <p class="pitch">Alternate sports history: change one moment and see how the seasons after it play out.</p>
+          <p class="links"><a href="https://playripple.app" target="_blank" rel="noopener">playripple.app ↗</a></p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>Seeded</b> simulation</li><li><b>Shareable</b> results</li><li><b>Vitest + Playwright</b></li>
+        </ul>
+        <ul class="points">
+          <li>A deterministic simulation engine with a structured world-state model. A seed always gives the same result, so every result has a link you can share.</li>
+          <li>Creator Studio, where people build scenarios on a visual decision graph and publish them as immutable versions.</li>
+        </ul>
+        <p class="tags">Next.js · React · TypeScript · Supabase · PostgreSQL</p>
+      </article>
+
+      <article class="project">
+        <header>
+          <h3>IFNBL league platform</h3>
+          <p class="pitch">The site for a rec basketball league: standings, schedules and player stats across three seasons.</p>
+          <p class="links">
+            <a href="https://ifnbl.com" target="_blank" rel="noopener">ifnbl.com ↗</a>
+            <a href="https://github.com/keenan34/ifn-league-platform" target="_blank" rel="noopener">Source ↗</a>
+          </p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>3</b> seasons</li><li><b>Live</b> updates</li><li><b>ETL</b> pipeline</li>
+        </ul>
+        <ul class="points">
+          <li>A Node ETL pipeline loads per-game box-score JSON into a normalized PostgreSQL schema. It reconciles mismatched keys, fixes malformed values and logs every correction.</li>
+          <li>Live updates over Socket.IO, with JWT-protected admin endpoints and CORS scoped to each environment.</li>
+        </ul>
+        <p class="tags">React · Node.js · Express · PostgreSQL · Socket.IO</p>
+      </article>
+
+      <article class="project">
+        <header>
+          <h3>BlitzWatch</h3>
+          <p class="pitch">Predicts whether an NFL defense will blitz before the snap.</p>
+        </header>
+        <ul class="statline" aria-label="Key facts">
+          <li><b>90K+</b> plays</li><li><b>~85%</b> accuracy</li><li><b>LightGBM</b></li>
+        </ul>
+        <ul class="points">
+          <li>The whole stack: a Python and SQL ETL feeds tuned LightGBM models, and React and D3 dashboards show the predictions play by play.</li>
+        </ul>
+        <p class="tags">Python · SQL · Pandas · LightGBM · React · D3.js</p>
+      </article>
+    </section>
+
+    <section id="experience" class="section">
+      <h2 class="section-title">Experience</h2>
+      <div class="job">
+        <div class="job-head">
+          <h3>Stars Tech Group <span>Software Engineer</span></h3>
+          <p class="when">Jan 2025 – present</p>
+        </div>
+        <ul class="points">
+          <li>Built and ran the registration and payment platform for a national convention of 40,000+ attendees, covering online and on-site sign-up.</li>
+          <li>Kept the AWS-hosted checkout up through a three-day, high-traffic event.</li>
+          <li>Built REST APIs and third-party integrations on PostgreSQL schemas designed for high-volume attendee and transaction data, and integrated PCI-DSS-compliant payment gateways.</li>
+        </ul>
+      </div>
+      <div class="job">
+        <div class="job-head">
+          <h3>DePaul University <span>B.S. Computer Science</span></h3>
+          <p class="when">2021 – 2024</p>
+        </div>
+        <p class="muted">Dean’s List, Jarvis College of Computing and Digital Media. Coursework in distributed systems, AI, data analysis and software engineering.</p>
+      </div>
+
+      <h3 class="sub">Tools I use</h3>
+      <dl class="skills">
+        <div><dt>Languages</dt><dd>TypeScript, JavaScript, Python, Go, Java, SQL, C/C++, Bash</dd></div>
+        <div><dt>Front end</dt><dd>React, Next.js, Tailwind, D3.js, HTML/CSS</dd></div>
+        <div><dt>Back end</dt><dd>Node.js, Express, Go, REST APIs, JWT auth, Socket.IO</dd></div>
+        <div><dt>Data</dt><dd>PostgreSQL, MySQL, MongoDB, Supabase, Pandas, NumPy, LightGBM</dd></div>
+        <div><dt>Cloud</dt><dd>AWS (EC2, S3, RDS), GCP Cloud Run, Docker, CI/CD, Linux</dd></div>
+        <div><dt>Testing</dt><dd>Vitest, Playwright</dd></div>
+        <div><dt>AI</dt><dd>Claude Code, LLM integration, embeddings</dd></div>
+      </dl>
+    </section>
+
+    <section id="about" class="section">
+      <h2 class="section-title">About</h2>
+      <div class="prose">
+        <p>I’m a software developer from Chicago. Most of what I build sits across the whole stack: a database schema I’ve thought hard about, an API that does what it says, and an interface that feels natural to use. I care about clear code that someone else can maintain.</p>
+        <p>Outside of work I do photography and videography, build PCs, and look for anything in sports that can be counted. That last one keeps turning into projects.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact">
+      <h2 class="section-title">Contact</h2>
+      <p class="big-link"><a href="mailto:Kjajeh@depaul.edu">Kjajeh@depaul.edu</a></p>
+      <p class="muted">I’m open to full-stack and software engineering roles, in Chicago or remote.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="flag" aria-hidden="true"><span></span><span></span></div>
+    <p>© <span id="year">2026</span> Keenan Jajeh · <a href="https://github.com/keenan34">GitHub</a> · <a href="https://www.linkedin.com/in/keenan-jajeh">LinkedIn</a></p>
+  </footer>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="star" viewBox="0 0 24 24"><path d="M12 1L14.5 7.67 21.53 6.5 17 12 21.53 17.5 14.5 16.33 12 23 9.5 16.33 2.47 17.5 7 12 2.47 6.5 9.5 7.67z"/></symbol>
+  </svg>
+  <script src="script.js"></script>
+</body>
+</html>
