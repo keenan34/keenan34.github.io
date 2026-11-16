@@ -68,6 +68,8 @@
     map.on("style.load", () => {
       if (failed) return;
       root.classList.add("tour-on");
+      // The stage was display:none when the map was created, so measure it again.
+      map.resize();
       update();
     });
 
@@ -107,6 +109,10 @@
         zoom: lerp(a.zoom, b.zoom, t) - dip * Math.sin(Math.PI * t),
         pitch: lerp(a.pitch, b.pitch, t),
         bearing: a.bearing + angle(b.bearing - a.bearing) * t,
+        // Cards sit on the left on wide screens, so aim the landmark at the open right side.
+        padding: innerWidth > 820
+          ? { left: Math.min(760, innerWidth * 0.45), right: 0, top: 0, bottom: 0 }
+          : { left: 0, right: 0, top: 0, bottom: 0 },
       });
 
       const active = t < 0.5 ? a : b;
