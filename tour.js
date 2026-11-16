@@ -52,8 +52,11 @@
   }
 
   // Where the camera should be for the current scroll position.
+  // Phones keep cards in the lower part of the screen; wide screens beside them.
+  const narrow = () => innerWidth <= 820;
+
   function target() {
-    const mid = innerHeight / 2;
+    const mid = innerHeight * (narrow() ? 0.68 : 0.5);
     const centers = stops.map((s) => {
       const r = s.el.getBoundingClientRect();
       return r.top + Math.min(r.height, innerHeight) / 2;
@@ -121,11 +124,13 @@
       cam.pitch += (goal.pitch - cam.pitch) * k;
       cam.bearing += angle(goal.bearing - cam.bearing) * k;
 
-      const cardRight = sizer && innerWidth > 820 ? sizer.getBoundingClientRect().right + 24 : 0;
+      // Aim each landmark at the open space beside (or, on phones, above) the cards.
+      const cardRight = sizer && !narrow() ? sizer.getBoundingClientRect().right + 24 : 0;
       map.jumpTo({
         center: [cam.lng, cam.lat], zoom: cam.zoom, pitch: cam.pitch, bearing: cam.bearing,
-        // Aim each landmark at the open space beside the cards.
-        padding: { left: Math.min(cardRight, innerWidth * 0.6), right: 0, top: 0, bottom: 0 },
+        padding: narrow()
+          ? { left: 0, right: 0, top: 56, bottom: innerHeight * 0.5 }
+          : { left: Math.min(cardRight, innerWidth * 0.6), right: 0, top: 0, bottom: 0 },
       });
 
       if (placeLabel.textContent !== goal.active.place) placeLabel.textContent = goal.active.place;

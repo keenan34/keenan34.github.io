@@ -7,14 +7,15 @@
   <meta name="description" content="Keenan Jajeh is a full-stack software engineer in Chicago who builds React, Node, Go and Python apps on PostgreSQL and the cloud.">
   <meta property="og:title" content="Keenan Jajeh — Full-Stack Software Engineer">
   <meta property="og:description" content="Full-stack engineer in Chicago. Projects: Ripple, IFNBL, BlitzWatch, an AI job agent.">
-  <meta property="og:image" content="https://keenan34.github.io/assets/keenan.jpg">
+  <meta property="og:image" content="https://keenan34.github.io/assets/keenan-hat.jpg">
   <meta property="og:url" content="https://keenan34.github.io/">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e141c" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
   <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
@@ -34,10 +35,19 @@
   </header>
 
   <main id="main">
-    <section class="hero" id="top">
-      <div class="hero-text">
-        <h1>Keenan<br>Jajeh</h1>
-        <p class="role">Full-stack software engineer in Chicago</p>
+
+    <div class="tour">
+      <div class="tour-stage" aria-hidden="true">
+        <div id="map"></div>
+        <p class="tour-place"><span>Chicago</span></p>
+      </div>
+      <div class="tour-steps">
+      <section class="hero stop" id="top" data-place="Chicago" data-cam="-87.6310,41.8800,15.3,68,-18">
+        <img class="portrait" src="assets/keenan-hat.jpg" width="360" height="450" alt="Keenan Jajeh smiling in a black cowboy hat against a blue backdrop">
+        <div class="hero-id">
+          <h1>Keenan Jajeh</h1>
+          <p class="role">Full-stack software engineer in Chicago</p>
+        </div>
         <p class="lede">I build web apps end to end, from React front ends to Node, Go and Python services on PostgreSQL. I also build AI into products: LLM scoring, embeddings, and agents that fill out real forms. Give me a problem and I’ll find a way to build it.</p>
         <div class="actions">
           <a class="btn" href="assets/Keenan-Jajeh-Resume.pdf" target="_blank" rel="noopener">Résumé (PDF)</a>
@@ -45,25 +55,10 @@
           <a href="https://www.linkedin.com/in/keenan-jajeh" target="_blank" rel="noopener">LinkedIn</a>
           <a href="mailto:Kjajeh@depaul.edu">Email</a>
         </div>
-      </div>
-      <figure class="portrait">
-        <img src="assets/keenan.jpg" width="600" height="600" alt="Keenan Jajeh in a navy suit and tie, smiling, against a light blue background">
-      </figure>
-    </section>
+        <p class="hint tour-only">Scroll to fly through the places behind my work</p>
+      </section>
 
-    <section id="work" class="work">
-      <div class="section">
-        <h2 class="section-title">Work</h2>
-      </div>
-      <div class="tour">
-        <div class="tour-stage" aria-hidden="true">
-          <div id="map"></div>
-          <p class="tour-place"><span>Chicago</span></p>
-        </div>
-        <div class="tour-steps">
-      <div class="stop tour-only" data-place="Chicago" data-cam="-87.6280,41.8800,12.6,58,-28">
-        <p class="tour-intro">Each project has a place on the map. Scroll to fly between them</p>
-      </div>
+      <h2 class="section-title work-title" id="work">Work</h2>
 
       <div class="stop tour-only project" data-place="McCormick Place" data-cam="-87.6168,41.8512,16.2,62,-35">
         <header>
@@ -172,9 +167,8 @@
         </dl>
         <p class="tags">Go · chi · pgx · sqlc · PostgreSQL · React · TypeScript · Vite · Tailwind · Radix · TanStack Query · Docker · GCP Cloud Run · GitHub Actions · Claude API · Voyage</p>
       </article>
-        </div>
       </div>
-    </section>
+    </div>
 
     <section id="experience" class="section">
       <h2 class="section-title">Experience</h2>
@@ -229,8 +223,8 @@
     <p>© <span id="year">2026</span> Keenan Jajeh · <a href="https://github.com/keenan34">GitHub</a> · <a href="https://www.linkedin.com/in/keenan-jajeh">LinkedIn</a></p>
   </footer>
 
-  <script src="script.js?v=5"></script>
-  <script src="config.js?v=5"></script>
-  <script src="tour.js?v=5"></script>
+  <script src="script.js?v=6"></script>
+  <script src="config.js?v=6"></script>
+  <script src="tour.js?v=6"></script>
 </body>
 </html>
