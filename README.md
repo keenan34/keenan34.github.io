@@ -27,3 +27,14 @@ publishes `dist/` to GitHub Pages. In the repo's **Settings → Pages**, the sou
 must be set to **GitHub Actions**.
 
 Static files (résumé, photo, favicon) are in `public/`.
+
+## Custom domain
+
+The primary URL is `https://www.keenanjajeh.com/`. Vite copies `public/CNAME`
+into the deployment output.
+
+In GitHub **Settings → Pages → Custom domain**, set `www.keenanjajeh.com`.
+The GitHub Actions deployment requires this setting; the CNAME file alone does
+not configure the domain. At the domain's DNS provider, add a `CNAME` record
+with host `www` and target `keenan34.github.io`. Enable **Enforce HTTPS** in
+GitHub Pages once the certificate is ready.
