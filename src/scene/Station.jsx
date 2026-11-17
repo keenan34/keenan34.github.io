@@ -1,7 +1,7 @@
 import { ctaLogo, ctaNameplate, ctaArrivalBoard } from "./ctaArt.js";
 import Glow from "./Glow.jsx";
 
-// An 'L' platform on the far side of the tracks: deck with the yellow edge strip,
+// An 'L' platform on the far side of the tracks: deck with the blue edge strip,
 // a canopy, a CTA roundel, the station nameplate and an LED arrival board.
 // Coordinates are local to the track group (track centered at z = 0, deck at y).
 const STEEL = "#475569";
@@ -26,7 +26,7 @@ export default function Station({ x = -2.6, y, onOpen }) {
       </mesh>
       <mesh position={[0, y + 0.205, zDeck + 0.32]}>
         <boxGeometry args={[len, 0.02, 0.08]} />
-        <meshStandardMaterial color="#facc15" emissive="#facc15" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#00a1de" emissive="#00a1de" emissiveIntensity={0.35} />
       </mesh>
       {[-1.8, 1.8].map((px) => (
         <mesh key={px} position={[px, y / 2, zDeck]}>
