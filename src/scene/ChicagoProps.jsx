@@ -5,7 +5,9 @@ import Glow from "./Glow.jsx";
 import { sky, mix } from "./timeOfDay.js";
 
 // Small pieces that say "Chicago" at a glance: the Hancock Center, the city flag,
-// a Vienna Beef hot dog cart and a Divvy bike dock.
+// a Bears flag, a Vienna Beef hot dog cart and a Divvy bike dock.
+
+const BEARS_NAVY = "#0b162a", BEARS_ORANGE = "#c83803";
 
 function canvasTexture(w, h, draw) {
   const c = document.createElement("canvas");
@@ -63,9 +65,23 @@ function Hancock({ position }) {
   );
   map.wrapS = THREE.RepeatWrapping;
   map.repeat.set(4, 1);
+  // The crown lights up orange and blue after dark, like the real one on game days.
+  // Quarters of the texture land on the four faces.
+  const crownMap = useMemo(
+    () =>
+      canvasTexture(64, 8, (g, w, H) => {
+        ["#ff6a1f", "#2f5bd3", "#ff6a1f", "#2f5bd3"].forEach((c, i) => {
+          g.fillStyle = c;
+          g.fillRect((i * w) / 4, 0, w / 4, H);
+        });
+      }),
+    [],
+  );
   const facade = useRef();
+  const crown = useRef();
   useFrame(() => {
     if (facade.current) facade.current.emissiveIntensity = mix(0.3, 1.25, sky.night);
+    if (crown.current) crown.current.emissiveIntensity = mix(0, 2.2, sky.night);
   });
 
   return (
@@ -77,8 +93,9 @@ function Hancock({ position }) {
       </mesh>
       <mesh position={[0, h + 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.74, 0.74, 0.16, 4, 1]} />
-        <meshStandardMaterial color="#0b0c10" />
+        <meshStandardMaterial ref={crown} color="#0b0c10" emissive="#ffffff" emissiveMap={crownMap} emissiveIntensity={0} toneMapped={false} />
       </mesh>
+      <Glow position={[0, h + 0.08, 0]} color="#ff7a2e" size={2.4} opacity={0.5} day={0} />
       {[[-0.25, 1.9], [0.25, 1.7]].map(([x, ah]) => (
         <group key={x} position={[x, h + 0.16, 0]}>
           <mesh position={[0, ah / 2, 0]}>
@@ -101,7 +118,36 @@ function Hancock({ position }) {
 // pole, with the wave travelling outward.
 const FLAG_W = 1.05, FLAG_H = 0.7;
 
-function Flag({ position, paused, onOpen }) {
+function drawChicago(g, w, h) {
+  g.fillStyle = "#ffffff";
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = "#41b6e6";
+  g.fillRect(0, h * 0.17, w, h * 0.13);
+  g.fillRect(0, h * 0.7, w, h * 0.13);
+  g.fillStyle = "#e4002b";
+  [0.2, 0.4, 0.6, 0.8].forEach((x) => star6(g, w * x, h / 2, h * 0.11));
+}
+
+// Navy field, orange trim and a plain orange "C" (team colors, not the team logo).
+function drawBears(g, w, h) {
+  g.fillStyle = BEARS_NAVY;
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = BEARS_ORANGE;
+  g.fillRect(0, h * 0.06, w, h * 0.06);
+  g.fillRect(0, h * 0.88, w, h * 0.06);
+  g.lineCap = "round";
+  const arc = (width, color) => {
+    g.strokeStyle = color;
+    g.lineWidth = width;
+    g.beginPath();
+    g.arc(w / 2, h / 2, h * 0.24, Math.PI * 0.28, Math.PI * 1.72);
+    g.stroke();
+  };
+  arc(h * 0.17, "#ffffff");
+  arc(h * 0.12, BEARS_ORANGE);
+}
+
+function Flag({ position, draw, scale = 1, paused, onOpen }) {
   const cloth = useRef();
   const base = useRef(null);
   const t = useRef(0);
@@ -121,26 +167,14 @@ function Flag({ position, paused, onOpen }) {
     g.computeVertexNormals();
   });
   const point = (on) => (document.body.style.cursor = on ? "pointer" : "");
-  const map = useMemo(
-    () =>
-      canvasTexture(300, 200, (g, w, h) => {
-        g.fillStyle = "#ffffff";
-        g.fillRect(0, 0, w, h);
-        g.fillStyle = "#41b6e6";
-        g.fillRect(0, h * 0.17, w, h * 0.13);
-        g.fillRect(0, h * 0.7, w, h * 0.13);
-        g.fillStyle = "#e4002b";
-        [0.2, 0.4, 0.6, 0.8].forEach((x) => star6(g, w * x, h / 2, h * 0.11));
-      }),
-    [],
-  );
+  const map = useMemo(() => canvasTexture(300, 200, draw), [draw]);
+  const handlers = onOpen && {
+    onClick: (e) => { e.stopPropagation(); point(false); onOpen(); },
+    onPointerOver: (e) => { e.stopPropagation(); point(true); },
+    onPointerOut: () => point(false),
+  };
   return (
-    <group
-      position={position}
-      onClick={(e) => { e.stopPropagation(); point(false); onOpen?.(); }}
-      onPointerOver={(e) => { e.stopPropagation(); point(true); }}
-      onPointerOut={() => point(false)}
-    >
+    <group position={position} scale={scale} {...handlers}>
       <mesh position={[0, 1.6, 0]}>
         <cylinderGeometry args={[0.03, 0.04, 3.2, 8]} />
         <meshStandardMaterial color="#d1d5db" metalness={0.7} roughness={0.3} />
@@ -233,7 +267,9 @@ export default function ChicagoProps({ paused, onAbout }) {
   return (
     <group>
       <Hancock position={[-4.8, 0.1, -2.1]} />
-      <Flag position={[5.4, 0.22, -4.6]} paused={paused} onOpen={onAbout} />
+      <Flag position={[5.4, 0.22, -4.6]} draw={drawChicago} paused={paused} onOpen={onAbout} />
+      {/* Flying beside the city flag, a little lower. */}
+      <Flag position={[4.2, 0.22, -4.75]} draw={drawBears} scale={0.85} paused={paused} />
       <HotDogCart position={[-2.2, 0.16, -0.25]} />
       <DivvyDock position={[3.8, 0.16, -0.3]} />
     </group>
