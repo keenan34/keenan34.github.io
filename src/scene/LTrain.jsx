@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import Hotspot from "./Hotspot.jsx";
 import Station from "./Station.jsx";
@@ -116,6 +116,9 @@ const LEGS = [
   [-4.3, -4.3, 1.2],
 ];
 const LOOP = LEGS.reduce((n, l) => n + l[2], 0);
+// Where the loop picks up after a Projects visit: the moment the dwell ends, so the
+// car pulls straight out of the station.
+const DEPART = LEGS.slice(0, 4).reduce((n, l) => n + l[2], 0);
 const smoother = (p) => p * p * p * (p * (p * 6 - 15) + 10);
 
 function trainAt(time) {
@@ -128,17 +131,39 @@ function trainAt(time) {
   return { x: LEGS[0][0], dwelling: false };
 }
 
-export default function LTrain({ paused, onOpen }) {
+// `docked` (Projects is open): the car brakes into Clark/Lake from wherever it is and
+// waits there. When Projects closes, the loop resumes from the end of the station stop.
+export default function LTrain({ paused, docked, onOpen }) {
   const car = useRef();
   const windows = useRef([]);
   const t = useRef(0);
   const held = useRef(false);
+  const invalidate = useThree((s) => s.invalidate);
+
+  useEffect(() => {
+    if (docked) {
+      // With animation paused there are no frames to brake over, so just arrive.
+      if (paused) { car.current.position.x = STATION_X; invalidate(); }
+    } else if (t.current > 0) {
+      t.current = DEPART;
+    }
+  }, [docked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useFrame((_, dt) => {
-    if (paused || held.current) return;
-    t.current += dt;
-    const { x, dwelling } = trainAt(t.current);
-    car.current.position.x = x;
+    if (paused) return;
+    let dwelling;
+    if (docked) {
+      // Ease in like a train braking, then hold.
+      const x = car.current.position.x;
+      car.current.position.x = x + (STATION_X - x) * (1 - Math.exp(-dt * 2.2));
+      dwelling = Math.abs(STATION_X - x) < 0.05;
+    } else {
+      if (held.current) return;
+      t.current += dt;
+      const at = trainAt(t.current);
+      car.current.position.x = at.x;
+      dwelling = at.dwelling;
+    }
     // Doors open at the platform: the cabin glows a little warmer.
     const target = dwelling ? 2.4 : 1.4;
     windows.current.forEach((m) => m && (m.emissiveIntensity += (target - m.emissiveIntensity) * Math.min(1, dt * 4)));

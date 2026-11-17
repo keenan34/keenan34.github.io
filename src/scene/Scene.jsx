@@ -55,7 +55,7 @@ export default function Scene({ view, onOpen, onClose, paused }) {
           <Tower />
           <ChicagoProps paused={paused} onAbout={() => onOpen("about")} />
           <Bean onOpen={() => onOpen("about")} />
-          <LTrain paused={paused} onOpen={() => onOpen("projects")} />
+          <LTrain paused={paused} docked={view === "projects"} onOpen={() => onOpen("projects")} />
           <Streetlamp position={[-4.2, 0, 0.6]} />
           <Streetlamp position={[1.8, 0, 0.6]} />
         </group>
