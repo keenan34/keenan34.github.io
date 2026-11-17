@@ -52,8 +52,8 @@ export function ctaNameplate() {
 // LED arrival board, laid out like the real "Service at … platform" displays.
 // Real service at Clark/Lake's Inner Loop platform.
 const ARRIVALS = [
-  { line: "Green Line #022 to", dest: "Ashland/63rd", min: 2, color: "#00b140" },
-  { line: "Orange Line #723 to", dest: "Midway", min: 4, color: "#f14b1c", airport: true },
+  { line: "Brown Line #412 to", dest: "Kimball", min: 2, color: "#62361b" },
+  { line: "Purple Line #508 to", dest: "Loop", min: 4, color: "#522398" },
 ];
 
 let board;
