@@ -109,7 +109,7 @@ function Car({ windows }) {
 }
 
 // One loop of the run: [from x, to x, seconds]. Each leg eases in and out, so the
-// car pulls out gently, slows into Clark/Lake, dwells, and accelerates away.
+// car pulls out gently, slows into Wellington, dwells, and accelerates away.
 const STATION_X = -2.6;
 const LEGS = [
   [-4.3, 4.3, 7],
@@ -135,7 +135,7 @@ function trainAt(time) {
   return { x: LEGS[0][0], dwelling: false };
 }
 
-// `docked` (Projects is open): the car brakes into Clark/Lake from wherever it is and
+// `docked` (Projects is open): the car brakes into Wellington from wherever it is and
 // waits there. When Projects closes, the loop resumes from the end of the station stop.
 export default function LTrain({ paused, docked, onOpen }) {
   const car = useRef();

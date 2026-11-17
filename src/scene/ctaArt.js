@@ -38,8 +38,8 @@ export function ctaNameplate() {
     g.fillStyle = "#ffffff";
     g.font = `700 46px ${SANS}`;
     g.textBaseline = "middle";
-    g.fillText("Clark/Lake", 22, h / 2 + 2);
-    const lines = ["#62361b", "#009b3a", "#f9461c", "#e27ea6", "#522398", "#00a1de"];
+    g.fillText("Wellington", 22, h / 2 + 2);
+    const lines = ["#62361b", "#522398"];
     lines.forEach((color, i) => {
       g.fillStyle = color;
       g.beginPath();
@@ -51,7 +51,7 @@ export function ctaNameplate() {
 }
 
 // LED arrival board, laid out like the real "Service at … platform" displays.
-// Real service at Clark/Lake's Inner Loop platform.
+// Brown and Purple Line service at Wellington, in both directions.
 // Each train counts down from its first ETA; once it has come and gone it is
 // rescheduled one headway later, so the board keeps running like the real one.
 const ARRIVALS = [
@@ -78,7 +78,7 @@ export function ctaArrivalBoard() {
     g.fillStyle = "#e5e7eb";
     g.font = `600 20px ${SANS}`;
     g.textBaseline = "middle";
-    g.fillText("Service at Inner Loop platform", x0 + 46, 40);
+    g.fillText("Service at Wellington", x0 + 46, 40);
     // Rows, soonest first.
     const now = Date.now();
     const rows = ARRIVALS.map((a) => { const label = eta(a, now); return { ...a, label }; }).sort((p, q) => p.at - q.at);

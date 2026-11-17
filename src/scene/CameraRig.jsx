@@ -10,7 +10,7 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const VIEWS = {
   overview: { target: [0, 3.6, 0], dir: [20, 14.4, 20], zoomK: 1, shift: [0, 0], phoneShift: [0, 0] },
-  // The 'L' train and Clark/Lake station, seen low and side-on; drawer opens on the left.
+  // The 'L' train and Wellington station, seen low and side-on; drawer opens on the left.
   projects: { target: [-2.4, 4.4, 2.0], dir: [0.35, 0.45, 1], zoomK: 2.2, shift: [-0.2, 0], phoneShift: [0, 0.22] },
   // The Bean, the Divvy dock and the flag; drawer opens on the right.
   about: { target: [4.3, 1.1, -2.7], dir: [1, 0.55, 0.45], zoomK: 2.4, shift: [0.2, 0], phoneShift: [0, 0.3] },
