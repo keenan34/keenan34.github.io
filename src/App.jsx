@@ -6,6 +6,7 @@ import ProjectsPanel from "./ui/ProjectsPanel.jsx";
 import AboutPanel from "./ui/AboutPanel.jsx";
 import PlainPortfolio from "./ui/PlainPortfolio.jsx";
 import { LabelLayer } from "./scene/labels.jsx";
+import FilmOverlay from "./ui/FilmOverlay.jsx";
 
 const Scene = lazy(() => import("./scene/Scene.jsx"));
 
@@ -47,6 +48,7 @@ export default function App() {
       <Suspense fallback={<Loading />}>
         <Scene view={open} onOpen={setOpen} onClose={() => setOpen(null)} paused={paused} />
       </Suspense>
+      <FilmOverlay paused={paused} />
       <LabelLayer hidden={!!open} />
       <Hud
         paused={paused}

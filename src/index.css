@@ -19,9 +19,20 @@
 }
 
 html, body, #root { height: 100%; }
-/* Dusk sky behind the transparent canvas: dark at the edges, a warm haze low and
-   centre where the city below lights it up. */
-#root { background: radial-gradient(120% 90% at 50% 78%, #2a1c2c 0%, #12162a 45%, #070a14 100%); }
+/* Night sky behind the transparent canvas, in film tones: blue-black at the edges,
+   midnight blue, and a faint warm light-pollution glow low and centre. */
+#root { background: radial-gradient(125% 95% at 50% 80%, #2b1f22 0%, #141a2b 38%, #0d1424 60%, #05070d 100%); }
+
+/* Film grain jumps between a few offsets, like frames through a projector gate. */
+@keyframes film-grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-4%, 3%); }
+  40% { transform: translate(3%, -5%); }
+  60% { transform: translate(-6%, -2%); }
+  80% { transform: translate(5%, 4%); }
+}
+.film-grain { animation: film-grain 0.6s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { .film-grain { animation: none; } }
 body {
   margin: 0;
   background: var(--color-night);
