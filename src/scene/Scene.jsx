@@ -50,7 +50,8 @@ export default function Scene({ view, onOpen, onClose, paused }) {
       onPointerDown={(e) => (down.current = [e.clientX, e.clientY])}
       onPointerMissed={missed}
       className="!absolute inset-0"
-      dpr={[1, 1.5]}
+      // Match Retina phone displays so fine geometry isn't enlarged from a low-res buffer.
+      dpr={[1, 3]}
       frameloop={paused ? "demand" : "always"}
       gl={{ antialias: true, alpha: true }}
       aria-label="An interactive miniature Chicago block. Click the glowing landmarks to explore."
