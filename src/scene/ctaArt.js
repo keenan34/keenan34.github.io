@@ -23,6 +23,7 @@ function canvasTexture(w, h, draw) {
   const paint = () => { draw(c.getContext("2d"), w, h); t.needsUpdate = true; };
   paint();
   document.fonts?.ready.then(paint);
+  t.userData.repaint = paint;
   return t;
 }
 
@@ -51,10 +52,19 @@ export function ctaNameplate() {
 
 // LED arrival board, laid out like the real "Service at … platform" displays.
 // Real service at Clark/Lake's Inner Loop platform.
+// Each train counts down from its first ETA; once it has come and gone it is
+// rescheduled one headway later, so the board keeps running like the real one.
 const ARRIVALS = [
-  { line: "Brown Line #412 to", dest: "Kimball", min: 2, color: "#62361b" },
-  { line: "Purple Line #508 to", dest: "Loop", min: 4, color: "#522398" },
-];
+  { line: "Brown Line #412 to", dest: "Kimball", min: 2, headway: 7, color: "#62361b" },
+  { line: "Purple Line #508 to", dest: "Loop", min: 4, headway: 9, color: "#522398" },
+].map((a) => ({ ...a, at: Date.now() + a.min * 60000 }));
+
+// Whole minutes left, or "Due" in the last minute, as on CTA displays.
+function eta(a, now) {
+  while (a.at + 30000 < now) a.at += a.headway * 60000;
+  const min = Math.floor((a.at - now) / 60000);
+  return min < 1 ? "Due" : `${min} min`;
+}
 
 let board;
 export function ctaArrivalBoard() {
@@ -69,8 +79,10 @@ export function ctaArrivalBoard() {
     g.font = `600 20px ${SANS}`;
     g.textBaseline = "middle";
     g.fillText("Service at Inner Loop platform", x0 + 46, 40);
-    // Rows.
-    ARRIVALS.forEach((a, i) => {
+    // Rows, soonest first.
+    const now = Date.now();
+    const rows = ARRIVALS.map((a) => { const label = eta(a, now); return { ...a, label }; }).sort((p, q) => p.at - q.at);
+    rows.forEach((a, i) => {
       const y = 60 + i * 92;
       g.fillStyle = "#1f3b34";
       g.fillRect(x0, y, 40, 88);
@@ -100,7 +112,7 @@ export function ctaArrivalBoard() {
       g.fillStyle = "#ffffff";
       g.textAlign = "right";
       g.font = `700 40px ${SANS}`;
-      g.fillText(`${a.min} min`, x1 - 48, y + 50);
+      g.fillText(a.label, x1 - 48, y + 50);
       g.textAlign = "left";
       // The "tracked live" signal icon.
       g.strokeStyle = "#ffffff";
@@ -112,5 +124,6 @@ export function ctaArrivalBoard() {
       });
     });
   });
+  setInterval(board.userData.repaint, 15000);
   return board;
 }
