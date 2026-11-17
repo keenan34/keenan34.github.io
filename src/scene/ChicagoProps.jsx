@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Glow from "./Glow.jsx";
@@ -65,23 +65,9 @@ function Hancock({ position }) {
   );
   map.wrapS = THREE.RepeatWrapping;
   map.repeat.set(4, 1);
-  // The crown lights up orange and blue after dark, like the real one on game days.
-  // Quarters of the texture land on the four faces.
-  const crownMap = useMemo(
-    () =>
-      canvasTexture(64, 8, (g, w, H) => {
-        ["#ff6a1f", "#2f5bd3", "#ff6a1f", "#2f5bd3"].forEach((c, i) => {
-          g.fillStyle = c;
-          g.fillRect((i * w) / 4, 0, w / 4, H);
-        });
-      }),
-    [],
-  );
   const facade = useRef();
-  const crown = useRef();
   useFrame(() => {
     if (facade.current) facade.current.emissiveIntensity = mix(0.3, 1.25, sky.night);
-    if (crown.current) crown.current.emissiveIntensity = mix(0, 2.2, sky.night);
   });
 
   return (
@@ -93,9 +79,8 @@ function Hancock({ position }) {
       </mesh>
       <mesh position={[0, h + 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.74, 0.74, 0.16, 4, 1]} />
-        <meshStandardMaterial ref={crown} color="#0b0c10" emissive="#ffffff" emissiveMap={crownMap} emissiveIntensity={0} toneMapped={false} />
+        <meshStandardMaterial color="#0b0c10" />
       </mesh>
-      <Glow position={[0, h + 0.08, 0]} color="#ff7a2e" size={2.4} opacity={0.5} day={0} />
       {[[-0.25, 1.9], [0.25, 1.7]].map(([x, ah]) => (
         <group key={x} position={[x, h + 0.16, 0]}>
           <mesh position={[0, ah / 2, 0]}>
@@ -128,26 +113,24 @@ function drawChicago(g, w, h) {
   [0.2, 0.4, 0.6, 0.8].forEach((x) => star6(g, w * x, h / 2, h * 0.11));
 }
 
-// Navy field, orange trim and a plain orange "C" (team colors, not the team logo).
-function drawBears(g, w, h) {
-  g.fillStyle = BEARS_NAVY;
+// White field with navy and orange bands, and the bear head (public/bears-logo.webp)
+// in the middle once it has loaded.
+function drawBears(g, w, h, logo) {
+  g.fillStyle = "#ffffff";
   g.fillRect(0, 0, w, h);
+  g.fillStyle = BEARS_NAVY;
+  g.fillRect(0, 0, w, h * 0.12);
+  g.fillRect(0, h * 0.88, w, h * 0.12);
   g.fillStyle = BEARS_ORANGE;
-  g.fillRect(0, h * 0.06, w, h * 0.06);
-  g.fillRect(0, h * 0.88, w, h * 0.06);
-  g.lineCap = "round";
-  const arc = (width, color) => {
-    g.strokeStyle = color;
-    g.lineWidth = width;
-    g.beginPath();
-    g.arc(w / 2, h / 2, h * 0.24, Math.PI * 0.28, Math.PI * 1.72);
-    g.stroke();
-  };
-  arc(h * 0.17, "#ffffff");
-  arc(h * 0.12, BEARS_ORANGE);
+  g.fillRect(0, h * 0.12, w, h * 0.04);
+  g.fillRect(0, h * 0.84, w, h * 0.04);
+  if (logo) {
+    const size = h * 0.62;
+    g.drawImage(logo, (w - size) / 2, (h - size) / 2, size, size);
+  }
 }
 
-function Flag({ position, draw, scale = 1, paused, onOpen }) {
+function Flag({ position, draw, logo, scale = 1, paused, onOpen }) {
   const cloth = useRef();
   const base = useRef(null);
   const t = useRef(0);
@@ -168,6 +151,16 @@ function Flag({ position, draw, scale = 1, paused, onOpen }) {
   });
   const point = (on) => (document.body.style.cursor = on ? "pointer" : "");
   const map = useMemo(() => canvasTexture(300, 200, draw), [draw]);
+  // Redraw with the image once it arrives.
+  useEffect(() => {
+    if (!logo) return;
+    const img = new Image();
+    img.onload = () => {
+      draw(map.image.getContext("2d"), map.image.width, map.image.height, img);
+      map.needsUpdate = true;
+    };
+    img.src = logo;
+  }, [logo, draw, map]);
   const handlers = onOpen && {
     onClick: (e) => { e.stopPropagation(); point(false); onOpen(); },
     onPointerOver: (e) => { e.stopPropagation(); point(true); },
@@ -269,7 +262,7 @@ export default function ChicagoProps({ paused, onAbout }) {
       <Hancock position={[-4.8, 0.1, -2.1]} />
       <Flag position={[5.4, 0.22, -4.6]} draw={drawChicago} paused={paused} onOpen={onAbout} />
       {/* Flying beside the city flag, a little lower. */}
-      <Flag position={[4.2, 0.22, -4.75]} draw={drawBears} scale={0.85} paused={paused} />
+      <Flag position={[4.2, 0.22, -4.75]} draw={drawBears} logo="./bears-logo.webp" scale={0.85} paused={paused} />
       <HotDogCart position={[-2.2, 0.16, -0.25]} />
       <DivvyDock position={[3.8, 0.16, -0.3]} />
     </group>
