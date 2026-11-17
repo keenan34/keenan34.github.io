@@ -50,13 +50,14 @@ export const projects = [
   },
   {
     name: "BlitzWatch",
-    pitch: "Predicts whether an NFL defense will blitz before the snap.",
-    links: [],
+    pitch: "Predicts whether an NFL defense will blitz, using only what's known before the snap.",
+    links: [{ label: "Source", href: "https://github.com/keenan34/BlitzWatch" }],
     points: [
-      "Trained LightGBM models on 90,000+ plays, reaching about 85% accuracy.",
-      "A Python and SQL ETL feeds the models, and React and D3 dashboards show the predictions play by play.",
+      "A LightGBM model trained on 121,340 pass plays (2018–2023) from nflverse, graded on a held-out 2023 season: 0.685 ROC-AUC against a 0.659 baseline.",
+      "Rebuilt after finding the first version leaked post-snap data into its features. The honest model scores lower and actually predicts.",
+      "A Flask API serves predictions to a React and Tailwind front end, with 19 tests covering the label logic, a leakage guard and the API.",
     ],
-    stack: ["Python", "SQL", "Pandas", "LightGBM", "React", "D3.js"],
+    stack: ["Python", "LightGBM", "Pandas", "Flask", "React", "Docker"],
   },
   {
     name: "Private group portal",
