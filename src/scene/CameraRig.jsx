@@ -26,6 +26,28 @@ export default function CameraRig({ view }) {
   const ref = useRef();
   const size = useThree((s) => s.size);
   const first = useRef(true);
+  const setDpr = useThree((s) => s.setDpr);
+
+  // Spend fewer pixels during camera motion; restore Retina detail once settled.
+  useEffect(() => {
+    const controls = ref.current;
+    const mobile = matchMedia("(pointer: coarse)").matches || size.width < 640;
+    if (!mobile) return;
+    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+    const moving = () => setDpr(Math.min(fullDpr, 1.5));
+    const settled = () => setDpr(fullDpr);
+    controls.addEventListener("transitionstart", moving);
+    controls.addEventListener("controlstart", moving);
+    controls.addEventListener("rest", settled);
+    controls.addEventListener("sleep", settled);
+    return () => {
+      controls.removeEventListener("transitionstart", moving);
+      controls.removeEventListener("controlstart", moving);
+      controls.removeEventListener("rest", settled);
+      controls.removeEventListener("sleep", settled);
+      settled();
+    };
+  }, [setDpr, size.width]);
 
   // No panning: drag rotates, wheel/pinch zooms.
   useEffect(() => {
