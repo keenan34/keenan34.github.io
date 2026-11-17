@@ -113,17 +113,14 @@ function drawChicago(g, w, h) {
   [0.2, 0.4, 0.6, 0.8].forEach((x) => star6(g, w * x, h / 2, h * 0.11));
 }
 
-// White field with navy and orange bands, and the bear head (public/bears-logo.webp)
-// in the middle once it has loaded.
+// Navy field with orange bands, and the bear head (public/bears-logo.webp) in the
+// middle once it has loaded.
 function drawBears(g, w, h, logo) {
-  g.fillStyle = "#ffffff";
-  g.fillRect(0, 0, w, h);
   g.fillStyle = BEARS_NAVY;
-  g.fillRect(0, 0, w, h * 0.12);
-  g.fillRect(0, h * 0.88, w, h * 0.12);
+  g.fillRect(0, 0, w, h);
   g.fillStyle = BEARS_ORANGE;
-  g.fillRect(0, h * 0.12, w, h * 0.04);
-  g.fillRect(0, h * 0.84, w, h * 0.04);
+  g.fillRect(0, h * 0.08, w, h * 0.05);
+  g.fillRect(0, h * 0.87, w, h * 0.05);
   if (logo) {
     const size = h * 0.62;
     g.drawImage(logo, (w - size) / 2, (h - size) / 2, size, size);
