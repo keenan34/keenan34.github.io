@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import RiverBridge from "./RiverBridge.jsx";
 
 // The channel occupies z=4.25..5.55, between the train street and grassy bank.
 export default function River({ paused }) {
@@ -19,6 +20,8 @@ export default function River({ paused }) {
   });
   return (
     <group>
+      <RiverBridge x={-3.5} />
+      <RiverBridge x={3.5} />
       <mesh position={[0, -0.045, 4.9]} rotation-x={-Math.PI / 2}>
         <planeGeometry ref={water} args={[11.96, 1.3, 64, 12]} />
         <meshStandardMaterial color="#07966c" roughness={0.24} metalness={0.35}
