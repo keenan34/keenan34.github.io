@@ -4,9 +4,7 @@ import { person } from "../data/portfolioData.js";
 import { DRAWER_WIDTH } from "./Drawer.jsx";
 
 // The page's chrome is CTA signage: black plates, white grotesque lettering, and the
-// 'L' line colors as markers. The name plate is a station sign; the dots are the
-// lines that stop at Clark/Lake, the station on the block.
-const LINES = ["bg-line-brown", "bg-line-green", "bg-line-orange", "bg-line-pink", "bg-line-purple", "bg-line-blue"];
+// 'L' line colors as markers. The name plate is a station sign.
 const plate = "bg-sign text-sign-ink rounded-[3px] ring-1 ring-white/10 shadow-lg shadow-black/40";
 
 export default function Hud({ paused, onTogglePause, onOpen, section, onBack }) {
@@ -17,12 +15,7 @@ export default function Hud({ paused, onTogglePause, onOpen, section, onBack }) 
   return (
     <>
       <header className={`pointer-events-auto absolute left-4 top-4 px-4 pb-3 pt-3.5 sm:left-6 sm:top-6 sm:px-5 ${plate}`}>
-        <div className="flex items-center gap-4">
-          <h1 className="text-[1.6rem] font-bold leading-none tracking-[-0.015em] sm:text-[1.85rem]">{person.name}</h1>
-          <span aria-hidden="true" className="flex gap-1.5">
-            {LINES.map((c) => <span key={c} className={`h-2.5 w-2.5 rounded-full ${c}`} />)}
-          </span>
-        </div>
+        <h1 className="text-[1.6rem] font-bold leading-none tracking-[-0.015em] sm:text-[1.85rem]">{person.name}</h1>
         <p className="mt-2 text-[0.8rem] text-sign-ink/65 sm:text-sm">
           {person.role} · {person.city}
         </p>
