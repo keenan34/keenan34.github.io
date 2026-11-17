@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Glow from "./Glow.jsx";
+import { sky, mix } from "./timeOfDay.js";
 
 // Small pieces that say "Chicago" at a glance: the Hancock Center, the city flag,
 // a Vienna Beef hot dog cart and a Divvy bike dock.
@@ -62,13 +63,17 @@ function Hancock({ position }) {
   );
   map.wrapS = THREE.RepeatWrapping;
   map.repeat.set(4, 1);
+  const facade = useRef();
+  useFrame(() => {
+    if (facade.current) facade.current.emissiveIntensity = mix(0.3, 1.25, sky.night);
+  });
 
   return (
     <group position={position}>
       {/* A four-sided frustum: a cylinder with 4 segments, turned to square up. */}
       <mesh position={[0, h / 2, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.72, 1.15, h, 4, 1]} />
-        <meshStandardMaterial map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={1.25} roughness={0.4} metalness={0.5} flatShading />
+        <meshStandardMaterial ref={facade} map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={1.25} roughness={0.4} metalness={0.5} flatShading />
       </mesh>
       <mesh position={[0, h + 0.08, 0]} rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.74, 0.74, 0.16, 4, 1]} />

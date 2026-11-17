@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import Glow from "./Glow.jsx";
+import { useFrame } from "@react-three/fiber";
+import { sky, mix } from "./timeOfDay.js";
 
 // The Sears (Willis) Tower: nine square tubes bundled 3×3 that step back at 50, 66,
 // 90 and 108 floors, black glass with lit windows, and the two white antennas.
@@ -82,6 +84,10 @@ function Antenna({ position, height }) {
 
 export default function Tower() {
   const materials = useTubeMaterials();
+  useFrame(() => {
+    const k = mix(0.3, 1.3, sky.night);
+    materials.forEach((row) => row.forEach((m) => (m[0].emissiveIntensity = k)));
+  });
   const top = 108 * FLOOR;
 
   return (

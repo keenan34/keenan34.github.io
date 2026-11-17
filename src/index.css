@@ -19,9 +19,19 @@
 }
 
 html, body, #root { height: 100%; }
-/* Night sky behind the transparent canvas, in film tones: blue-black at the edges,
-   midnight blue, and a faint warm light-pollution glow low and centre. */
-#root { background: radial-gradient(125% 95% at 50% 80%, #2b1f22 0%, #141a2b 38%, #0d1424 60%, #05070d 100%); }
+/* The sky itself is <Sky>, which follows the time of day. */
+
+/* Overcast cloud banks for the day sky, drifting slowly. */
+.sky-clouds {
+  background:
+    radial-gradient(40% 30% at 20% 40%, rgba(255,255,255,0.7), transparent 70%),
+    radial-gradient(35% 25% at 55% 25%, rgba(240,244,248,0.6), transparent 70%),
+    radial-gradient(45% 30% at 85% 45%, rgba(255,255,255,0.55), transparent 70%),
+    radial-gradient(30% 20% at 40% 70%, rgba(230,236,242,0.5), transparent 70%);
+  animation: sky-drift 120s linear infinite alternate;
+}
+@keyframes sky-drift { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+@media (prefers-reduced-motion: reduce) { .sky-clouds { animation: none; } }
 
 /* Film grain jumps between a few offsets, like frames through a projector gate. */
 @keyframes film-grain {

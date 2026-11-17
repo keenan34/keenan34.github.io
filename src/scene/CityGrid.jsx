@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { sky } from "./timeOfDay.js";
 
 // The rest of Chicago, far below the floating block, as a 1990s night photo taken
 // from a plane: streets read as strings of individual lamps, mostly sodium orange
@@ -22,6 +23,8 @@ const vertexShader = /* glsl */ `
 
 const fragmentShader = /* glsl */ `
   uniform float uTime;
+  uniform float uNight;   // 0 day, 0.5 dusk, 1 night
+  uniform vec3 uHaze;
   varying vec2 vXZ;
 
   const float C = 14.0;                       // one block (12) plus its street (2)
@@ -31,7 +34,6 @@ const fragmentShader = /* glsl */ `
   const vec3 MERCURY = vec3(0.66, 0.90, 0.81);
   const vec3 HALATION = vec3(1.0, 0.32, 0.18);
   const vec3 BLOCK = vec3(0.030, 0.038, 0.068);
-  const vec3 HAZE = vec3(0.060, 0.072, 0.115);
 
   float hash(float n) { return fract(sin(n * 12.9898) * 43758.5453); }
   float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -90,14 +92,17 @@ const fragmentShader = /* glsl */ `
 
     // Blocks: dark, with gentle block-to-block and within-block tone variation.
     vec2 cell = floor(p / C + 0.5);
-    vec3 col = BLOCK * (0.8 + 0.4 * hash2(cell)) * (0.85 + 0.3 * noise(p * 0.35));
+    float tone = (0.8 + 0.4 * hash2(cell)) * (0.85 + 0.3 * noise(p * 0.35));
+    // By day: concrete and tar roofs with darker asphalt streets.
+    vec3 dayGround = mix(vec3(0.22, 0.23, 0.25), vec3(0.42, 0.43, 0.45) * tone, smoothstep(0.9, 1.3, min(dX, dZ)));
+    vec3 col = mix(dayGround, BLOCK * tone, smoothstep(0.0, 0.6, uNight));
 
     // Rare clusters of tiny lit windows.
     float inBlock = smoothstep(1.1, 1.5, min(dX, dZ));
     vec2 w = p * 3.0;
     float dot_ = 1.0 - smoothstep(0.06, 0.06 + 3.0 * px, length(fract(w) - 0.5) / 3.0);
     float cluster = smoothstep(0.62, 0.8, noise(p * 0.22 + 7.0));
-    col += vec3(1.0, 0.78, 0.5) * dot_ * step(0.93, hash2(floor(w))) * cluster * inBlock * 0.22;
+    col += vec3(1.0, 0.78, 0.5) * dot_ * step(0.93, hash2(floor(w))) * cluster * inBlock * 0.22 * uNight;
 
     // Streetlights. Arterials (every 4th street, the mile roads) are denser and warmer;
     // about a third of side streets are mercury vapor.
@@ -121,14 +126,16 @@ const fragmentShader = /* glsl */ `
 
     // The lot the block was lifted from: dark, empty, finely outlined.
     float edge = max(abs(p.x), abs(p.y));
-    if (edge < HOLE) { col = vec3(0.010, 0.012, 0.022); lights *= 0.0; }
+    // Streetlights are off by day and come up through dusk.
+    lights *= mix(0.04, 1.0, smoothstep(0.15, 0.85, uNight));
+    if (edge < HOLE) { col = mix(vec3(0.15, 0.14, 0.13), vec3(0.010, 0.012, 0.022), uNight); lights *= 0.0; }
     float ow = max(0.04, 0.9 * px);
     lights += vec3(1.0, 0.86, 0.66) * exp(-pow(edge - HOLE, 2.0) / (2.0 * ow * ow)) * 1.1 * (0.04 / ow);
     lights += vec3(1.0, 0.7, 0.45) * exp(-pow(edge - HOLE, 2.0) / (2.0 * 0.35 * 0.35)) * 0.06;
 
     // Soft highlight roll-off, like film, then haze with distance.
     col += 1.0 - exp(-lights * 1.4);
-    col = mix(col, HAZE, smoothstep(14.0, 58.0, r) * 0.65);
+    col = mix(col, uHaze, smoothstep(14.0, 58.0, r) * 0.65);
 
     // A hair of dither so the dark gradients don't band.
     col += (hash2(gl_FragCoord.xy) - 0.5) / 255.0;
@@ -138,11 +145,15 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
+const HAZE_DAY = new THREE.Color(0.66, 0.71, 0.76);
+const HAZE_DUSK = new THREE.Color(0.30, 0.22, 0.36);
+const HAZE_NIGHT = new THREE.Color(0.060, 0.072, 0.115);
+
 export default function CityGrid({ paused }) {
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
-        uniforms: { uTime: { value: 0 } },
+        uniforms: { uTime: { value: 0 }, uNight: { value: sky.night }, uHaze: { value: new THREE.Color() } },
         vertexShader,
         fragmentShader,
         transparent: true,
@@ -153,6 +164,11 @@ export default function CityGrid({ paused }) {
 
   useFrame((_, dt) => {
     if (!paused) material.uniforms.uTime.value += dt;
+    const n = sky.night;
+    material.uniforms.uNight.value = n;
+    const haze = material.uniforms.uHaze.value;
+    if (n < 0.5) haze.copy(HAZE_DAY).lerp(HAZE_DUSK, n * 2);
+    else haze.copy(HAZE_DUSK).lerp(HAZE_NIGHT, (n - 0.5) * 2);
   });
 
   return (

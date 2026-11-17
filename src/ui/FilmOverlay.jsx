@@ -12,14 +12,15 @@ const GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
   </svg>`,
 )}")`;
 
-export default function FilmOverlay({ paused }) {
+// Lighter by day: less grain, softer vignette.
+export default function FilmOverlay({ paused, night = 1 }) {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
-        className="film-grain absolute -inset-[10%] opacity-[0.075] mix-blend-overlay"
-        style={{ backgroundImage: GRAIN, animationPlayState: paused ? "paused" : "running" }}
+        className="film-grain absolute -inset-[10%] mix-blend-overlay"
+        style={{ backgroundImage: GRAIN, opacity: 0.045 + 0.03 * night, animationPlayState: paused ? "paused" : "running" }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_52%,rgba(0,0,0,0.5)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_52%,rgba(0,0,0,0.5)_100%)]" style={{ opacity: 0.45 + 0.55 * night }} />
     </div>
   );
 }

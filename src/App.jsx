@@ -7,6 +7,8 @@ import AboutPanel from "./ui/AboutPanel.jsx";
 import PlainPortfolio from "./ui/PlainPortfolio.jsx";
 import { LabelLayer } from "./scene/labels.jsx";
 import FilmOverlay from "./ui/FilmOverlay.jsx";
+import Sky from "./ui/Sky.jsx";
+import { useTimeOfDay } from "./scene/timeOfDay.js";
 
 const Scene = lazy(() => import("./scene/Scene.jsx"));
 
@@ -24,6 +26,7 @@ const PANELS = {
 export default function App() {
   const [open, setOpen] = useState(null);
   const [paused, setPaused] = useState(prefersReducedMotion);
+  const night = useTimeOfDay();
 
   // Opening a link like keenan34.github.io/#projects goes straight to that panel.
   useEffect(() => {
@@ -45,10 +48,11 @@ export default function App() {
   const panel = open && PANELS[open];
   return (
     <div className="relative h-full w-full">
+      <Sky night={night} />
       <Suspense fallback={<Loading />}>
         <Scene view={open} onOpen={setOpen} onClose={() => setOpen(null)} paused={paused} />
       </Suspense>
-      <FilmOverlay paused={paused} />
+      <FilmOverlay paused={paused} night={night} />
       <LabelLayer hidden={!!open} />
       <Hud
         paused={paused}
