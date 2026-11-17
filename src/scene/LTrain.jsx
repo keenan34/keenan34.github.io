@@ -28,11 +28,14 @@ function useHeadsign(text) {
       const g = texture.image.getContext("2d");
       g.fillStyle = "#0b0b0b";
       g.fillRect(0, 0, 256, 48);
-      g.font = "700 34px 'Big Shoulders Display', 'Arial Narrow', sans-serif";
+      g.font = "700 26px Archivo, 'Helvetica Neue', Arial, sans-serif";
       g.textAlign = "center";
-      g.textBaseline = "middle";
+      // Center the capitals by their actual ink, so the space above and below match.
+      g.textBaseline = "alphabetic";
+      const m = g.measureText(text);
+      const y = (48 + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
       g.fillStyle = "#ffb020";
-      g.fillText(text, 128, 26);
+      g.fillText(text, 128, y);
       texture.needsUpdate = true;
     };
     draw();
@@ -83,12 +86,13 @@ function Car({ windows }) {
       ))}
       {/* Destination sign along the roofline, on both sides. */}
       {[1, -1].map((side) => (
-        <mesh key={side} position={[0, 1.25, side * 0.4]} rotation={[0, side > 0 ? 0 : Math.PI, 0]}>
+        <mesh key={side} position={[0, 1.38, side * 0.4]} rotation={[0, side > 0 ? 0 : Math.PI, 0]}>
           <planeGeometry args={[1.6, 0.3]} />
           <meshStandardMaterial map={sign} emissiveMap={sign} emissive="#ffffff" emissiveIntensity={1.2} toneMapped={false} />
         </mesh>
       ))}
-      <mesh position={[0, 1.25, 0]}>
+      {/* Sign housing, sitting on the roof (the body tops out at y 1.2). */}
+      <mesh position={[0, 1.38, 0]}>
         <boxGeometry args={[1.66, 0.34, 0.78]} />
         <meshStandardMaterial color="#1f2937" />
       </mesh>
