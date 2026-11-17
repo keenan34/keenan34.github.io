@@ -56,7 +56,8 @@ export default function Drawer({ title, side = "right", onClose, children }) {
     >
       <span aria-hidden="true" className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-white/20 sm:hidden" />
       <div className="flex items-center justify-between gap-4 border-white/10 px-5 py-2.5 sm:border-b sm:px-6 sm:py-5">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/55 sm:text-lg sm:normal-case sm:tracking-[-0.01em] sm:text-white">{title}</h2>
+        <span aria-hidden="true" className="w-8 sm:hidden" />
+        <h2 className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/55 sm:text-lg sm:normal-case sm:tracking-[-0.01em] sm:text-white">{title}</h2>
         <button
           type="button"
           onClick={onClose}
