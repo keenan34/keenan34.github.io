@@ -2,6 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import { Float, Environment, Lightformer } from "@react-three/drei";
 import { useRef } from "react";
 import CameraRig from "./CameraRig.jsx";
+import CityGrid from "./CityGrid.jsx";
 import Island from "./Island.jsx";
 import Tower from "./Tower.jsx";
 import LTrain from "./LTrain.jsx";
@@ -28,11 +29,9 @@ export default function Scene({ view, onOpen, onClose, paused }) {
       className="!absolute inset-0"
       dpr={[1, 1.5]}
       frameloop={paused ? "demand" : "always"}
-      gl={{ antialias: true }}
+      gl={{ antialias: true, alpha: true }}
       aria-label="An interactive miniature Chicago block. Click the glowing landmarks to explore."
     >
-      <color attach="background" args={["#0b0f19"]} />
-      <fog attach="fog" args={["#0b0f19", 40, 80]} />
       <CameraRig view={view} />
 
       {/* Dusk: cool sky fill, warm low sun from one side, cyan rim from the other. */}
@@ -61,6 +60,8 @@ export default function Scene({ view, onOpen, onClose, paused }) {
           <Streetlamp position={[1.8, 0, 0.6]} />
         </group>
       </Float>
+      {/* The rest of the city, below the block and outside the float. */}
+      <CityGrid paused={paused} />
       <LabelProjector />
 
     </Canvas>

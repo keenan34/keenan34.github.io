@@ -19,6 +19,9 @@
 }
 
 html, body, #root { height: 100%; }
+/* Dusk sky behind the transparent canvas: dark at the edges, a warm haze low and
+   centre where the city below lights it up. */
+#root { background: radial-gradient(120% 90% at 50% 78%, #2a1c2c 0%, #12162a 45%, #070a14 100%); }
 body {
   margin: 0;
   background: var(--color-night);
