@@ -27,7 +27,7 @@ export default function AboutPanel() {
     <div className="space-y-6">
       <div className="flex flex-col items-center text-center">
         <img src={person.photo} alt={person.photoAlt} width="360" height="450"
-          className="h-24 w-24 rounded-full border border-white/15 object-cover object-top" />
+          className="h-24 w-24 rounded-full border border-white/15 object-cover object-top grayscale" />
         <p className="mt-3 text-xl font-bold leading-tight tracking-[-0.015em] text-white sm:text-2xl">{person.name}</p>
         <p className="text-sm text-white/60">{person.role} · {person.city}</p>
       </div>
