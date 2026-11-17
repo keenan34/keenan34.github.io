@@ -54,18 +54,19 @@ export default function Drawer({ title, side = "right", onClose, children }) {
       exit={hidden}
       transition={{ type: "spring", damping: 32, stiffness: 280, opacity: { duration: 0.25 } }}
     >
-      <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-5">
-        <h2 className="text-lg font-semibold tracking-[-0.01em] text-white">{title}</h2>
+      <span aria-hidden="true" className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-white/20 sm:hidden" />
+      <div className="flex items-center justify-between gap-4 border-white/10 px-5 py-2.5 sm:border-b sm:px-6 sm:py-5">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/55 sm:text-lg sm:normal-case sm:tracking-[-0.01em] sm:text-white">{title}</h2>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="grid h-9 w-9 place-items-center rounded-full border border-white/10 text-white/70 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
+          className="grid h-8 w-8 place-items-center sm:h-9 sm:w-9 rounded-full border border-white/10 text-white/70 transition hover:border-white/30 hover:bg-white/5 hover:text-white"
         >
           <X size={17} />
         </button>
       </div>
-      <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-6 py-6">{children}</div>
+      <div className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-6">{children}</div>
     </motion.section>
   );
 }

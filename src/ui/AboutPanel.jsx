@@ -3,12 +3,12 @@ import { person, links, experience, education, skills } from "../data/portfolioD
 
 export default function AboutPanel() {
   return (
-    <div className="space-y-7">
+    <div className="space-y-6 sm:space-y-7">
       <div className="flex items-end gap-4">
         <img src={person.photo} alt={person.photoAlt} width="360" height="450"
-          className="w-24 shrink-0 rounded-lg border border-white/10 object-cover" />
+          className="w-20 shrink-0 sm:w-24 rounded-lg border border-white/10 object-cover" />
         <div>
-          <p className="text-2xl font-bold leading-tight tracking-[-0.015em] text-white">{person.name}</p>
+          <p className="text-xl font-bold leading-tight sm:text-2xl tracking-[-0.015em] text-white">{person.name}</p>
           <p className="text-white/60">{person.role} in {person.city}</p>
         </div>
       </div>
