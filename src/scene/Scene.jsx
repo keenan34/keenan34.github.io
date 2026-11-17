@@ -75,7 +75,7 @@ export default function Scene({ view, onOpen, onClose, paused }) {
 
       <Float speed={paused ? 0 : 1.2} rotationIntensity={0.08} floatIntensity={0.35}>
         <group position={[0, 0, 0]}>
-          <Island />
+          <Island paused={paused} />
           <Tower />
           <ChicagoProps paused={paused} onAbout={() => onOpen("about")} />
           <Bean onOpen={() => onOpen("about")} />

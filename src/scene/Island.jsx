@@ -1,8 +1,9 @@
+import River from "./River.jsx";
 // The floating chunk of city: a soil base, concrete back lot, sidewalk, asphalt
 // street with lane dashes, and a slice of the dyed-green Chicago River in front.
 const W = 12;
 
-export default function Island() {
+export default function Island({ paused }) {
   return (
     <group>
       {/* Soil and bedrock under everything. */}
@@ -37,24 +38,7 @@ export default function Island() {
         </mesh>
       ))}
 
-      {/* River wall and the emerald water, dyed like St. Patrick's Day. Both sit on
-          top of the soil and stop just short of its edges: faces that line up exactly
-          with the soil's flicker (z-fighting). */}
-      <mesh position={[0, 0.05, 4.1]}>
-        <boxGeometry args={[W - 0.02, 0.1, 0.2]} />
-        <meshStandardMaterial color="#9ca3af" roughness={0.8} />
-      </mesh>
-      <mesh position={[0, -0.05, 5.1]}>
-        <boxGeometry args={[W - 0.02, 0.08, 1.78]} />
-        <meshPhysicalMaterial
-          color="#10b981"
-          emissive="#059669"
-          emissiveIntensity={0.6}
-          roughness={0.08}
-          metalness={0.1}
-          clearcoat={1}
-        />
-      </mesh>
+      <River paused={paused} />
     </group>
   );
 }
