@@ -1,4 +1,5 @@
 import { beanPosition, trackZ } from "./riverfront.js";
+import { maxDpr } from "./device.js";
 import { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { CameraControls, CameraControlsImpl } from "@react-three/drei";
@@ -33,8 +34,8 @@ export default function CameraRig({ view }) {
     const controls = ref.current;
     const mobile = matchMedia("(pointer: coarse)").matches || size.width < 640;
     if (!mobile) return;
-    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
-    const moving = () => setDpr(Math.min(fullDpr, 1.5));
+    const fullDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, maxDpr));
+    const moving = () => setDpr(Math.min(fullDpr, 1.25));
     const settled = () => setDpr(fullDpr);
     controls.addEventListener("transitionstart", moving);
     controls.addEventListener("controlstart", moving);

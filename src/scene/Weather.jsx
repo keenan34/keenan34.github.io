@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { sky } from "./timeOfDay.js";
+import { mobile } from "./device.js";
 
 // Gentle Chicago weather around the block: snow December–March, light rain otherwise.
 // `?weather=snow|rain|none` forces it. Kept sparse and small so it never competes with
@@ -30,7 +31,7 @@ function softDot() {
 const rand = (a, b) => a + Math.random() * (b - a);
 
 function Snow({ paused }) {
-  const N = 1200;
+  const N = mobile ? 500 : 1200;
   const { geometry, material, phase, speed } = useMemo(() => {
     const pos = new Float32Array(N * 3);
     const phase = new Float32Array(N), speed = new Float32Array(N);
@@ -69,7 +70,7 @@ function Snow({ paused }) {
 }
 
 function Rain({ paused }) {
-  const N = 900, LEN = 0.55, WIND = -0.12;
+  const N = mobile ? 400 : 900, LEN = 0.55, WIND = -0.12;
   const { geometry, material, speed } = useMemo(() => {
     const pos = new Float32Array(N * 6);
     const speed = new Float32Array(N);

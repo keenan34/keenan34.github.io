@@ -5,6 +5,7 @@ import CameraRig from "./CameraRig.jsx";
 import RiverfrontBlocks from "./RiverfrontBlocks.jsx";
 import Weather from "./Weather.jsx";
 import SkyWorld from "./SkyWorld.jsx";
+import { maxDpr, mobile } from "./device.js";
 import CityGrid from "./CityGrid.jsx";
 import DistantSkyline from "./DistantSkyline.jsx";
 
@@ -50,16 +51,16 @@ export default function Scene({ view, onOpen, onClose, paused }) {
   return (
     <Canvas
       // Orthographic from the first frame, so the camera controls bind to this camera.
-      shadows
+      shadows={!mobile}
       orthographic
       camera={{ position: [20, 18, 20], zoom: 35, near: 0.1, far: 400 }}
       onPointerDown={(e) => (down.current = [e.clientX, e.clientY])}
       onPointerMissed={missed}
       className="!absolute inset-0"
       // Match Retina phone displays so fine geometry isn't enlarged from a low-res buffer.
-      dpr={[1, 3]}
+      dpr={[1, maxDpr]}
       frameloop={paused ? "demand" : "always"}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: !mobile, alpha: true, powerPreference: "high-performance" }}
       aria-label="An interactive Chicago riverfront. Click the glowing landmarks to explore."
     >
       <CameraRig view={view} />
