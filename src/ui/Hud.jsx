@@ -6,7 +6,7 @@ import { DRAWER_WIDTH } from "./Drawer.jsx";
 // Compact transit-sign controls sit beside the editorial title.
 const plate = "bg-sign text-sign-ink rounded-[3px] ring-1 ring-white/10 shadow-lg shadow-black/40";
 
-export default function Hud({ paused, onTogglePause, onOpen, section, onBack, night }) {
+export default function Hud({ paused, onTogglePause, section, onBack, night }) {
   // Center the Back sign in the open part of the screen, beside the drawer.
   const backLeft =
     section === "left" ? `calc(50% + ${DRAWER_WIDTH / 2}px)` : section === "right" ? `calc(50% - ${DRAWER_WIDTH / 2}px)` : "50%";
@@ -17,10 +17,6 @@ export default function Hud({ paused, onTogglePause, onOpen, section, onBack, ni
         <p className="river-location"><span aria-hidden="true" />{person.city}, Illinois</p>
         <h1>{person.name}</h1>
         <p className="river-role">{person.role}</p>
-        <nav aria-label="Sections" className="river-nav">
-          <button onClick={() => onOpen("projects")}>Projects <span aria-hidden="true">&#8599;</span></button>
-          <button onClick={() => onOpen("about")}>About <span aria-hidden="true">&#8599;</span></button>
-        </nav>
       </header>
 
       <button

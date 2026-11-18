@@ -58,7 +58,6 @@ export default function App() {
         night={night}
         paused={paused}
         onTogglePause={() => setPaused((p) => !p)}
-        onOpen={setOpen}
         section={panel && panel.side}
         onBack={() => setOpen(null)}
       />

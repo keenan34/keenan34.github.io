@@ -61,16 +61,12 @@ body {
 .river-location span { width: 1.65rem; height: 1px; background: currentColor; opacity: .68; }
 .river-title h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(3rem, 6.3vw, 7.5rem); line-height: .99; letter-spacing: -.065em; margin: 1.1rem 0 .85rem; }
 .river-role { font-size: clamp(.98rem, 1.35vw, 1.4rem); letter-spacing: .015em; }
-.river-nav { display: flex; gap: 1.55rem; margin-top: 1.35rem; }
-.river-nav button { pointer-events: auto; cursor: pointer; min-height: 44px; border-bottom: 1px solid currentColor; font-size: .9rem; }
-.river-nav button span { margin-left: .3rem; }
 .river-hint { position: absolute; left: 50%; bottom: max(1.25rem, env(safe-area-inset-bottom)); transform: translateX(-50%); color: #fff; background: #16232cda; padding: .42rem 1rem; border-radius: 2rem; font-size: .72rem; pointer-events: none; }
 .landmark-label { cursor: pointer; }
 .landmark-label::after { content: ""; position: absolute; inset: -10px -3px; }
 @media (max-width: 850px) {
   .river-title { top: max(1.65rem,env(safe-area-inset-top)); left: 1.5rem; transform: none; }
   .river-title h1 { font-size: clamp(2.6rem,8vw,4.25rem); margin: .65rem 0 .35rem; }
-  .river-nav { margin-top: .24rem; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
   .river-title { top: 1.2rem; transform: none; }
