@@ -125,7 +125,8 @@ const fragmentShader = /* glsl */ `
     lights += traffic(p.x, latZ, nz + 101.0, px) * smoothstep(1.0, 0.5, dZ);
 
     // The lot the block was lifted from: dark, empty, finely outlined.
-    float edge = max(abs(p.x), abs(p.y));
+    // Sized to the block's footprint (16.6 by 21.2, centred 2 units toward the front).
+    float edge = max(abs(p.x) - 2.4, abs(p.y - 2.) - 4.7);
     // Streetlights are off by day and come up through dusk.
     lights *= mix(0.04, 1.0, smoothstep(0.15, 0.85, uNight));
     if (edge < HOLE) { col = mix(vec3(0.15, 0.14, 0.13), vec3(0.010, 0.012, 0.022), uNight); lights *= 0.0; }

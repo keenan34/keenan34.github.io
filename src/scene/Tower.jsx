@@ -107,7 +107,7 @@ export default function Tower() {
           const h = floors * FLOOR;
           return (
             <group key={`${r}${c}`} position={[(c - 1) * T, 0, (r - 1) * T]}>
-              <mesh position={[0, h / 2, 0]} material={materials[r][c]}>
+              <mesh castShadow position={[0, h / 2, 0]} material={materials[r][c]}>
                 <boxGeometry args={[T, h, T]} />
               </mesh>
               {/* Dark mechanical band at each setback. */}

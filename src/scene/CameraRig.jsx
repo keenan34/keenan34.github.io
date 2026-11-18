@@ -1,3 +1,4 @@
+import { beanPosition, trackZ } from "./riverfront.js";
 import { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { CameraControls, CameraControlsImpl } from "@react-three/drei";
@@ -9,17 +10,16 @@ const { ACTION } = CameraControlsImpl;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const VIEWS = {
-  overview: { target: [0, 3.6, 0], dir: [20, 14.4, 20], zoomK: 1, shift: [0, 0], phoneShift: [0, 0] },
+  overview: { target: [0.55, 4.32, 2.4], dir: [9, 11, 23], zoomK: 1, shift: [-0.16, 0], phoneShift: [0, 0.025] },
   // The 'L' train and Wellington station, seen low and side-on; drawer opens on the left.
-  projects: { target: [-2.4, 4.4, 2.0], dir: [0.35, 0.45, 1], zoomK: 2.2, shift: [-0.2, 0], phoneShift: [0, 0.22] },
+  projects: { target: [-2.6, 4.6, trackZ(-2.6)], dir: [0.35, 0.45, 1], zoomK: 2.2, shift: [-0.2, 0], phoneShift: [0, 0.22] },
   // The Bean, the Divvy dock and the flag; drawer opens on the right.
-  about: { target: [4.3, 1.1, -2.7], dir: [1, 0.55, 0.45], zoomK: 2.4, shift: [0.2, 0], phoneShift: [0, 0.3] },
+  about: { target: [beanPosition[0], 1, beanPosition[2]], dir: [0.36, 0.35, 1], zoomK: 2.4, shift: [0.2, 0], phoneShift: [0, 0.3] },
 };
 
 // The block is 12 units across and the tower about 11.5 tall; fit both on screen.
 function overviewZoom({ width, height }) {
-  const across = width < 640 ? 14 : 25;
-  return Math.max(16, Math.min(width, height * 1.2) / across);
+  return Math.min(width / (width < 640 ? 20 : 29), height / 20);
 }
 
 export default function CameraRig({ view }) {
@@ -74,7 +74,8 @@ export default function CameraRig({ view }) {
     c.enabled = !view;
     c.setLookAt(tx + (v.dir[0] / len) * D, ty + (v.dir[1] / len) * D, tz + (v.dir[2] / len) * D, tx, ty, tz, animate);
     c.zoomTo(zoom, animate);
-    const [fx, fy] = phone ? v.phoneShift : v.shift;
+    let [fx, fy] = phone ? v.phoneShift : v.shift;
+    if (view && !phone) fx = Math.sign(fx) * Math.min(260, size.width / 3) / size.width;
     c.setFocalOffset((fx * size.width) / zoom, (fy * size.height) / zoom, 0, animate);
   }, [view, size]);
 
@@ -86,7 +87,7 @@ export default function CameraRig({ view }) {
       maxPolarAngle={Math.PI / 2.5}
       minAzimuthAngle={-Math.PI / 12}
       maxAzimuthAngle={Math.PI / 2 + Math.PI / 12}
-      minZoom={14}
+      minZoom={Math.min(14, overviewZoom(size))}
       maxZoom={160}
       draggingSmoothTime={0.12}
     />

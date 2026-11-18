@@ -1,54 +1,55 @@
-import { useRef } from "react";
+﻿import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import RiverBridge from "./RiverBridge.jsx";
+import * as THREE from "three";
+import { farBank, nearBank, lamps, ribbon } from "./riverfront.js";
 
-// The channel occupies z=4.25..5.55, between the train street and grassy bank.
-export default function River({ paused }) {
-  const water = useRef();
-  const time = useRef(0);
-  useFrame((_, delta) => {
-    if (paused || !water.current) return;
-    time.current += Math.min(delta, 0.05);
-    const positions = water.current.attributes.position;
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i), y = positions.getY(i);
-      positions.setZ(i, 0.012 * Math.sin(x * 3.5 + time.current * 0.8) +
-        0.008 * Math.cos(y * 9 + x * 1.4 - time.current * 0.6));
+const vertexShader = `
+  varying vec3 world;
+  void main() {
+    world = (modelMatrix * vec4(position, 1.)).xyz;
+    gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.);
+  }
+`;
+const fragmentShader = `
+  uniform float time, night;
+  uniform vec2 lamps[5];
+  varying vec3 world;
+  void main() {
+    vec2 p = world.xz;
+    float drift = sin(p.x * 2.1 + p.y * 1.4 + time * .3);
+    float wave = sin(p.y * 32. + drift * 3. + time) + 0.5 * sin(p.x * 3. - p.y * 41. - time * .8)
+               + 0.6 * sin(p.x * 9. + time * 1.6);
+    vec3 water = mix(vec3(.026,.23,.17), vec3(.004,.071,.052), night);
+    water += vec3(.006,.018,.013) * (0.5 + 0.5 * sin(p.y * 11. + wave));
+    vec2 sight = normalize(vec2(viewMatrix[0][2], viewMatrix[2][2]));
+    for (int i = 0; i < 5; i++) {
+      vec2 d = p - lamps[i];
+      float along = dot(d, sight);
+      float crosswise = abs(dot(d, vec2(-sight.y,sight.x)) + .09 * wave);
+      float shaft = exp(-crosswise * (7. - min(abs(along),3.))) * exp(-abs(along)*.8);
+      float ripple = smoothstep(-.2,1.1,wave);
+      water += vec3(1.0,.65,.26) * shaft * ripple * (.08 + 2.8 * night);
     }
-    positions.needsUpdate = true;
-    water.current.computeVertexNormals();
+    // White water where it wells in under the lock.
+    float foam = smoothstep(7.2, 7.9, p.x);
+    water = mix(water, vec3(.85,.92,.9) * (1. - .45 * night), foam * smoothstep(-.3, 1.2, wave) * .7);
+    gl_FragColor = vec4(water, 1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+export default function River({ paused, night }) {
+  const material = useRef();
+  const geometry = useMemo(() => ribbon(-8.3, 8.3, farBank, nearBank, -0.36, 0.015), []);
+  const uniforms = useMemo(() => ({
+    time: { value: 0 }, night: { value: night },
+    lamps: { value: lamps.map(([x,z]) => new THREE.Vector2(x,z)) },
+  }), []);
+  useFrame((_, dt) => {
+    material.current.uniforms.night.value = night;
+    if (!paused) material.current.uniforms.time.value += Math.min(dt, 0.06);
   });
-  return (
-    <group>
-      <RiverBridge x={-3.5} />
-      <RiverBridge x={3.5} />
-      <mesh position={[0, -0.045, 4.9]} rotation-x={-Math.PI / 2}>
-        <planeGeometry ref={water} args={[11.96, 1.3, 64, 12]} />
-        <meshStandardMaterial color="#07966c" roughness={0.24} metalness={0.35}
-          emissive="#03543d" emissiveIntensity={0.12} />
-      </mesh>
-      {[4.15, 5.65].map((z) => (
-        <group key={z}>
-          <mesh position={[0, 0.025, z]}>
-            <boxGeometry args={[11.98, 0.25, 0.2]} />
-            <meshStandardMaterial color="#788684" roughness={0.85} />
-          </mesh>
-          <mesh position={[0, 0.165, z]}>
-            <boxGeometry args={[11.98, 0.06, 0.26]} />
-            <meshStandardMaterial color="#b3b7aa" roughness={0.8} />
-          </mesh>
-          {Array.from({ length: 15 }, (_, i) => (
-            <mesh key={i} position={[-5.6 + i * 0.8, 0.198, z]}>
-              <boxGeometry args={[0.012, 0.003, 0.26]} />
-              <meshStandardMaterial color="#6f7973" />
-            </mesh>
-          ))}
-        </group>
-      ))}
-      <mesh position={[0, 0.025, 5.9]}>
-        <boxGeometry args={[11.98, 0.25, 0.18]} />
-        <meshStandardMaterial color="#527448" roughness={1} />
-      </mesh>
-    </group>
-  );
+  return <mesh geometry={geometry}><shaderMaterial ref={material} uniforms={uniforms}
+    vertexShader={vertexShader} fragmentShader={fragmentShader} transparent depthWrite={false} /></mesh>;
 }

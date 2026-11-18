@@ -11,9 +11,9 @@ function Beam({ from, to, thickness = 0.045 }) {
 }
 
 // A miniature double-leaf Chicago bascule bridge, shown closed for street traffic.
-export default function RiverBridge({ x }) {
+export default function RiverBridge() {
   return (
-    <group position={[x, 0, 4.9]}>
+    <group>
       {[-1, 1].map((side) => (
         <group key={side}>
           <mesh position={[0, 0.25, side * 0.48]}>

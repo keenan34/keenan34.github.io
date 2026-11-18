@@ -256,12 +256,12 @@ function DivvyDock({ position }) {
 export default function ChicagoProps({ paused, onAbout }) {
   return (
     <group>
-      <Hancock position={[-4.8, 0.1, -2.1]} />
-      <Flag position={[5.4, 0.22, -4.6]} draw={drawChicago} paused={paused} onOpen={onAbout} />
+      <Hancock position={[4.55, 0.1, -5.2]} />
+      <Flag position={[5.5, 0.13, 10.8]} draw={drawChicago} paused={paused} onOpen={onAbout} />
       {/* Flying beside the city flag, a little lower. */}
-      <Flag position={[4.2, 0.22, -4.75]} draw={drawBears} logo="./bears-logo.webp" scale={0.85} paused={paused} />
+      <Flag position={[6.6, 0.13, 11.5]} draw={drawBears} logo="./bears-logo.webp" scale={0.85} paused={paused} />
       <HotDogCart position={[-2.2, 0.16, -0.25]} />
-      <DivvyDock position={[3.8, 0.16, -0.3]} />
+      <DivvyDock position={[2.1, 0.13, 8.5]} />
     </group>
   );
 }

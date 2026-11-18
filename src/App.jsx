@@ -53,8 +53,9 @@ export default function App() {
         <Scene view={open} onOpen={setOpen} onClose={() => setOpen(null)} paused={paused} />
       </Suspense>
       <FilmOverlay paused={paused} night={night} />
-      <LabelLayer hidden={!!open} />
+      <LabelLayer hidden={!!open} onOpen={setOpen} />
       <Hud
+        night={night}
         paused={paused}
         onTogglePause={() => setPaused((p) => !p)}
         onOpen={setOpen}
@@ -75,7 +76,7 @@ export default function App() {
 function Loading() {
   return (
     <div className="grid h-full place-items-center text-sm text-white/50">
-      Building the block…
+      Loading the riverfront…
     </div>
   );
 }

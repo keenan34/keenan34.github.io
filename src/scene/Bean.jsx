@@ -1,3 +1,5 @@
+import { CubeCamera } from "@react-three/drei";
+import { beanPosition } from "./riverfront.js";
 import { useMemo } from "react";
 import * as THREE from "three";
 import Hotspot from "./Hotspot.jsx";
@@ -14,9 +16,10 @@ function useBeanGeometry() {
       // Kidney-ish footprint: wider in x, a little pinched in the middle.
       v.x *= 1.55;
       v.z *= 0.95 - 0.12 * Math.exp(-(v.x * v.x) * 1.2);
-      v.y *= 0.72;
+      const underside = Math.max(0, -v.y);
+      v.y *= 0.85;
       // Push the underside up into an arch near the middle.
-      if (v.y < 0) v.y *= 1 - 0.75 * Math.exp(-(v.x * v.x) * 1.4);
+      v.y += 1.22 * underside ** 2 * Math.exp(-(v.x ** 2) * 2.6);
       p.setXYZ(i, v.x, v.y, v.z);
     }
     g.computeVertexNormals();
@@ -24,17 +27,21 @@ function useBeanGeometry() {
   }, []);
 }
 
-export default function Bean({ onOpen }) {
+export default function Bean({ onOpen, night }) {
   const geometry = useBeanGeometry();
+  const reflectionSky = useMemo(() => new THREE.Color(), []);
+  reflectionSky.setRGB(0.6 - night * 0.43, 0.74 - night * 0.51, 0.84 - night * 0.48);
   return (
-    <Hotspot id="about" labelOffset={[0, 2.6, 0]} onOpen={onOpen} position={[3.6, 0.1, -3.2]}>
-      <mesh position={[0, 0.06, 0]}>
-        <boxGeometry args={[4, 0.12, 3.4]} />
-        <meshStandardMaterial color="#4b5563" roughness={0.6} />
+    <Hotspot id="about" labelOffset={[0, 2.6, 0]} onOpen={onOpen} position={beanPosition}>
+      <mesh receiveShadow position={[0, 0.055, 0]}>
+        <cylinderGeometry args={[1.82, 1.88, 0.12, 48]} />
+        <meshStandardMaterial color="#928d80" roughness={0.6} />
       </mesh>
-      <mesh geometry={geometry} position={[0, 0.82, 0]}>
-        <meshStandardMaterial color="#f1f5f9" metalness={1} roughness={0.05} envMapIntensity={3} />
-      </mesh>
+      <CubeCamera frames={1} resolution={128} position={[0, 0.74, 0]} envMap={reflectionSky}>
+        {reflection => <mesh geometry={geometry} castShadow>
+          <meshStandardMaterial color="#f1f5f9" metalness={1} roughness={0.075} envMap={reflection} envMapIntensity={1.3} />
+        </mesh>}
+      </CubeCamera>
     </Hotspot>
   );
 }

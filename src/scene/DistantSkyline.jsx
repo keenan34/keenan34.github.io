@@ -38,7 +38,8 @@ const fragmentShader = /* glsl */ `
     // (The camera is orthographic, so distance can only read through haze.)
     float haze = 0.35 + smoothstep(-4.0, 12.0, vWorld.y) * 0.4;
     // Bases dissolve into the city haze, so they rise out of it with no hard edge.
-    float alpha = smoothstep(-8.5, -1.0, vWorld.y) * 0.9;
+    // By day they would crowd the sky as gray slabs, so they only come up toward dusk.
+    float alpha = smoothstep(-8.5, -1.0, vWorld.y) * 0.9 * smoothstep(0.25, 0.75, uNight);
     gl_FragColor = vec4(mix(body, uHaze, haze), alpha);
   }
 `;

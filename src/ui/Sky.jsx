@@ -1,14 +1,14 @@
 import { phaseWeights } from "../scene/timeOfDay.js";
 
-// The sky behind the transparent canvas: three looks that cross-fade with the time
+// The flat sky behind the canvas, seen while the 3D sky loads or without WebGL: three looks that cross-fade with the time
 // of day (CSS gradients can't transition, their layers' opacity can).
 //  - Day: crisp overcast Chicago, gray-blue with soft clouds drifting by.
 //  - Dusk: deep blue overhead through violet to an orange horizon glow.
 //  - Night: blue-black film tones with a faint warm light-pollution glow.
 const LAYERS = {
-  day: "linear-gradient(180deg, #7f93a8 0%, #a9b7c5 45%, #cdd5dc 100%)",
-  dusk: "linear-gradient(180deg, #16204a 0%, #3b2d63 32%, #8a4a76 58%, #e07a4f 84%, #f3a65e 100%)",
-  night: "radial-gradient(125% 95% at 50% 80%, #2b1f22 0%, #141a2b 38%, #0d1424 60%, #05070d 100%)",
+  day: "radial-gradient(ellipse at 73% 52%, #f3e6cc, #b6c6c7 50%, #9bafb9 100%)",
+  dusk: "radial-gradient(ellipse at 74% 58%, #6d6661, #293746 46%, #142231 78%, #101a28)",
+  night: "radial-gradient(ellipse at 72% 55%, #283139, #101e2c 48%, #091321 78%, #070f1a)",
 };
 
 export default function Sky({ night }) {
@@ -18,8 +18,6 @@ export default function Sky({ night }) {
       {Object.entries(LAYERS).map(([key, bg]) => (
         <div key={key} className="absolute inset-0 transition-opacity duration-[2000ms]" style={{ background: bg, opacity: w[key] }} />
       ))}
-      {/* Overcast cloud banks, only by day. */}
-      <div className="sky-clouds absolute -inset-x-1/2 top-0 h-3/5 blur-2xl transition-opacity duration-[2000ms]" style={{ opacity: w.day * 0.55 }} />
     </div>
   );
 }

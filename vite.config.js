@@ -10,13 +10,4 @@ export default defineConfig({
     // The raw video renders live under assets/ and are gitignored; keep Vite away from them.
     watch: { ignored: ["**/assets/**"] },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("three") || id.includes("@react-three") || id.includes("postprocessing")) return "three";
-        },
-      },
-    },
-  },
 });

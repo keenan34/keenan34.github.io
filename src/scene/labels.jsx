@@ -1,10 +1,7 @@
-import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
-
 // Floating landmark labels as plain DOM, positioned every frame from a 3D anchor.
 // (drei's <Html> loses a label to a mount race under React 19, so this replaces it.)
-const anchors = new Map();   // id -> Object3D inside the scene
-const elements = new Map();  // id -> label <span> in the page
+export const anchors = new Map();   // id -> Object3D inside the scene
+export const elements = new Map();  // id -> label <span> in the page
 
 export const registerAnchor = (id) => (obj) => (obj ? anchors.set(id, obj) : anchors.delete(id));
 export const setHover = (id, on) => { const el = elements.get(id); if (el) el.dataset.hover = on ? "1" : "0"; };
@@ -16,37 +13,20 @@ const LABELS = [
 ];
 
 // Lives outside the <Canvas>, on top of it.
-export function LabelLayer({ hidden }) {
+export function LabelLayer({ hidden, onOpen }) {
   return (
-    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"}`}>
+    <div aria-hidden="true" inert={hidden} className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"}`}>
       {LABELS.map(([id, text, marker]) => (
-        <span
+        <button type="button" tabIndex={-1} onClick={() => onOpen(id)}
           key={id}
           ref={(el) => (el ? elements.set(id, el) : elements.delete(id))}
           data-hover="0"
-          className="absolute left-0 top-0 flex items-center gap-2 whitespace-nowrap rounded-[3px] bg-sign py-1 pl-2 pr-2.5 text-[0.8rem] font-semibold text-sign-ink opacity-0 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-colors data-[hover=1]:bg-sign-ink data-[hover=1]:text-sign"
+          className="landmark-label pointer-events-auto absolute left-0 top-0 flex items-center gap-2 whitespace-nowrap rounded-[3px] bg-sign py-1 pl-2 pr-2.5 text-[0.8rem] font-semibold text-sign-ink opacity-0 shadow-lg shadow-black/40 ring-1 ring-white/10 transition-colors data-[hover=1]:bg-sign-ink data-[hover=1]:text-sign"
         >
           <span className={`h-2.5 w-2.5 rounded-[2px] ${marker}`} />
           {text}
-        </span>
+        </button>
       ))}
     </div>
   );
-}
-
-// Lives inside the <Canvas>: projects each anchor to screen space every frame.
-const v = new THREE.Vector3();
-export function LabelProjector() {
-  useFrame(({ camera, size }) => {
-    for (const [id, obj] of anchors) {
-      const el = elements.get(id);
-      if (!el) continue;
-      v.setFromMatrixPosition(obj.matrixWorld).project(camera);
-      const x = (v.x + 1) / 2 * size.width;
-      const y = (1 - v.y) / 2 * size.height;
-      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
-      el.style.opacity = "1";
-    }
-  });
-  return null;
 }
